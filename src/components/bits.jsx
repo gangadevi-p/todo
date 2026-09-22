@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 import { modKey } from '../lib/util';
 
-/** Rounded-square checkbox. `state` is todo | in_progress | done. */
+/** Rounded-square checkbox. `state` is todo | done. */
 export function Checkbox({ state = 'todo', onToggle, size = 'md', title }) {
   return (
     <button
@@ -45,6 +45,27 @@ export function PriorityIcon({ level, size = 14 }) {
 
 export function ProjectDot({ color, size = 8 }) {
   return <span className="project-dot" style={{ background: color, width: size, height: size }} />;
+}
+
+/** Small ring showing a project's overall completion, in its own color. */
+export function ProjectRing({ color, progress = 0, size = 16 }) {
+  const r = (size - 3) / 2;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg className="project-ring" width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+      <circle cx={size / 2} cy={size / 2} r={r} className="ring-track" />
+      <circle
+        cx={size / 2} cy={size / 2} r={r}
+        stroke={color}
+        strokeWidth="2.5"
+        fill="none"
+        strokeLinecap="round"
+        strokeDasharray={c}
+        strokeDashoffset={c * (1 - progress)}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+      />
+    </svg>
+  );
 }
 
 /** Renders a shortcut like "mod+K" as platform-aware key caps. */

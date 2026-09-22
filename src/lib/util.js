@@ -7,7 +7,6 @@ export const PROJECT_COLORS = ['#4f7fd9', '#9467c2', '#3f9468', '#d9822b', '#c95
 
 export const STATUSES = [
   { id: 'todo', label: 'Todo' },
-  { id: 'in_progress', label: 'In Progress' },
   { id: 'done', label: 'Done' },
 ];
 

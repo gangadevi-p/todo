@@ -1,13 +1,14 @@
 import {
-  ArrowRight, CalendarArrowUp, CalendarDays, CalendarX, Copy, Inbox, Minus, PanelRightOpen, RotateCcw, Check, Sun, SunDim, Sunrise, Trash2, CircleDashed,
+  ArrowRight, CalendarArrowUp, CalendarDays, CalendarX, Copy, Inbox, ListChecks, ListTree, Minus, PanelRightOpen, RotateCcw, Check, Sun, SunDim, Sunrise, Trash2, CircleDashed,
 } from 'lucide-react';
 import {
-  data, deleteTask, duplicateTask, openMenu, selectTask, toggleComplete, toggleToday, updateTask,
+  addSubtask, data, deleteTask, duplicateTask, openMenu, selectTask, setChildTasksOpen, toggleComplete, toggleToday, updateTask,
 } from '../store';
 import { STATUSES, PRIORITIES } from '../lib/util';
 import { addDays, nextWeekday, todayKey } from '../lib/dates';
 import { PriorityIcon, ProjectDot, StatusIcon } from './bits';
 import { DatePicker } from './DatePicker';
+import { focusSubtask } from './Subtasks';
 
 export function openDatePicker(task, anchor) {
   openMenu({
@@ -74,6 +75,9 @@ export function taskMenuItems(task) {
     { label: 'Priority', icon: <PriorityIcon level="neutral" />, submenu: priorityItems(task) },
     { label: 'Due date', icon: CalendarDays, submenu: dueItems(task) },
     { label: 'Move to', icon: ArrowRight, submenu: projectItems(task) },
+    { divider: true },
+    { label: 'Add subtask', icon: ListChecks, onSelect: () => focusSubtask(addSubtask(task.id, '')) },
+    { label: 'Add sub-task', icon: ListTree, onSelect: () => setChildTasksOpen(task.id, true) },
     { divider: true },
     { label: 'Duplicate', icon: Copy, shortcut: 'mod+D', onSelect: () => { const id = duplicateTask(task.id); if (id) selectTask(id, false); } },
     { label: 'Delete', icon: Trash2, shortcut: 'Del', danger: true, onSelect: () => deleteTask(task.id) },

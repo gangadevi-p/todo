@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { CalendarDays, CircleCheck, Columns3, Inbox, Layers, List, PanelLeftOpen, Plus, Sun, Trash2 } from 'lucide-react';
-import { confirmDeleteTasks, openNewTask, renameProject, setPref, setProjectMode, setSectionMode, useUI } from '../store';
+import { Check, CalendarDays, CheckSquare, CircleCheck, Columns3, Inbox, Layers, List, PanelLeftOpen, Plus, Sun, Trash2, X } from 'lucide-react';
+import {
+  confirmDeleteSelection, confirmDeleteTasks, markSelectionDone, openNewTask, parseSelectionKey, renameProject, setPref, setProjectMode,
+  setSectionMode, setSelecting, useUI,
+} from '../store';
 import { Board } from './Board';
 import { Kbd, ProjectDot } from './bits';
 import { SectionStats } from './SectionStats';
@@ -64,6 +67,8 @@ export function MainView({ model, sidebarCollapsed }) {
   const newTask = () => openNewTask(model.newTaskDefaults);
   const isBoard = model.mode === 'board';
   const setMode = (mode) => (model.project ? setProjectMode(model.project.id, mode) : setSectionMode(model.id, mode));
+  const selecting = useUI((u) => u.selecting);
+  const selected = useUI((u) => u.selected);
 
   return (
     <main className="main">
@@ -78,38 +83,74 @@ export function MainView({ model, sidebarCollapsed }) {
           <span>{model.title}</span>
         </div>
         <div className="topbar-actions no-drag">
-          <div className="segmented" role="tablist" aria-label="Layout">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={!isBoard}
-              className={!isBoard ? 'on' : ''}
-              onClick={() => setMode('list')}
-            >
-              <List size={14} strokeWidth={1.9} /> List
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={isBoard}
-              className={isBoard ? 'on' : ''}
-              onClick={() => setMode('board')}
-            >
-              <Columns3 size={14} strokeWidth={1.9} /> Board
-            </button>
-          </div>
-          <button
-            type="button"
-            className="btn btn-danger-ghost"
-            disabled={model.taskIds.length === 0}
-            title={`Delete every task on this page`}
-            onClick={() => confirmDeleteTasks(model.taskIds, model.deleteScope, model.deleteNote)}
-          >
-            <Trash2 size={14} strokeWidth={1.9} /> Delete all
-          </button>
-          <button type="button" className="btn btn-primary" onClick={newTask} title="New task (N)">
-            <Plus size={15} strokeWidth={2.2} /> New Task
-          </button>
+          {selecting ? (
+            <>
+              <span className="select-count">{selected.size ? `${selected.size} selected` : 'Select tasks or subtasks'}</span>
+              <button
+                type="button"
+                className="btn"
+                disabled={selected.size === 0}
+                onClick={() => markSelectionDone([...selected].map(parseSelectionKey))}
+              >
+                <Check size={14} strokeWidth={2} /> Mark done
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger-ghost"
+                disabled={selected.size === 0}
+                onClick={() => confirmDeleteSelection([...selected])}
+              >
+                <Trash2 size={14} strokeWidth={1.9} /> Delete
+              </button>
+              <button type="button" className="btn" onClick={() => setSelecting(false)}>
+                <X size={14} strokeWidth={2} /> Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="segmented" role="tablist" aria-label="Layout">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={!isBoard}
+                  className={!isBoard ? 'on' : ''}
+                  onClick={() => setMode('list')}
+                >
+                  <List size={14} strokeWidth={1.9} /> List
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={isBoard}
+                  className={isBoard ? 'on' : ''}
+                  onClick={() => setMode('board')}
+                >
+                  <Columns3 size={14} strokeWidth={1.9} /> Board
+                </button>
+              </div>
+              <button
+                type="button"
+                className="btn"
+                disabled={model.taskIds.length === 0}
+                title="Pick tasks and subtasks to mark done or delete together"
+                onClick={() => setSelecting(true)}
+              >
+                <CheckSquare size={14} strokeWidth={1.9} /> Select
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger-ghost"
+                disabled={model.taskIds.length === 0}
+                title={`Delete every task on this page`}
+                onClick={() => confirmDeleteTasks(model.taskIds, model.deleteScope, model.deleteNote)}
+              >
+                <Trash2 size={14} strokeWidth={1.9} /> Delete all
+              </button>
+              <button type="button" className="btn btn-primary" onClick={newTask} title="New task (N)">
+                <Plus size={15} strokeWidth={2.2} /> New Task
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -118,12 +159,14 @@ export function MainView({ model, sidebarCollapsed }) {
           <header className="page-head">
             <div className="page-icon"><ViewIcon model={model} size={20} /></div>
             {model.project ? <ProjectTitle key={model.project.id} project={model.project} /> : <h1 className="page-title">{model.title}</h1>}
-            <p className="page-sub">
-              {model.subtitle}
-              {model.kind === 'inbox' && model.total === 0 && (
-                <span className="page-hint"> · Quick add <Kbd keys="mod+N" /></span>
-              )}
-            </p>
+            {(model.subtitle || (model.kind === 'inbox' && model.total === 0)) && (
+              <p className="page-sub">
+                {model.subtitle}
+                {model.kind === 'inbox' && model.total === 0 && (
+                  <span className="page-hint"> · Quick add <Kbd keys="mod+N" /></span>
+                )}
+              </p>
+            )}
           </header>
           <SectionStats stats={model.stats} />
           {isBoard ? <Board model={model} /> : <TaskList model={model} />}

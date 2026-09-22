@@ -29,8 +29,6 @@ export function withDropLine(tasks, draggingId, index, render) {
 export function TaskList({ model }) {
   const { target, handlers } = useTaskDrop();
   const projectsById = useProjectsById();
-  const selectedId = useUI((u) => u.selectedId);
-  const lingering = useUI((u) => u.lingering);
   const draggingId = useUI((u) => u.draggingId);
   const today = useToday();
   const singleGroup = model.groups.length === 1 && !model.groups[0].title;
@@ -86,9 +84,9 @@ export function TaskList({ model }) {
                     project={projectsById.get(t.projectId)}
                     show={model.show}
                     today={today}
-                    selected={t.id === selectedId}
-                    completing={t.id in lingering && t.status === 'done'}
                     draggable={Boolean(g.patch)}
+                    depth={0}
+                    projectsById={projectsById}
                   />
                 ))}
                 {g.tasks.length === 0 && (

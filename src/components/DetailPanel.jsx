@@ -1,10 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
-  CalendarDays, CircleDashed, Copy, Ellipsis, FolderClosed, Inbox, Plus, Sun, Trash2, X,
+  CalendarDays, CircleDashed, Copy, Ellipsis, FolderClosed, Inbox, Sun, Trash2, X,
 } from 'lucide-react';
 import {
-  closePanel, deleteTask, duplicateTask, openMenu, openNewSubtask, removeSubtask, selectTask, toggleComplete,
-  updateSubtask, updateTask, useData, useUI,
+  closePanel, deleteTask, duplicateTask, openMenu, selectTask, toggleComplete, updateTask, useData, useUI,
 } from '../store';
 import { dueLabel, dueLabelLong, formatTimestamp } from '../lib/dates';
 import { priorityLabel, statusLabel } from '../lib/util';
@@ -12,6 +11,7 @@ import { inToday } from '../lib/views';
 import { useToday } from '../lib/useToday';
 import { Checkbox, PriorityIcon, ProjectDot, StatusIcon } from './bits';
 import { rectOf } from './MenuLayer';
+import { SubtaskTree } from './Subtasks';
 import { openDatePicker, priorityItems, projectItems, statusItems } from './taskMenu';
 
 function useAutosize(ref, value) {
@@ -224,20 +224,8 @@ function PanelBody({ task, project }) {
 }
 
 function Checklist({ task }) {
-  const [focusId, setFocusId] = useState(null);
-  const refs = useRef({});
   const total = task.subtasks.length;
   const done = task.subtasks.filter((s) => s.done).length;
-
-  useEffect(() => {
-    if (!focusId) return;
-    const el = refs.current[focusId];
-    if (el) {
-      el.focus();
-      el.setSelectionRange(el.value.length, el.value.length);
-      setFocusId(null);
-    }
-  }, [focusId, task.subtasks]);
 
   return (
     <section className="panel-section">
@@ -250,47 +238,7 @@ function Checklist({ task }) {
           <span style={{ width: `${(done / total) * 100}%` }} />
         </div>
       )}
-      <div className="subtasks">
-        {task.subtasks.map((st, i) => (
-          <div key={st.id} className={`sub-row${st.done ? ' done' : ''}`}>
-            <Checkbox size="sm" state={st.done ? 'done' : 'todo'} onToggle={() => updateSubtask(task.id, st.id, { done: !st.done })} />
-            <input
-              ref={(el) => { refs.current[st.id] = el; }}
-              value={st.title}
-              spellCheck
-              onChange={(e) => updateSubtask(task.id, st.id, { title: e.target.value })}
-              onKeyDown={(e) => {
-                if (e.nativeEvent.isComposing) return;
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  e.currentTarget.blur();
-                } else if (e.key === 'Backspace' && !st.title) {
-                  e.preventDefault();
-                  removeSubtask(task.id, st.id);
-                  const prev = task.subtasks[i - 1];
-                  if (prev) setFocusId(prev.id);
-                } else if (e.key === 'ArrowUp' && i > 0) {
-                  e.preventDefault();
-                  setFocusId(task.subtasks[i - 1].id);
-                } else if (e.key === 'ArrowDown' && i < total - 1) {
-                  e.preventDefault();
-                  setFocusId(task.subtasks[i + 1].id);
-                }
-              }}
-              onBlur={() => {
-                if (!st.title.trim()) removeSubtask(task.id, st.id);
-              }}
-            />
-            <button type="button" className="icon-btn sm sub-del" title="Remove item" onClick={() => removeSubtask(task.id, st.id)}>
-              <X size={13} />
-            </button>
-          </div>
-        ))}
-        <button type="button" className="sub-row sub-add-btn" onClick={() => openNewSubtask(task.id)}>
-          <Plus size={14} strokeWidth={2} />
-          <span>{total ? 'Add an item' : 'Add a checklist item'}</span>
-        </button>
-      </div>
+      <SubtaskTree task={task} variant="panel" />
     </section>
   );
 }

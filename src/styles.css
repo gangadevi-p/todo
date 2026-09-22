@@ -57,8 +57,13 @@
   color-scheme: light;
 }
 
+/*
+ * Dark values apply automatically when the OS prefers dark and the person
+ * hasn't picked "Light" from the theme switch (data-theme="light" wins over
+ * the media query), and always when they've explicitly picked "Dark".
+ */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #191919;
     --bg-sidebar: #1f1f1f;
     --bg-subtle: #1d1d1d;
@@ -108,6 +113,57 @@
 
     color-scheme: dark;
   }
+}
+
+:root[data-theme='dark'] {
+  --bg: #191919;
+  --bg-sidebar: #1f1f1f;
+  --bg-subtle: #1d1d1d;
+  --bg-fill: rgba(255, 255, 255, 0.035);
+  --bg-hover: rgba(255, 255, 255, 0.055);
+  --bg-active: rgba(255, 255, 255, 0.085);
+  --bg-selected: rgba(92, 146, 255, 0.13);
+  --bg-elevated: #262626;
+  --bg-card: #202020;
+  --bg-column: rgba(255, 255, 255, 0.022);
+
+  --text: rgba(255, 255, 255, 0.9);
+  --text-nav: rgba(255, 255, 255, 0.72);
+  --text-2: rgba(255, 255, 255, 0.55);
+  --text-3: rgba(255, 255, 255, 0.34);
+
+  --border: rgba(255, 255, 255, 0.075);
+  --border-strong: rgba(255, 255, 255, 0.13);
+
+  --accent: #5b8ff0;
+  --accent-soft: rgba(91, 143, 240, 0.18);
+  --accent-ring: rgba(91, 143, 240, 0.45);
+  --danger: #ec6a60;
+  --warn: #f0914a;
+  --amber: #e8b33a;
+  --due-today: #e8b33a;
+  --prio-low: #5b9bf5;
+  --prio-medium: #f0b429;
+  --prio-high: #f0665c;
+  --done: #4fb383;
+
+  --check: rgba(255, 255, 255, 0.32);
+  --switch-off: rgba(255, 255, 255, 0.18);
+  --scroll: rgba(255, 255, 255, 0.14);
+  --mark: rgba(232, 179, 58, 0.3);
+  --scrim: rgba(0, 0, 0, 0.45);
+
+  --primary-bg: #ebebea;
+  --primary-hover: #ffffff;
+  --primary-text: #191919;
+  --toast-bg: #333333;
+  --toast-text: #f2f2f2;
+  --toast-accent: #9cc0ff;
+
+  --shadow-pop: 0 0 0 1px rgba(255, 255, 255, 0.07), 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-modal: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 60px rgba(0, 0, 0, 0.55);
+
+  color-scheme: dark;
 }
 
 /* ==========================================================================
@@ -339,21 +395,6 @@ kbd {
   border-color: var(--text-2);
   background: var(--bg-hover);
 }
-.check[data-state='in_progress'],
-.status-icon[data-state='in_progress'] {
-  border-color: var(--accent);
-}
-.check[data-state='in_progress']::after,
-.status-icon[data-state='in_progress']::after {
-  content: '';
-  position: absolute;
-  left: 2px;
-  right: 2px;
-  bottom: 2px;
-  height: calc(50% - 2px);
-  border-radius: 1.5px;
-  background: var(--accent);
-}
 .check[data-state='done'],
 .status-icon[data-state='done'] {
   border-color: var(--accent);
@@ -534,6 +575,12 @@ kbd {
   display: grid;
   place-items: center;
   width: 16px;
+}
+.project-ring {
+  flex: none;
+}
+.project-ring .ring-track {
+  stroke-width: 2.5;
 }
 .nav-label {
   flex: 1;
@@ -741,11 +788,8 @@ kbd {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 22px;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--bg-hover);
+  margin-bottom: 20px;
+  padding: 2px 0 4px;
 }
 .stats-ring {
   flex: none;
@@ -782,6 +826,17 @@ kbd {
   gap: 10px;
   margin-top: 5px;
 }
+.stats-eta {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 6px;
+  margin-left: auto;
+  padding-left: 16px;
+  color: var(--text-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
 .stats-chip {
   display: inline-flex;
   align-items: center;
@@ -797,9 +852,6 @@ kbd {
 }
 .chip-todo i {
   background: var(--text-3);
-}
-.chip-progress i {
-  background: var(--accent);
 }
 .chip-done i {
   background: var(--done);
@@ -922,6 +974,20 @@ kbd {
 .row.selected {
   background: var(--bg-selected);
 }
+.row.picked,
+.card.picked {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-ring);
+}
+.sub-row.picked {
+  background: var(--accent-soft);
+}
+.select-count {
+  margin-right: 4px;
+  color: var(--text-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
 .row-title {
   flex: 1;
   min-width: 0;
@@ -967,6 +1033,63 @@ kbd {
   color: var(--due-today);
 }
 .due-soon {
+  color: var(--text-2);
+}
+.meta-children {
+  color: var(--accent);
+}
+.meta-children.all {
+  color: var(--done);
+}
+
+/* A task's sub-tasks: full nested tasks, indented one level per depth. */
+.child-tasks {
+  display: flex;
+  flex-direction: column;
+  padding-left: calc(var(--depth, 1) * 22px);
+}
+.row-nested {
+  height: 32px;
+}
+.child-add-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: var(--text-3);
+}
+.child-add-row:hover {
+  background: var(--bg-hover);
+}
+.child-add-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+}
+.child-add-row input::placeholder {
+  color: var(--text-3);
+}
+.child-add-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 12.5px;
+}
+.child-add-trigger:hover {
+  background: var(--bg-hover);
   color: var(--text-2);
 }
 .row-handle {
@@ -1429,6 +1552,7 @@ kbd {
   flex-direction: column;
 }
 .sub-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1462,6 +1586,56 @@ kbd {
 }
 .sub-add {
   color: var(--text-3);
+}
+.sub-add-icon {
+  flex: none;
+  color: var(--text-3);
+}
+.sub-add-left {
+  position: absolute;
+  left: -18px;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-3);
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 0.1s;
+}
+.sub-row:hover .sub-add-left {
+  opacity: 1;
+}
+.sub-add-left:hover {
+  background: var(--bg-active);
+  color: var(--text);
+}
+
+/* Nested checklist shown inline under a task row or card. */
+.subtasks-inline {
+  display: flex;
+  flex-direction: column;
+}
+.subtasks-inline .sub-row {
+  height: 28px;
+}
+.subtasks-row {
+  padding: 1px 8px 5px 48px;
+}
+.subtasks-card {
+  margin: 6px 0 0 -1px;
+  padding-left: 24px;
+}
+.subtasks-card .sub-row {
+  margin: 0 -6px;
+}
+.subtasks-panel .sub-row {
+  height: 32px;
 }
 .sub-add svg {
   width: 14px;

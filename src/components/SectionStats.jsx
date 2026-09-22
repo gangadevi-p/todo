@@ -1,3 +1,5 @@
+import { Clock } from 'lucide-react';
+
 /** A small "how much is done" overview shown at the top of every section. */
 export function SectionStats({ stats }) {
   if (!stats || stats.total === 0) return null;
@@ -21,7 +23,7 @@ export function SectionStats({ stats }) {
     );
   }
 
-  const { todo, inProgress, done, total, avgProgress } = stats;
+  const { todo, done, total, avgProgress } = stats;
   const pct = Math.round(avgProgress * 100);
   const r = 19;
   const c = 2 * Math.PI * r;
@@ -46,10 +48,18 @@ export function SectionStats({ stats }) {
         </div>
         <div className="stats-breakdown">
           <span className="stats-chip chip-todo"><i />{todo} todo</span>
-          <span className="stats-chip chip-progress"><i />{inProgress} in progress</span>
           <span className="stats-chip chip-done"><i />{done} done</span>
         </div>
       </div>
+      {stats.eta && (
+        <div
+          className="stats-eta"
+          title={stats.etaBasis === 'section' ? 'Estimated from this section’s own pace' : 'Estimated from your overall pace, this section doesn’t have enough finished tasks yet'}
+        >
+          <Clock size={13} strokeWidth={2} />
+          <span>{stats.eta} left</span>
+        </div>
+      )}
     </div>
   );
 }

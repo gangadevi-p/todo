@@ -1,16 +1,17 @@
 import { useMemo, useRef, useState } from 'react';
 import {
-  CalendarDays, CircleCheck, CircleHelp, Ellipsis, Eraser, Inbox, Layers, PanelLeftClose, Pencil, Plus, Search, Sun, Trash2,
+  CalendarDays, CircleCheck, CircleHelp, Ellipsis, Eraser, Inbox, Layers, Moon, PanelLeftClose, Pencil, Plus, Search, Sun, Trash2,
 } from 'lucide-react';
 import {
   askConfirm, confirmDeleteAll, deleteProject, findTask, navigate, openMenu, openNewProject, openSearch, placeProject, renameProject,
   setEditingProject, setHelp, setPref, toast, updateTask, useData, useUI,
 } from '../store';
-import { inToday } from '../lib/views';
+import { inToday, taskProgress } from '../lib/views';
 import { drag, endDrag, startProjectDrag } from '../lib/dnd';
 import { useToday } from '../lib/useToday';
+import { useEffectiveTheme } from '../lib/useTheme';
 import { plural } from '../lib/util';
-import { Kbd, ProjectDot } from './bits';
+import { Kbd, ProjectDot, ProjectRing } from './bits';
 import { rectOf } from './MenuLayer';
 
 const NAV = [
@@ -97,7 +98,7 @@ function NavItem({ item, active, count }) {
   );
 }
 
-function ProjectItem({ project, active, count, editing, onReorderTarget, dropLine }) {
+function ProjectItem({ project, active, count, progress, editing, onReorderTarget, dropLine }) {
   const [over, dropProps] = useTaskTarget(() => ({ projectId: project.id }), `Moved to ${project.name}`);
 
   const menuItems = [
@@ -158,7 +159,9 @@ function ProjectItem({ project, active, count, editing, onReorderTarget, dropLin
           dropProps.onDrop?.(e);
         }}
       >
-        <span className="nav-icon project-icon"><ProjectDot color={project.color} size={9} /></span>
+        <span className="nav-icon project-icon" title={`${Math.round(progress * 100)}% done`}>
+          <ProjectRing color={project.color} progress={progress} />
+        </span>
         <span className="nav-label">{project.name}</span>
         {count ? <span className="nav-count">{count}</span> : null}
         <span
@@ -182,6 +185,8 @@ export function Sidebar({ view }) {
   const tasks = useData((s) => s.tasks);
   const projects = useData((s) => s.projects);
   const editingId = useUI((u) => u.editingProjectId);
+  const theme = useData((s) => s.prefs.theme);
+  const effectiveTheme = useEffectiveTheme(theme);
   const today = useToday();
   const [projectDrop, setProjectDrop] = useState(null); // { id, side }
 
@@ -189,10 +194,15 @@ export function Sidebar({ view }) {
   const counts = useMemo(() => {
     const c = { inbox: 0, today: 0, projects: {} };
     for (const t of tasks) {
-      if (t.status === 'done') continue;
-      if (!t.projectId) c.inbox += 1;
-      else c.projects[t.projectId] = (c.projects[t.projectId] || 0) + 1;
-      if (inToday(t, today)) c.today += 1;
+      if (t.projectId) {
+        const p = (c.projects[t.projectId] ??= { open: 0, total: 0, progress: 0 });
+        p.total += 1;
+        p.progress += taskProgress(t, (x) => x.status);
+        if (t.status !== 'done') p.open += 1;
+      } else if (t.status !== 'done') {
+        c.inbox += 1;
+      }
+      if (t.status !== 'done' && inToday(t, today)) c.today += 1;
     }
     return c;
   }, [tasks, today]);
@@ -268,7 +278,8 @@ export function Sidebar({ view }) {
               key={p.id}
               project={p}
               active={view === `project:${p.id}`}
-              count={counts.projects[p.id] || 0}
+              count={counts.projects[p.id]?.open || 0}
+              progress={counts.projects[p.id] ? counts.projects[p.id].progress / counts.projects[p.id].total : 0}
               editing={editingId === p.id}
               onReorderTarget={onReorderTarget}
               dropLine={projectDrop?.id === p.id && drag.type === 'project' ? projectDrop.side : null}
@@ -284,6 +295,24 @@ export function Sidebar({ view }) {
       </div>
 
       <div className="sidebar-foot">
+        <div className="nav-item muted theme-row">
+          {effectiveTheme === 'dark' ? (
+            <Moon size={16} strokeWidth={1.8} className="nav-icon" />
+          ) : (
+            <Sun size={16} strokeWidth={1.8} className="nav-icon" />
+          )}
+          <span className="nav-label">{effectiveTheme === 'dark' ? 'Dark theme' : 'Light theme'}</span>
+          <button
+            type="button"
+            className={`switch${effectiveTheme === 'dark' ? ' on' : ''}`}
+            role="switch"
+            aria-checked={effectiveTheme === 'dark'}
+            title="Switch between light and dark theme"
+            onClick={() => setPref('theme', effectiveTheme === 'dark' ? 'light' : 'dark')}
+          >
+            <span />
+          </button>
+        </div>
         <button type="button" className="nav-item muted" onClick={() => setHelp(true)}>
           <CircleHelp size={16} strokeWidth={1.8} className="nav-icon" />
           <span className="nav-label">Shortcuts</span>

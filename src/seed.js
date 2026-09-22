@@ -45,7 +45,7 @@ export function seedData() {
       notes: 'Pair a serif display face with a neutral sans for UI.\nCheck weights at small sizes.',
     }),
     task('Review product card states', { projectId: athera, addedToToday: true }),
-    task('Create mobile navigation', { projectId: cueup, status: 'in_progress', addedToToday: true }),
+    task('Create mobile navigation', { projectId: cueup, addedToToday: true }),
 
     // Inbox
     task('Explore alternative navigation'),
@@ -65,7 +65,7 @@ export function seedData() {
     task('Design product listing', { projectId: athera }),
     task('Design product details', { projectId: athera }),
     task('Explore navigation', { projectId: athera, priority: 'low' }),
-    task('Build design system', { projectId: athera, status: 'in_progress', priority: 'high' }),
+    task('Build design system', { projectId: athera, priority: 'high' }),
     task('Competitive analysis', { projectId: athera, status: 'done', completedAt: now - 2 * day }),
     task('Define user flow', { projectId: athera, status: 'done', completedAt: now - day }),
 
@@ -98,6 +98,8 @@ export function defaultPrefs() {
     projectModes: {},
     sectionModes: {},
     collapsed: {},
+    childTasksOpen: {},
     sidebarCollapsed: false,
+    theme: 'system',
   };
 }

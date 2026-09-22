@@ -1,6 +1,6 @@
-import { useSyncExternalStore } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 import { seedData, defaultPrefs } from './seed';
-import { uid, PROJECT_COLORS } from './lib/util';
+import { plural, uid, PROJECT_COLORS } from './lib/util';
 
 // ---------------------------------------------------------------------------
 // Tiny external stores. `data` is persisted; `ui` is session-only.
@@ -40,6 +40,8 @@ export const ui = createStore({
   focusTitle: null, // { id, at } asks the detail panel to focus its title
   preview: null, // { id, pinned } overview popup shown beside a task
   popup: null, // { kind: 'task' | 'project' | 'subtask', nonce, ... } while a create popup is open
+  selecting: false, // bulk-select mode: rows/subtasks pick instead of opening or toggling
+  selected: new Set(), // keys from taskKey()/subtaskKey() picked while selecting
 });
 
 export const useData = (sel) => useSyncExternalStore(data.subscribe, () => sel(data.get()));
@@ -85,9 +87,10 @@ function normalizeTask(t, i) {
     id: t.id || uid(),
     title: typeof t.title === 'string' ? t.title : 'Untitled',
     notes: t.notes || '',
-    status: ['todo', 'in_progress', 'done'].includes(t.status) ? t.status : 'todo',
+    status: ['todo', 'done'].includes(t.status) ? t.status : 'todo',
     priority: ['low', 'medium', 'high'].includes(t.priority) ? t.priority : null,
     projectId: t.projectId || null,
+    parentId: t.parentId || null,
     dueDate: t.dueDate || null,
     addedToToday: Boolean(t.addedToToday),
     createdAt: t.createdAt || Date.now(),
@@ -108,8 +111,11 @@ function normalize(raw) {
     color: p.color || PROJECT_COLORS[i % PROJECT_COLORS.length],
   }));
   const ids = new Set(projects.map((p) => p.id));
-  const tasks = (raw.tasks || []).map(normalizeTask).map((t) =>
+  let tasks = (raw.tasks || []).map(normalizeTask).map((t) =>
     t.projectId && !ids.has(t.projectId) ? { ...t, projectId: null } : t);
+  const taskIds = new Set(tasks.map((t) => t.id));
+  tasks = tasks.map((t) =>
+    t.parentId && (t.parentId === t.id || !taskIds.has(t.parentId)) ? { ...t, parentId: null } : t);
   return { projects, tasks, prefs: { ...defaultPrefs(), ...(raw.prefs || {}) } };
 }
 
@@ -144,6 +150,31 @@ function commit(updater) {
 const now = () => Date.now();
 const maxOrder = (items) => items.reduce((m, x) => Math.max(m, x.order ?? 0), 0);
 export const findTask = (id) => data.get().tasks.find((t) => t.id === id);
+export const childTasks = (id, tasks) => tasks.filter((t) => t.parentId === id).sort((a, b) => a.order - b.order);
+
+/**
+ * A task's direct children, kept referentially stable across renders where
+ * nothing relevant changed — filtering fresh on every render (as a bare
+ * useData selector would) hands useSyncExternalStore a new array each time
+ * and sends React into an infinite update loop.
+ */
+export function useChildTasks(taskId) {
+  const tasks = useData((s) => s.tasks);
+  return useMemo(() => childTasks(taskId, tasks), [taskId, tasks]);
+}
+
+/** A task's children, grandchildren, etc. — needed so deleting a task doesn't orphan what's nested under it. */
+function descendantIds(id, tasks) {
+  const out = [];
+  const stack = [id];
+  while (stack.length) {
+    const cur = stack.pop();
+    for (const t of tasks) {
+      if (t.parentId === cur) { out.push(t.id); stack.push(t.id); }
+    }
+  }
+  return out;
+}
 
 function applyPatch(task, patch) {
   const next = { ...task, ...patch };
@@ -162,6 +193,7 @@ export function createTask(fields = {}) {
       status: 'todo',
       priority: null,
       projectId: null,
+      parentId: null,
       dueDate: null,
       addedToToday: false,
       completedAt: null,
@@ -219,13 +251,17 @@ export function toggleToday(id) {
 export function deleteTask(id) {
   const task = findTask(id);
   if (!task) return;
-  commit((s) => ({ ...s, tasks: s.tasks.filter((t) => t.id !== id) }));
+  const before = data.get().tasks;
+  const removeIds = new Set([id, ...descendantIds(id, before)]);
+  const removed = before.filter((t) => removeIds.has(t.id));
+  commit((s) => ({ ...s, tasks: s.tasks.filter((t) => !removeIds.has(t.id)) }));
   const u = ui.get();
-  if (u.selectedId === id) patchUI({ selectedId: null, panelOpen: false });
+  if (removeIds.has(u.selectedId)) patchUI({ selectedId: null, panelOpen: false });
   hidePreview();
-  toast(`Deleted “${truncate(task.title, 32)}”`, {
+  const extra = removed.length - 1;
+  toast(`Deleted “${truncate(task.title, 32)}”${extra ? ` and ${plural(extra, 'sub-task')}` : ''}`, {
     label: 'Undo',
-    run: () => commit((s) => ({ ...s, tasks: [...s.tasks, task] })),
+    run: () => commit((s) => ({ ...s, tasks: [...s.tasks, ...removed] })),
   });
 }
 
@@ -295,6 +331,82 @@ export const removeSubtask = (taskId, subId) =>
   patchSubtasks(taskId, (list) => list.filter((st) => st.id !== subId));
 
 // ---------------------------------------------------------------------------
+// Bulk selection: pick any mix of tasks and subtasks, then mark them all
+// done or delete them together.
+// ---------------------------------------------------------------------------
+
+export const taskKey = (id) => `task:${id}`;
+export const subtaskKey = (taskId, id) => `sub:${taskId}:${id}`;
+
+export function parseSelectionKey(key) {
+  const [kind, a, b] = key.split(':');
+  return kind === 'task' ? { kind: 'task', id: a } : { kind: 'subtask', taskId: a, id: b };
+}
+
+export function setSelecting(on) {
+  patchUI({ selecting: on, selected: new Set() });
+}
+
+export function toggleSelected(key) {
+  ui.set((u) => {
+    const next = new Set(u.selected);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    return { ...u, selected: next };
+  });
+}
+
+/** Marks every selected task done and checks off every selected subtask, in one commit. */
+export function markSelectionDone(entries) {
+  const taskIds = new Set(entries.filter((e) => e.kind === 'task').map((e) => e.id));
+  const subByTask = new Map();
+  for (const e of entries) {
+    if (e.kind !== 'subtask') continue;
+    if (!subByTask.has(e.taskId)) subByTask.set(e.taskId, new Set());
+    subByTask.get(e.taskId).add(e.id);
+  }
+  commit((s) => ({
+    ...s,
+    tasks: s.tasks.map((t) => {
+      let next = taskIds.has(t.id) ? applyPatch(t, { status: 'done' }) : t;
+      const subIds = subByTask.get(t.id);
+      if (subIds) next = { ...next, subtasks: next.subtasks.map((st) => (subIds.has(st.id) ? { ...st, done: true } : st)) };
+      return next;
+    }),
+  }));
+  setSelecting(false);
+}
+
+/** Deletes every selected task (undoable, like "Delete all") and removes every selected subtask. */
+export function deleteSelection(entries) {
+  const taskIds = entries.filter((e) => e.kind === 'task').map((e) => e.id);
+  const subEntries = entries.filter((e) => e.kind === 'subtask');
+  if (taskIds.length) deleteTasks(taskIds);
+  if (subEntries.length) {
+    commit((s) => ({
+      ...s,
+      tasks: s.tasks.map((t) => {
+        const ids = subEntries.filter((e) => e.taskId === t.id).map((e) => e.id);
+        return ids.length ? { ...t, subtasks: t.subtasks.filter((st) => !ids.includes(st.id)) } : t;
+      }),
+    }));
+  }
+  setSelecting(false);
+}
+
+export function confirmDeleteSelection(keys) {
+  const entries = keys.map(parseSelectionKey);
+  const n = entries.length;
+  if (!n) return;
+  askConfirm({
+    title: 'Are you sure?',
+    body: `This will delete ${n} selected item${n === 1 ? '' : 's'}. You can undo the tasks right after; checklist items can't be undone.`,
+    confirmLabel: `Delete ${n}`,
+    onConfirm: () => deleteSelection(entries),
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Projects
 // ---------------------------------------------------------------------------
 
@@ -328,10 +440,11 @@ export function renameProject(id, name) {
   commit((s) => ({ ...s, projects: s.projects.map((p) => (p.id === id ? { ...p, name: clean } : p)) }));
 }
 
-/** Removes many tasks at once. Undoable. */
+/** Removes many tasks at once, including anything nested under them. Undoable. */
 export function deleteTasks(ids) {
-  const set = new Set(ids);
-  const removed = data.get().tasks.filter((t) => set.has(t.id));
+  const all = data.get().tasks;
+  const set = new Set(ids.flatMap((id) => [id, ...descendantIds(id, all)]));
+  const removed = all.filter((t) => set.has(t.id));
   if (!removed.length) return;
   hidePreview();
   commit((s) => ({ ...s, tasks: s.tasks.filter((t) => !set.has(t.id)) }));
@@ -404,6 +517,11 @@ export function setProjectMode(projectId, mode) {
 export function setSectionMode(viewId, mode) {
   const { sectionModes } = data.get().prefs;
   setPref('sectionModes', { ...sectionModes, [viewId]: mode });
+}
+
+export function setChildTasksOpen(taskId, open) {
+  const { childTasksOpen } = data.get().prefs;
+  setPref('childTasksOpen', { ...(childTasksOpen || {}), [taskId]: open });
 }
 
 export function toggleCollapsed(key) {
@@ -496,7 +614,6 @@ function openPopup(popup) {
 }
 export const openNewTask = (defaults = {}) => openPopup({ kind: 'task', defaults });
 export const openNewProject = () => openPopup({ kind: 'project' });
-export const openNewSubtask = (taskId) => openPopup({ kind: 'subtask', taskId });
 export const closePopup = () => patchUI({ popup: null });
 
 export const openSearch = () => patchUI({ search: true, popup: null, help: false, menu: null });

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import {
   closePanel, data, deleteTask, duplicateTask, hidePreview, navigate, openNewTask, openSearch, pinPreview, selectTask,
-  setHelp, setPref, toggleComplete, toggleToday, ui, undoLast, updateTask, useData, useUI,
+  setHelp, setPref, setSelecting, toggleComplete, toggleToday, ui, undoLast, updateTask, useData, useUI,
 } from './store';
 import { buildView, NAV_VIEWS } from './lib/views';
 import { isTypingTarget } from './lib/util';
@@ -46,11 +46,13 @@ function handleKey(e, model) {
   const typing = isTypingTarget(e.target);
   if (key === 'Escape') {
     if (typing) { e.target.blur(); return; }
+    if (u.selecting) { setSelecting(false); return; }
     if (u.preview) hidePreview();
     else if (u.panelOpen) closePanel();
     else if (u.selectedId) selectTask(null, false);
     return;
   }
+  if (u.selecting) return; // the selection toolbar owns done/delete while it's active
   if (typing) return;
   // Let focused buttons keep their native Enter/Space behaviour.
   if ((key === 'Enter' || key === ' ') && e.target.closest?.('button, a, [role="button"]')) return;
@@ -138,6 +140,13 @@ export default function App() {
     () => buildView(view, { tasks, projects, today, lingering, prefs }),
     [view, tasks, projects, today, lingering, prefs],
   );
+
+  // "system" leaves no attribute, so the OS-preference media query in CSS keeps driving it.
+  useEffect(() => {
+    const theme = prefs.theme;
+    if (theme === 'light' || theme === 'dark') document.documentElement.setAttribute('data-theme', theme);
+    else document.documentElement.removeAttribute('data-theme');
+  }, [prefs.theme]);
 
   // The view may point at a project that was just deleted.
   useEffect(() => {
