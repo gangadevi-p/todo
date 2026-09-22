@@ -1,16 +1,14 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, ChevronDown, Inbox, Minus, Plus, Sun, TriangleAlert, X } from 'lucide-react';
+import { CalendarDays, ChevronDown, Inbox, Minus, Plus, TriangleAlert, X } from 'lucide-react';
 import {
-  closePopup, createTask, nextTaskOrder, openMenu, revealTask, selectTask, toast, useData,
+  closePopup, createTask, openMenu, revealTask, selectTask, toast, useData,
 } from '../store';
 import { addDays, dueLabelLong, nextWeekday, todayKey } from '../lib/dates';
 import { PRIORITIES, STATUSES, uid } from '../lib/util';
 import { Checkbox, PriorityIcon, ProjectDot, StatusIcon } from './bits';
 import { DatePicker } from './DatePicker';
 import { rectOf } from './MenuLayer';
-import { F, Field, Popup, ReadOnly } from './Popup';
-
-const stamp = (ms) => new Date(ms).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+import { F, Field, Popup } from './Popup';
 
 /** Every field of a task, in one popup. Only the title is required. */
 export function NewTaskForm({ defaults }) {
@@ -18,17 +16,15 @@ export function NewTaskForm({ defaults }) {
   const tasks = useData((s) => s.tasks);
 
   const [id] = useState(uid);
-  const [createdAt] = useState(Date.now);
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState(defaults.status || 'todo');
   const [priority, setPriority] = useState(defaults.priority || null);
   const [projectId, setProjectId] = useState(defaults.projectId || null);
   const [dueDate, setDueDate] = useState(defaults.dueDate || null);
-  const [addedToToday, setAddedToToday] = useState(Boolean(defaults.addedToToday));
+  const addedToToday = Boolean(defaults.addedToToday);
   const [subtasks, setSubtasks] = useState([]);
   const [subDraft, setSubDraft] = useState('');
-  const [order, setOrder] = useState(() => String(nextTaskOrder()));
 
   const titleRef = useRef(null);
   const notesRef = useRef(null);
@@ -62,7 +58,6 @@ export function NewTaskForm({ defaults }) {
     }
     const draft = subDraft.trim();
     const steps = [...subtasks, ...(draft ? [{ id: uid(), title: draft, done: false }] : [])];
-    const position = Number(order);
     createTask({
       id,
       title: name,
@@ -72,7 +67,6 @@ export function NewTaskForm({ defaults }) {
       projectId,
       dueDate,
       addedToToday,
-      order: order.trim() !== '' && Number.isFinite(position) ? position : undefined,
       subtasks: steps,
     });
     closePopup();
@@ -118,26 +112,6 @@ export function NewTaskForm({ defaults }) {
     setSubDraft('');
   };
 
-  const side = (
-    <>
-      <Field f={F.id}><ReadOnly mono>{id}</ReadOnly></Field>
-      <Field f={F.projectId}><ReadOnly mono muted={!projectId}>{projectId || 'None (Inbox)'}</ReadOnly></Field>
-      <Field f={F.created}><ReadOnly>{stamp(createdAt)}</ReadOnly></Field>
-      <Field f={F.completed}>
-        <ReadOnly muted>{status === 'done' ? 'Set when created' : 'Not completed'}</ReadOnly>
-      </Field>
-      <Field f={F.order} hint="Position">
-        <input
-          className="pp-input pp-number"
-          type="number"
-          step="1"
-          value={order}
-          onChange={(e) => setOrder(e.target.value)}
-        />
-      </Field>
-    </>
-  );
-
   return (
     <Popup
       title="New task"
@@ -147,7 +121,6 @@ export function NewTaskForm({ defaults }) {
       submitLabel="Create task"
       onSubmit={submit}
       focusRef={titleRef}
-      side={side}
     >
       <Field f={F.title}>
         <input
@@ -294,19 +267,6 @@ export function NewTaskForm({ defaults }) {
           {project ? <ProjectDot color={project.color} /> : <Inbox size={13} strokeWidth={1.9} />}
           {project ? project.name : 'Inbox'}
           <ChevronDown size={13} className="pill-chev" />
-        </button>
-      </Field>
-
-      <Field f={F.today}>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={addedToToday}
-          className={`pill pill-today${addedToToday ? ' on' : ''}`}
-          onClick={() => setAddedToToday((v) => !v)}
-        >
-          <Sun size={13} strokeWidth={2} />
-          {addedToToday ? 'Planned for today' : 'Add to Today'}
         </button>
       </Field>
     </Popup>

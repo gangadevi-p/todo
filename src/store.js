@@ -401,6 +401,11 @@ export function setProjectMode(projectId, mode) {
   setPref('projectModes', { ...projectModes, [projectId]: mode });
 }
 
+export function setSectionMode(viewId, mode) {
+  const { sectionModes } = data.get().prefs;
+  setPref('sectionModes', { ...sectionModes, [viewId]: mode });
+}
+
 export function toggleCollapsed(key) {
   const { collapsed } = data.get().prefs;
   const next = { ...collapsed };

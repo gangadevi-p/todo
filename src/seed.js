@@ -96,6 +96,7 @@ export function defaultPrefs() {
   return {
     view: 'today',
     projectModes: {},
+    sectionModes: {},
     collapsed: {},
     sidebarCollapsed: false,
   };

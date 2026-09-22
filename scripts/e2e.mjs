@@ -163,12 +163,11 @@ try {
   await app.click('.btn-primary', 'New Task');
   check('New Task opens a popup', await app.eval('!!document.querySelector(".popup")'));
   const labels = await app.eval('[...document.querySelectorAll(".pp-label")].map(l => l.innerText.split("\\n")[0])');
-  const wanted = ['Title', 'Notes', 'Status', 'Priority', 'Project', 'Due date', 'Today', 'Subtasks', 'ID', 'Project ID', 'Created', 'Completed', 'Order'];
+  const wanted = ['Title', 'Notes', 'Status', 'Priority', 'Project', 'Due date', 'Subtasks'];
   check('popup shows every task detail', wanted.every((w) => labels.includes(w)), labels.join(', '));
   check('no detail appears twice', new Set(labels).size === labels.length);
-  const shownId = await app.eval('document.querySelector(".pp-ro.mono")?.innerText');
-  check('ID is generated up front', /^[0-9a-f]{16}$/.test(shownId || ''), shownId);
-  check('every field has its own icon', (await app.eval('new Set([...document.querySelectorAll(".pp-icon")].map(i => i.innerHTML)).size')) >= 10);
+  check('no Details column for a new task', await app.eval('!document.querySelector(".pp-side")'));
+  check('every field has its own icon', (await app.eval('new Set([...document.querySelectorAll(".pp-icon")].map(i => i.innerHTML)).size')) >= 7);
 
   // A hidden test window can freeze CSS transitions, so measure without them.
   await app.eval(`document.head.insertAdjacentHTML('beforeend', '<style>.popup{transition:none!important}</style>')`);
@@ -178,33 +177,27 @@ try {
   const wide = await app.eval('document.querySelector(".popup").offsetWidth');
   const vw = await app.eval('innerWidth');
   check('expand makes the popup broad', wide > narrow + 150, `${narrow}px -> ${wide}px in a ${vw}px window`);
-  check('wide layout puts Details in a second column', await app.eval('getComputedStyle(document.querySelector(".pp-cols")).gridTemplateColumns.split(" ").length === 2'));
   await app.key('Escape');
   await app.click('.btn-primary', 'New Task');
   await sleep(400);
   check('expanded size is remembered', (await app.eval('document.querySelector(".popup").offsetWidth')) === wide);
 
-  const shownId2 = await app.eval('document.querySelector(".pp-ro.mono")?.innerText');
   await app.type('E2E popup task');
   await app.click('.popup .pill', 'In Progress');
   await app.click('.popup .pill', 'High');
   await app.click('.popup .pill', 'Tomorrow');
-  await app.click('.popup .pill', 'Add to Today');
   await app.click('.pp-notes');
   await app.type('note from e2e');
   await app.click('.pp-sub-add input');
   await app.type('first step');
   await app.key('Enter');
   await app.type('second step');
-  await app.click('.pp-number');
-  await app.selectAll();
-  await app.type('777');
   await app.click('.pp-foot .btn-primary');
   await until(() => readData().tasks.some((x) => x.title === 'E2E popup task'));
   let t = readData().tasks.find((x) => x.title === 'E2E popup task');
-  check('task saved with every field', !!t && t.id === shownId2 && t.status === 'in_progress' && t.priority === 'high' && !!t.dueDate
-    && t.notes === 'note from e2e' && t.addedToToday === true && t.order === 777 && t.subtasks.length === 2 && !!t.createdAt && t.completedAt === null,
-    t && `id ${t.id === shownId2}, ${t.status}, ${t.priority}, due ${t.dueDate}, today ${t.addedToToday}, notes '${t.notes}', order ${t.order}, ${t.subtasks.length} steps`);
+  check('task saved with every field', !!t && t.status === 'in_progress' && t.priority === 'high' && !!t.dueDate
+    && t.notes === 'note from e2e' && t.subtasks.length === 2 && !!t.createdAt && t.completedAt === null,
+    t && `${t.status}, ${t.priority}, due ${t.dueDate}, notes '${t.notes}', ${t.subtasks.length} steps`);
   check('popup closes after create', await app.eval('!document.querySelector(".popup")'));
 
   // 3. Duplicate task warning -------------------------------------------------------------------
@@ -244,6 +237,8 @@ try {
   check('new project opens a popup', await app.eval('document.querySelector(".pp-title h2")?.innerText === "New project"'));
   const projLabels = await app.eval('[...document.querySelectorAll(".pp-label")].map(l => l.innerText.split("\\n")[0])');
   check('project popup shows name, color, id, created, order', ['Name', 'Color', 'ID', 'Created', 'Order'].every((w) => projLabels.includes(w)), projLabels.join(', '));
+  // The New Task popup earlier left the shared "wide" pref on, so this popup opens wide too.
+  check('wide layout puts Details in a second column', await app.eval('getComputedStyle(document.querySelector(".pp-cols")).gridTemplateColumns.split(" ").length === 2'));
   const projId = await app.eval('document.querySelector(".pp-ro.mono").innerText');
   await app.type('athera');
   check('duplicate project name is blocked', (await app.eval('!!document.querySelector(".pp-error")')) && (await app.eval('document.querySelector(".pp-foot .btn-primary").disabled')));

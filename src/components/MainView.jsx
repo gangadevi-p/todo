@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { CalendarDays, CircleCheck, Columns3, Inbox, Layers, List, PanelLeftOpen, Plus, Sun, Trash2 } from 'lucide-react';
-import { confirmDeleteTasks, openNewTask, renameProject, setPref, setProjectMode, useUI } from '../store';
+import { confirmDeleteTasks, openNewTask, renameProject, setPref, setProjectMode, setSectionMode, useUI } from '../store';
 import { Board } from './Board';
 import { Kbd, ProjectDot } from './bits';
+import { SectionStats } from './SectionStats';
 import { TaskList } from './TaskList';
 
 const VIEW_ICONS = { inbox: Inbox, today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck };
@@ -62,6 +63,7 @@ export function MainView({ model, sidebarCollapsed }) {
 
   const newTask = () => openNewTask(model.newTaskDefaults);
   const isBoard = model.mode === 'board';
+  const setMode = (mode) => (model.project ? setProjectMode(model.project.id, mode) : setSectionMode(model.id, mode));
 
   return (
     <main className="main">
@@ -76,28 +78,26 @@ export function MainView({ model, sidebarCollapsed }) {
           <span>{model.title}</span>
         </div>
         <div className="topbar-actions no-drag">
-          {model.project && (
-            <div className="segmented" role="tablist" aria-label="Layout">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={!isBoard}
-                className={!isBoard ? 'on' : ''}
-                onClick={() => setProjectMode(model.project.id, 'list')}
-              >
-                <List size={14} strokeWidth={1.9} /> List
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={isBoard}
-                className={isBoard ? 'on' : ''}
-                onClick={() => setProjectMode(model.project.id, 'board')}
-              >
-                <Columns3 size={14} strokeWidth={1.9} /> Board
-              </button>
-            </div>
-          )}
+          <div className="segmented" role="tablist" aria-label="Layout">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!isBoard}
+              className={!isBoard ? 'on' : ''}
+              onClick={() => setMode('list')}
+            >
+              <List size={14} strokeWidth={1.9} /> List
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isBoard}
+              className={isBoard ? 'on' : ''}
+              onClick={() => setMode('board')}
+            >
+              <Columns3 size={14} strokeWidth={1.9} /> Board
+            </button>
+          </div>
           <button
             type="button"
             className="btn btn-danger-ghost"
@@ -125,6 +125,7 @@ export function MainView({ model, sidebarCollapsed }) {
               )}
             </p>
           </header>
+          <SectionStats stats={model.stats} />
           {isBoard ? <Board model={model} /> : <TaskList model={model} />}
         </div>
       </div>

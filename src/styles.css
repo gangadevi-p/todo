@@ -32,6 +32,7 @@
   --prio-low: #2f7fe8;
   --prio-medium: #e6a700;
   --prio-high: #dc3f36;
+  --done: #3f9468;
 
   --check: rgba(40, 38, 33, 0.3);
   --switch-off: rgba(40, 38, 33, 0.16);
@@ -87,6 +88,7 @@
     --prio-low: #5b9bf5;
     --prio-medium: #f0b429;
     --prio-high: #f0665c;
+    --done: #4fb383;
 
     --check: rgba(255, 255, 255, 0.32);
     --switch-off: rgba(255, 255, 255, 0.18);
@@ -729,6 +731,95 @@ kbd {
 }
 .page-hint {
   color: var(--text-3);
+}
+
+/* ==========================================================================
+   Section overview ("how much is done")
+   ========================================================================== */
+
+.stats-panel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-hover);
+}
+.stats-ring {
+  flex: none;
+}
+.ring-track {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 5;
+}
+.ring-fill {
+  fill: none;
+  stroke: var(--done);
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.35s ease;
+}
+.stats-body {
+  min-width: 0;
+}
+.stats-headline {
+  font-size: 13.5px;
+  color: var(--text);
+}
+.stats-headline strong {
+  font-weight: 650;
+}
+.stats-pct {
+  margin-left: 6px;
+  color: var(--text-3);
+}
+.stats-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+}
+.stats-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+.stats-chip i {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.chip-todo i {
+  background: var(--text-3);
+}
+.chip-progress i {
+  background: var(--accent);
+}
+.chip-done i {
+  background: var(--done);
+}
+.stats-completed {
+  gap: 28px;
+}
+.stats-completed .stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stats-completed .stat-num {
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.stats-completed .stat-label {
+  color: var(--text-3);
+  font-size: 12px;
 }
 
 /* ==========================================================================
@@ -2028,7 +2119,7 @@ mark {
 .popup.wide .pp-body {
   padding-top: 10px;
 }
-.popup.wide .pp-cols {
+.popup.wide .pp-cols:has(.pp-side) {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
   gap: 36px;
