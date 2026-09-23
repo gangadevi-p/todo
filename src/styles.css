@@ -2202,17 +2202,16 @@ kbd {
   text-overflow: ellipsis;
 }
 .preview-edit {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+  display: grid;
+  place-items: center;
+  width: 24px;
   height: 24px;
-  padding: 0 9px;
+  padding: 0;
   flex: none;
   border: 1px solid var(--border-strong);
   border-radius: 6px;
   background: var(--bg);
-  font-size: 12px;
-  font-weight: 500;
+  color: var(--text-2);
   transition: background 0.1s;
 }
 .preview-edit:hover {

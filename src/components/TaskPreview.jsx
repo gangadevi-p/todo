@@ -95,9 +95,10 @@ function PreviewCard({ task, pinned }) {
           type="button"
           className="preview-edit"
           title="Edit task (Enter)"
+          aria-label="Edit task"
           onClick={() => selectTask(task.id, true)}
         >
-          <Pencil size={12} strokeWidth={2.1} /> Edit
+          <Pencil size={12} strokeWidth={2.1} />
         </button>
       </div>
 
