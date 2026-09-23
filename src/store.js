@@ -43,6 +43,7 @@ export const ui = createStore({
   popup: null, // { kind: 'task' | 'project' | 'subtask', nonce, ... } while a create popup is open
   selecting: false, // bulk-select mode: rows/subtasks pick instead of opening or toggling
   selected: new Set(), // keys from taskKey()/subtaskKey() picked while selecting
+  statsFilter: null, // 'todo' | 'done' | null — which status the overview bar's tabs narrow the page to
 });
 
 export const useData = (sel) => useSyncExternalStore(data.subscribe, () => sel(data.get()));
@@ -771,8 +772,13 @@ export function toggleCollapsed(key) {
 
 export function navigate(view) {
   clearPreviewTimers();
-  patchUI({ view, selectedId: null, panelOpen: false, menu: null, preview: null });
+  patchUI({ view, selectedId: null, panelOpen: false, menu: null, preview: null, statsFilter: null });
   setPref('view', view);
+}
+
+/** Narrows the current page to only todo or only done tasks; clicking the active one clears it. */
+export function setStatsFilter(kind) {
+  ui.set((u) => ({ ...u, statsFilter: u.statsFilter === kind ? null : kind }));
 }
 
 export function selectTask(id, open = true) {

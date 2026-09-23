@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, CalendarDays, CheckSquare, CircleCheck, Columns3, Inbox, Layers, List, PanelLeftOpen, Plus, Sun, Trash2, X } from 'lucide-react';
 import {
   confirmDeleteSelection, confirmDeleteTasks, markSelectionDone, openNewTask, parseSelectionKey, renameProject, setPref, setProjectMode, updateProject,
@@ -13,6 +13,18 @@ import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
 
 const VIEW_ICONS = { inbox: Inbox, today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck, trash: Trash2 };
+
+/** Narrows a view's groups down to just the tasks matching the overview bar's active tab. */
+function applyStatsFilter(model, filter) {
+  if (!filter) return model;
+  const groups = model.groups.map((g) => (
+    g.statusId && g.statusId !== filter
+      ? { ...g, tasks: [] }
+      : { ...g, tasks: g.tasks.filter((t) => t.status === filter) }
+  ));
+  const taskIds = groups.flatMap((g) => g.tasks.map((t) => t.id));
+  return { ...model, groups, taskIds, total: taskIds.length };
+}
 
 function ViewIcon({ model, size = 15 }) {
   if (model.project) return <ProjectDot color={model.project.color} size={size >= 20 ? 12 : 9} />;
@@ -62,11 +74,14 @@ export function MainView({ model, sidebarCollapsed }) {
   const scrollRef = useRef(null);
   const [scrolled, setScrolled] = useState(false);
   const view = useUI((u) => u.view);
+  const statsFilter = useUI((u) => u.statsFilter);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 });
     setScrolled(false);
   }, [view]);
+
+  const filteredModel = useMemo(() => applyStatsFilter(model, statsFilter), [model, statsFilter]);
 
   const newTask = () => openNewTask(model.newTaskDefaults);
   const isBoard = model.mode === 'board';
@@ -123,18 +138,18 @@ export function MainView({ model, sidebarCollapsed }) {
       <button
         type="button"
         className="btn"
-        disabled={model.taskIds.length === 0}
+        disabled={filteredModel.taskIds.length === 0}
         title="Select every task on this page, then mark them done or delete them together"
-        onClick={() => setSelecting(true, model.taskIds)}
+        onClick={() => setSelecting(true, filteredModel.taskIds)}
       >
         <CheckSquare size={14} strokeWidth={1.9} /> Select all
       </button>
       <button
         type="button"
         className="btn btn-danger-ghost"
-        disabled={model.taskIds.length === 0}
+        disabled={filteredModel.taskIds.length === 0}
         title={`Delete every task on this page`}
-        onClick={() => confirmDeleteTasks(model.taskIds, model.deleteScope, model.deleteNote)}
+        onClick={() => confirmDeleteTasks(filteredModel.taskIds, model.deleteScope, model.deleteNote)}
       >
         <Trash2 size={14} strokeWidth={1.9} /> Delete all
       </button>
@@ -183,7 +198,7 @@ export function MainView({ model, sidebarCollapsed }) {
             )}
           </header>
           <SectionStats stats={model.stats} />
-          {isTrash ? <TrashView /> : isBoard ? <Board model={model} /> : <TaskList model={model} />}
+          {isTrash ? <TrashView /> : isBoard ? <Board model={filteredModel} /> : <TaskList model={filteredModel} />}
         </div>
       </div>
     </main>

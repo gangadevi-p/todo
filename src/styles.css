@@ -1068,7 +1068,7 @@ kbd {
 .stats-breakdown {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
 }
 .stats-deadline {
   display: flex;
@@ -1149,9 +1149,24 @@ kbd {
 .stats-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--bg-hover);
   color: var(--text-2);
-  font-size: 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.1s, box-shadow 0.1s;
+}
+.stats-chip:hover {
+  background: var(--bg-active);
+}
+.stats-chip.on {
+  box-shadow: 0 0 0 1.5px var(--border-strong) inset;
 }
 .stats-chip i {
   display: inline-block;
@@ -1161,6 +1176,16 @@ kbd {
 }
 .chip-todo i {
   background: var(--text-3);
+}
+.chip-done {
+  color: var(--done);
+  background: color-mix(in srgb, var(--done) 14%, transparent);
+}
+.chip-done:hover {
+  background: color-mix(in srgb, var(--done) 22%, transparent);
+}
+.chip-done.on {
+  box-shadow: 0 0 0 1.5px var(--done) inset;
 }
 .chip-done i {
   background: var(--done);

@@ -1,8 +1,10 @@
 import { CalendarDays } from 'lucide-react';
+import { setStatsFilter, useUI } from '../store';
 import { PriorityIcon } from './bits';
 
 /** A small "how much is done" overview shown at the top of every section. */
 export function SectionStats({ stats }) {
+  const statsFilter = useUI((u) => u.statsFilter);
   if (!stats || stats.total === 0) return null;
 
   const { todo, done, avgProgress, deadline } = stats;
@@ -25,9 +27,25 @@ export function SectionStats({ stats }) {
         <text x="24" y="24" className="ring-label" textAnchor="middle" dominantBaseline="central">{pct}%</text>
       </svg>
       <div className="stats-body">
-        <div className="stats-breakdown">
-          <span className="stats-chip chip-todo"><i />{todo} todo</span>
-          <span className="stats-chip chip-done"><i />{done} done</span>
+        <div className="stats-breakdown" role="tablist" aria-label="Filter by status">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={statsFilter === 'todo'}
+            className={`stats-chip chip-todo${statsFilter === 'todo' ? ' on' : ''}`}
+            onClick={() => setStatsFilter('todo')}
+          >
+            <i />{todo} todo
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={statsFilter === 'done'}
+            className={`stats-chip chip-done${statsFilter === 'done' ? ' on' : ''}`}
+            onClick={() => setStatsFilter('done')}
+          >
+            <i />{done} done
+          </button>
         </div>
       </div>
       {deadline && (
