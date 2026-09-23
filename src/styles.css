@@ -482,6 +482,7 @@ kbd {
   flex: none;
   width: var(--sidebar-w);
   min-height: 0;
+  margin: 24px 0 24px 24px;
   border-right: 1px solid var(--border);
   background: var(--bg-sidebar);
 }
@@ -1028,7 +1029,7 @@ kbd {
 .text-style-switch.on { background: var(--accent); }
 .text-style-switch.on span { transform: translateX(14px); }
 .page-sub {
-  grid-column: 2 / -1;
+  flex-basis: 100%;
   margin: 3px 0 0;
   color: var(--text-2);
   font-size: 13.5px;

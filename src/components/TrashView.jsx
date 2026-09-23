@@ -33,7 +33,7 @@ function useTrashBatches() {
 export function TrashView() {
   const batches = useTrashBatches();
   if (!batches.length) {
-    return <div className="trash-empty">Trash is empty. Deleted tasks stay here for 7 days.</div>;
+    return <div className="trash-empty">Trash is empty.</div>;
   }
   return (
     <div className="trash-view">
