@@ -90,6 +90,7 @@ function normalizeChecklistItem(item = {}) {
     id: item.id || uid(),
     title: item.title || '',
     done: Boolean(item.done),
+    completedAt: item.completedAt || null,
     textStyle: normalizeTextStyle(item.textStyle),
     subtasks: Array.isArray(item.subtasks) ? item.subtasks.map(normalizeChecklistItem) : [],
   };

@@ -37,7 +37,8 @@ export function TaskList({ model }) {
     <div className="task-list">
       {model.total === 0 && <EmptyState text={model.emptyText} />}
       {model.groups.map((g) => {
-        const visible = g.tasks.length > 0 || g.add || (draggingId && g.patch);
+        const checklistParents = g.completedChecklistParents || [];
+        const visible = g.tasks.length > 0 || checklistParents.length > 0 || g.add || (draggingId && g.patch);
         if (!visible) return null;
         const isTarget = target?.groupId === g.id;
         const collapsible = Boolean(g.title) && g.collapsible !== false;
@@ -58,7 +59,7 @@ export function TaskList({ model }) {
                 {g.icon === 'inbox' && <Inbox size={14} strokeWidth={1.9} className="group-icon" />}
                 <span className="group-title">{g.title}</span>
                 {g.sub && <span className="group-sub">{g.sub}</span>}
-                <span className="group-count">{g.tasks.length}</span>
+                <span className="group-count">{g.tasks.length + checklistParents.length}</span>
                 {g.add && (
                   <button
                     type="button"
@@ -82,14 +83,28 @@ export function TaskList({ model }) {
                   <TaskRow
                     task={t}
                     project={projectsById.get(t.projectId)}
-                    show={model.show}
+                    show={{ ...model.show, completed: Boolean(g.showCompleted) }}
                     today={today}
                     draggable={Boolean(g.patch)}
                     depth={0}
                     projectsById={projectsById}
+                    completedChecklistOnly={Boolean(g.showCompleted)}
                   />
                 ))}
-                {g.tasks.length === 0 && (
+                {checklistParents.map((task) => (
+                  <TaskRow
+                    key={`completed-checklist:${task.id}`}
+                    task={task}
+                    project={projectsById.get(task.projectId)}
+                    show={{ ...model.show, completed: true }}
+                    today={today}
+                    draggable={false}
+                    depth={0}
+                    projectsById={projectsById}
+                    completedChecklistOnly
+                  />
+                ))}
+                {g.tasks.length === 0 && checklistParents.length === 0 && (
                   <div className="group-empty">{g.patch ? 'No tasks · drop one here' : 'No tasks'}</div>
                 )}
               </div>

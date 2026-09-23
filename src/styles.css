@@ -2031,6 +2031,12 @@ kbd {
   color: var(--text-3);
   text-decoration: line-through;
 }
+.sub-completed-at {
+  flex: none;
+  color: var(--text-3);
+  font-size: 11px;
+  white-space: nowrap;
+}
 .sub-del {
   opacity: 0;
 }

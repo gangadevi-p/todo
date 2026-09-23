@@ -25,12 +25,20 @@ function statusBoardGroups(list, statusOf, addDefaults) {
 }
 
 /** The persistent "Done" section appended to a list-mode page: dropping a task here marks it done. */
-function doneGroup(list) {
+function completedChecklistParents(scope, statusOf) {
+  return scope.filter((task) =>
+    statusOf(task) !== 'done' && flattenChecklist(task.subtasks).some((item) => item.done));
+}
+
+function doneGroup(list, checklistParents = []) {
   return {
     id: 'done',
     statusId: 'done',
     title: 'Done',
     tasks: list,
+    completedChecklistParents: checklistParents,
+    showCompleted: true,
+    collapsible: false,
     sortable: false,
     patch: () => ({ status: 'done' }),
     add: null,
@@ -153,8 +161,11 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
   // A flat, chrome-less list of open tasks, plus a proper "Done" section
   // underneath so a checked-off task stays visible (struck through) instead
   // of vanishing off the page.
-  const mainAndDone = (list, doneList, patch) => {
-    model.groups = [{ id: 'main', title: null, tasks: list, sortable: true, patch }, doneGroup(doneList)];
+  const mainAndDone = (list, doneList, patch, scope) => {
+    model.groups = [
+      { id: 'main', title: null, tasks: list, sortable: true, patch },
+      doneGroup(doneList, completedChecklistParents(scope, statusOf)),
+    ];
     model.total = list.length;
   };
 
@@ -179,7 +190,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
         }
         model.total = list.length;
       } else {
-        mainAndDone(list, scope.filter((t) => statusOf(t) === 'done').sort(byCompletedDesc), () => ({ projectId: null }));
+        mainAndDone(list, scope.filter((t) => statusOf(t) === 'done').sort(byCompletedDesc), () => ({ projectId: null }), scope);
       }
       break;
     }
@@ -204,7 +215,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
         }
         model.total = list.length;
       } else {
-        mainAndDone(list, scope.filter((t) => statusOf(t) === 'done').sort(byCompletedDesc), () => ({ addedToToday: true }));
+        mainAndDone(list, scope.filter((t) => statusOf(t) === 'done').sort(byCompletedDesc), () => ({ addedToToday: true }), scope);
       }
       break;
     }
@@ -243,7 +254,10 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
             add: { defaults: { dueDate: date } },
           };
         });
-        model.groups.push(doneGroup(scope.filter((t) => statusOf(t) === 'done').sort(byCompletedDesc)));
+        model.groups.push(doneGroup(
+          scope.filter((t) => statusOf(t) === 'done').sort(byCompletedDesc),
+          completedChecklistParents(scope, statusOf),
+        ));
         model.total = list.length;
       }
       break;
@@ -288,9 +302,9 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       // Every task here is already done, so there's no "Todo" side to show
       // and nothing to drop onto — just the full, flat list of what's finished.
       if (sectionMode === 'board') {
-        model.groups = [{ id: 'done', statusId: 'done', title: 'Done', tasks: list, collapsible: false, sortable: false, patch: null, add: null }];
+        model.groups = [{ id: 'done', statusId: 'done', title: 'Done', tasks: list, collapsible: false, showCompleted: true, sortable: false, patch: null, add: null }];
       } else {
-        model.groups = [{ id: 'main', title: null, tasks: list, sortable: false, patch: null }];
+        model.groups = [{ id: 'main', title: null, tasks: list, showCompleted: true, sortable: false, patch: null }];
       }
       model.total = list.length;
       break;
@@ -332,7 +346,9 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
         { id: 'done', statusId: 'done', title: 'Done', tasks: pick('done').sort(byCompletedDesc), sortable: false },
       ].map((g) => ({
         ...g,
-        collapsible: mode === 'list',
+          collapsible: g.statusId === 'done' ? false : mode === 'list',
+          showCompleted: g.statusId === 'done',
+          completedChecklistParents: g.statusId === 'done' ? completedChecklistParents(own, statusOf) : [],
         patch: () => ({ status: g.statusId }),
         add: g.statusId === 'done' ? null : { defaults: { projectId: pid, status: g.statusId } },
       }));

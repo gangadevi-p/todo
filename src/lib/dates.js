@@ -82,7 +82,9 @@ export function completedHeading(key, today = todayKey()) {
   return { title: `${WEEKDAYS_SHORT[fromKey(key).getDay()]}, ${shortDate(key, today)}`, sub: '' };
 }
 
-export function formatTimestamp(ts) {
+export function formatTimestamp(ts, includeTime = false) {
   const d = new Date(ts);
-  return `${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  const date = `${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  if (!includeTime) return date;
+  return `${date} · ${d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
 }

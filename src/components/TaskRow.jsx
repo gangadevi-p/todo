@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { CalendarDays, GripVertical, Trash2 } from 'lucide-react';
 import { activateTask, deleteTask, focusTaskTitle, hoverTask, leaveTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
-import { dueLabel } from '../lib/dates';
+import { dueLabel, formatTimestamp } from '../lib/dates';
 import { priorityLabel } from '../lib/util';
 import { endDrag, startTaskDrag } from '../lib/dnd';
 import { Checkbox, PriorityIcon } from './bits';
@@ -50,6 +50,12 @@ export function TaskMeta({ task, show, today, hidePriority = false }) {
           {due.text}
         </span>
       )}
+      {show.completed && task.completedAt && (
+        <span className="meta meta-completed" title={`Completed ${formatTimestamp(task.completedAt, true)}`}>
+          <CalendarDays size={12} strokeWidth={1.9} />
+          {formatTimestamp(task.completedAt, true)}
+        </span>
+      )}
     </>
   );
 }
@@ -64,7 +70,7 @@ export function TaskPriority({ task }) {
   );
 }
 
-export const TaskRow = memo(function TaskRow({ task, show, today, draggable, depth = 0, projectsById }) {
+export const TaskRow = memo(function TaskRow({ task, show, today, draggable, depth = 0, projectsById, completedChecklistOnly = false }) {
   const dragging = useUI((u) => u.draggingId === task.id);
   const selecting = useUI((u) => u.selecting);
   const selected = useUI((u) => u.selectedId === task.id);
@@ -163,7 +169,7 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
         projectsById={projectsById}
         autoFocus={showChildAdd}
       />
-      {task.subtasks.length > 0 && <SubtaskTree task={task} variant="row" />}
+      {task.subtasks.length > 0 && <SubtaskTree task={task} variant="row" completedOnly={completedChecklistOnly} />}
     </>
   );
 });

@@ -4,13 +4,18 @@ import { addNestedSubtask, addSubtaskAfter, removeSubtask, subtaskKey, toggleSel
 import { Checkbox } from './bits';
 import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
+import { formatTimestamp } from '../lib/dates';
 
 /** Focuses a subtask's title field once it's in the DOM — used right after creating one. */
 export const focusSubtask = (id) => {
   requestAnimationFrame(() => document.querySelector(`[data-subtask-input="${id}"]`)?.focus());
 };
 
-function SubtaskRow({ task, subtask, index, focus, depth = 0 }) {
+function hasCompletedItem(item) {
+  return item.done || (item.subtasks || []).some(hasCompletedItem);
+}
+
+function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = false }) {
   const selecting = useUI((u) => u.selecting);
   const key = subtaskKey(task.id, subtask.id);
   const picked = useUI((u) => u.selected.has(key));
@@ -43,8 +48,14 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0 }) {
       <Checkbox
         size="sm"
         state={selecting ? (picked ? 'done' : 'todo') : subtask.done ? 'done' : 'todo'}
-        onToggle={() => (selecting ? toggleSelected(key) : updateSubtask(task.id, subtask.id, { done: !subtask.done }))}
+        onToggle={() => (selecting ? toggleSelected(key) : updateSubtask(task.id, subtask.id, {
+          done: !subtask.done,
+          completedAt: subtask.done ? null : Date.now(),
+        }))}
       />
+      {completedOnly && subtask.done && subtask.completedAt && (
+        <span className="sub-completed-at">{formatTimestamp(subtask.completedAt, true)}</span>
+      )}
       <input
         data-subtask-input={subtask.id}
         className={textStyleProps(subtask.textStyle).className}
@@ -93,8 +104,8 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0 }) {
         </button>
       )}
       </div>
-      {(subtask.subtasks || []).map((child, childIndex) => (
-        <SubtaskRow key={child.id} task={task} subtask={child} index={childIndex} focus={focus} depth={depth + 1} />
+      {(completedOnly ? (subtask.subtasks || []).filter(hasCompletedItem) : (subtask.subtasks || [])).map((child, childIndex) => (
+        <SubtaskRow key={child.id} task={task} subtask={child} index={childIndex} focus={focus} depth={depth + 1} completedOnly={completedOnly} />
       ))}
     </>
   );
@@ -105,7 +116,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0 }) {
  * Clicks inside are kept from reaching the row/card, whose own click opens
  * the task — otherwise checking an item or typing would activate it instead.
  */
-export function SubtaskTree({ task, variant = 'row' }) {
+export function SubtaskTree({ task, variant = 'row', completedOnly = false }) {
   const ref = useRef(null);
   const focus = (i) => {
     const st = task.subtasks[i];
@@ -119,8 +130,8 @@ export function SubtaskTree({ task, variant = 'row' }) {
       onMouseDown={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
     >
-      {task.subtasks.map((st, i) => (
-        <SubtaskRow key={st.id} task={task} subtask={st} index={i} focus={focus} />
+      {(completedOnly ? task.subtasks.filter(hasCompletedItem) : task.subtasks).map((st, i) => (
+        <SubtaskRow key={st.id} task={task} subtask={st} index={i} focus={focus} completedOnly={completedOnly} />
       ))}
     </div>
   );
