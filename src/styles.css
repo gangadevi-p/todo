@@ -511,10 +511,13 @@ kbd {
   display: grid;
   color: var(--text);
 }
-.sidebar-collapse {
+.sidebar-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   opacity: 0;
 }
-.sidebar:hover .sidebar-collapse {
+.sidebar:hover .sidebar-top-actions {
   opacity: 1;
 }
 .sidebar-scroll {

@@ -239,9 +239,19 @@ export function Sidebar({ view }) {
           </span>
           <span className="brand-name">Gani's Work</span>
         </div>
-        <button type="button" className="icon-btn no-drag sidebar-collapse" title="Hide sidebar" onClick={() => setPref('sidebarCollapsed', true)}>
-          <PanelLeftClose size={16} strokeWidth={1.8} />
-        </button>
+        <div className="sidebar-top-actions">
+          <button
+            type="button"
+            className="icon-btn no-drag"
+            title={effectiveTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            onClick={() => setPref('theme', effectiveTheme === 'dark' ? 'light' : 'dark')}
+          >
+            {effectiveTheme === 'dark' ? <Moon size={16} strokeWidth={1.8} /> : <Sun size={16} strokeWidth={1.8} />}
+          </button>
+          <button type="button" className="icon-btn no-drag sidebar-collapse" title="Hide sidebar" onClick={() => setPref('sidebarCollapsed', true)}>
+            <PanelLeftClose size={16} strokeWidth={1.8} />
+          </button>
+        </div>
       </div>
 
       <div className="sidebar-scroll">
@@ -297,24 +307,6 @@ export function Sidebar({ view }) {
       </div>
 
       <div className="sidebar-foot">
-        <div className="nav-item muted theme-row">
-          {effectiveTheme === 'dark' ? (
-            <Moon size={16} strokeWidth={1.8} className="nav-icon" />
-          ) : (
-            <Sun size={16} strokeWidth={1.8} className="nav-icon" />
-          )}
-          <span className="nav-label">{effectiveTheme === 'dark' ? 'Dark theme' : 'Light theme'}</span>
-          <button
-            type="button"
-            className={`switch${effectiveTheme === 'dark' ? ' on' : ''}`}
-            role="switch"
-            aria-checked={effectiveTheme === 'dark'}
-            title="Switch between light and dark theme"
-            onClick={() => setPref('theme', effectiveTheme === 'dark' ? 'light' : 'dark')}
-          >
-            <span />
-          </button>
-        </div>
         <button type="button" className="nav-item muted" onClick={() => setHelp(true)}>
           <CircleHelp size={16} strokeWidth={1.8} className="nav-icon" />
           <span className="nav-label">Shortcuts</span>
