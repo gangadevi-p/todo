@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef } from 'react';
 import {
-  closePanel, data, deleteTask, duplicateTask, hidePreview, navigate, openNewTask, openSearch, pinPreview, selectTask,
+  closeMobileNav, closePanel, data, deleteTask, duplicateTask, hidePreview, navigate, openNewTask, openSearch, pinPreview, selectTask,
   setHelp, setPref, setSelecting, toggleComplete, toggleToday, ui, undoLast, updateTask, useData, useUI,
 } from './store';
 import { buildView, NAV_VIEWS } from './lib/views';
 import { isTypingTarget } from './lib/util';
 import { TodayContext, useTodayClock } from './lib/useToday';
+import { useIsMobile } from './lib/useViewport';
 import { Sidebar } from './components/Sidebar';
 import { MainView } from './components/MainView';
 import { DetailPanel } from './components/DetailPanel';
@@ -190,13 +191,17 @@ export default function App() {
 
   const collapsed = Boolean(prefs.sidebarCollapsed);
   const showPanel = panelOpen && selectedId && selectedExists;
+  const isMobile = useIsMobile();
+  const mobileNavOpen = useUI((u) => u.mobileNavOpen);
+  const sidebarVisible = isMobile ? mobileNavOpen : !collapsed;
 
   return (
     <TodayContext.Provider value={today}>
-      <div className={`app platform-${platform}${collapsed ? ' sidebar-collapsed' : ''}${showPanel ? ' panel-open' : ''}`}>
-        {!collapsed && <Sidebar view={model.id} />}
+      <div className={`app platform-${platform}${collapsed ? ' sidebar-collapsed' : ''}${showPanel ? ' panel-open' : ''}${isMobile ? ' is-mobile' : ''}`}>
+        {sidebarVisible && <Sidebar view={model.id} isMobile={isMobile} />}
+        {isMobile && mobileNavOpen && <div className="sidebar-scrim" onClick={closeMobileNav} />}
         <div className="workspace">
-          <MainView model={model} sidebarCollapsed={collapsed} />
+          <MainView model={model} sidebarCollapsed={isMobile ? !mobileNavOpen : collapsed} isMobile={isMobile} />
           {showPanel && <DetailPanel taskId={selectedId} />}
         </div>
         <PopupHost />

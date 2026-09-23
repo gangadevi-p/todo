@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, CalendarDays, CheckSquare, CircleCheck, Columns3, Inbox, Layers, List, PanelLeftOpen, Plus, Sun, Trash2, X } from 'lucide-react';
 import {
-  confirmDeleteSelection, confirmDeleteTasks, markSelectionDone, openNewTask, parseSelectionKey, renameProject, setPref, setProjectMode, updateProject,
-  setSectionMode, setSelecting, useUI,
+  confirmDeleteSelection, confirmDeleteTasks, markSelectionDone, openMobileNav, openNewTask, parseSelectionKey, renameProject, setPref, setProjectMode,
+  updateProject, setSectionMode, setSelecting, useUI,
 } from '../store';
 import { Board } from './Board';
 import { Kbd, ProjectDot } from './bits';
@@ -99,7 +99,7 @@ function ProjectTitle({ project }) {
   );
 }
 
-export function MainView({ model, sidebarCollapsed }) {
+export function MainView({ model, sidebarCollapsed, isMobile = false }) {
   const scrollRef = useRef(null);
   const [scrolled, setScrolled] = useState(false);
   const view = useUI((u) => u.view);
@@ -189,7 +189,7 @@ export function MainView({ model, sidebarCollapsed }) {
     <main className="main">
       <div className={`topbar drag-region${scrolled ? ' scrolled' : ''}`}>
         {sidebarCollapsed && (
-          <button type="button" className="icon-btn no-drag" title="Show sidebar" onClick={() => setPref('sidebarCollapsed', false)}>
+          <button type="button" className="icon-btn no-drag" title="Show sidebar" onClick={() => (isMobile ? openMobileNav() : setPref('sidebarCollapsed', false))}>
             <PanelLeftOpen size={16} strokeWidth={1.8} />
           </button>
         )}

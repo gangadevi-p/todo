@@ -44,6 +44,7 @@ export const ui = createStore({
   selecting: false, // bulk-select mode: rows/subtasks pick instead of opening or toggling
   selected: new Set(), // keys from taskKey()/subtaskKey() picked while selecting
   statsFilter: 'todo', // 'todo' | 'done' — the active status tab for the current section
+  mobileNavOpen: false, // sidebar-as-drawer visibility on narrow screens; unrelated to prefs.sidebarCollapsed
 });
 
 export const useData = (sel) => useSyncExternalStore(data.subscribe, () => sel(data.get()));
@@ -773,9 +774,16 @@ export function toggleCollapsed(key) {
 
 export function navigate(view) {
   clearPreviewTimers();
-  patchUI({ view, selectedId: null, panelOpen: false, menu: null, preview: null, statsFilter: view === 'completed' ? 'done' : 'todo' });
+  patchUI({
+    view, selectedId: null, panelOpen: false, menu: null, preview: null,
+    statsFilter: view === 'completed' ? 'done' : 'todo', mobileNavOpen: false,
+  });
   setPref('view', view);
 }
+
+/** The sidebar-as-drawer shown on narrow screens, independent of the desktop sidebarCollapsed pref. */
+export const openMobileNav = () => patchUI({ mobileNavOpen: true });
+export const closeMobileNav = () => patchUI({ mobileNavOpen: false });
 
 /** Narrows the current page to either Todo or Done. */
 export function setStatsFilter(kind) {

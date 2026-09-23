@@ -3,7 +3,7 @@ import {
   CalendarDays, CircleCheck, CircleHelp, Ellipsis, Eraser, Inbox, Layers, Moon, PanelLeftClose, Pencil, Plus, Search, Sun, Trash2,
 } from 'lucide-react';
 import {
-  askConfirm, confirmDeleteAll, deleteProject, findTask, navigate, openMenu, openNewProject, openSearch, placeProject, renameProject,
+  askConfirm, closeMobileNav, confirmDeleteAll, deleteProject, findTask, navigate, openMenu, openNewProject, openSearch, placeProject, renameProject,
   setEditingProject, setHelp, setPref, toast, updateTask, useData, useUI,
 } from '../store';
 import { inToday, taskProgress } from '../lib/views';
@@ -182,7 +182,7 @@ function ProjectItem({ project, active, count, progress, editing, onReorderTarge
   );
 }
 
-export function Sidebar({ view }) {
+export function Sidebar({ view, isMobile = false }) {
   const tasks = useData((s) => s.tasks);
   const trash = useData((s) => s.trash || []);
   const projects = useData((s) => s.projects);
@@ -248,7 +248,7 @@ export function Sidebar({ view }) {
           >
             {effectiveTheme === 'dark' ? <Moon size={16} strokeWidth={1.8} /> : <Sun size={16} strokeWidth={1.8} />}
           </button>
-          <button type="button" className="icon-btn no-drag sidebar-collapse" title="Hide sidebar" onClick={() => setPref('sidebarCollapsed', true)}>
+          <button type="button" className="icon-btn no-drag sidebar-collapse" title="Hide sidebar" onClick={() => (isMobile ? closeMobileNav() : setPref('sidebarCollapsed', true))}>
             <PanelLeftClose size={16} strokeWidth={1.8} />
           </button>
         </div>
