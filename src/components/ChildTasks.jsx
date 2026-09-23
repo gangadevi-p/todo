@@ -29,18 +29,29 @@ export function ChildAddButton({ task, className = '' }) {
 /** The inline text field revealed by a task's left-gutter add control. */
 export function AddChildTask({ parent, open = false }) {
   const [value, setValue] = useState('');
+  // Which task new entries nest under right now: starts at `parent`, and
+  // Tab drops it one level deeper onto the last task this field created.
+  const [level, setLevel] = useState(parent.id);
+  const lastCreated = useRef(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
-    if (open) inputRef.current?.focus();
-  }, [open]);
+    if (open) {
+      inputRef.current?.focus();
+      setLevel(parent.id);
+      lastCreated.current = null;
+    }
+  }, [open, parent.id]);
 
   if (!open) return null;
 
-  const submit = () => {
+  const submit = (nestDeeper = false) => {
     const clean = value.trim();
     if (!clean) { setChildTasksOpen(parent.id, false); return; }
-    createTask({ title: clean, parentId: parent.id, projectId: parent.projectId, addedToToday: parent.addedToToday });
+    const parentId = nestDeeper && lastCreated.current ? lastCreated.current : level;
+    const id = createTask({ title: clean, parentId, projectId: parent.projectId, addedToToday: parent.addedToToday });
+    lastCreated.current = id;
+    if (nestDeeper) setLevel(parentId);
     setValue('');
   };
 
@@ -57,7 +68,10 @@ export function AddChildTask({ parent, open = false }) {
           if (e.nativeEvent.isComposing) return;
           if (e.key === 'Enter') {
             e.preventDefault();
-            submit();
+            submit(false);
+          } else if (e.key === 'Tab' && !e.shiftKey) {
+            e.preventDefault();
+            submit(true);
           } else if (e.key === 'Escape') {
             setChildTasksOpen(parent.id, false);
           }
