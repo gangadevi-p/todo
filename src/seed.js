@@ -2,7 +2,7 @@ import { addDays, todayKey } from './lib/dates';
 import { uid, PROJECT_COLORS } from './lib/util';
 
 /** Bump when the sample workspace changes, so demos saved earlier are replaced with the new one. */
-export const DEMO_VERSION = 2;
+export const DEMO_VERSION = 3;
 
 /** App name shown in the demo space, so it isn't mistaken for the owner's workspace. */
 export const DEMO_NAME = 'Demo Workspace';
@@ -14,14 +14,14 @@ export function seedData() {
   const now = Date.now();
   const day = 86400000;
 
-  const projects = ['Maple Café Website', 'Trailhead App', 'Studio Rebrand', 'Home'].map((name, i) => ({
+  const projects = ['Maple Café Website', 'Trailhead App', 'Studio Rebrand', 'Non-Negotiable'].map((name, i) => ({
     id: uid(),
     name,
     createdAt: now,
     order: i + 1,
     color: PROJECT_COLORS[i],
   }));
-  const [cafe, trail, studio, home] = projects.map((p) => p.id);
+  const [cafe, trail, studio, basics] = projects.map((p) => p.id);
 
   let order = 0;
   const task = (title, extra = {}) => ({
@@ -88,8 +88,13 @@ export function seedData() {
     task('Refresh social media banners', { projectId: studio }),
     task('Export the brand kit', { projectId: studio }),
 
-    // Home
-    task('Plan weekend groceries', { projectId: home }),
+    // Non-Negotiable: the daily basics
+    task('8 hours of sleep', { projectId: basics }),
+    task('8 hours of work', { projectId: basics }),
+    task('4–6 litres of water', { projectId: basics }),
+    task('3 meals', { projectId: basics }),
+    task('1 hour of focused workout', { projectId: basics }),
+    task('Self care', { projectId: basics }),
 
     // Completed inbox task
     task('Clear the desktop screenshots', { status: 'done', completedAt: now - 3 * 3600000 }),

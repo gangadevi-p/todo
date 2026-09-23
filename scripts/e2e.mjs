@@ -169,7 +169,7 @@ try {
   await app.click('.segmented button', 'List');
 
   // 1. Delete all + "Are you sure?" on every page --------------------------------------
-  const pages = ['Inbox', 'Today', 'Upcoming', 'All Tasks', 'Completed', 'Maple Café Website', 'Trailhead App', 'Studio Rebrand', 'Home'];
+  const pages = ['Inbox', 'Today', 'Upcoming', 'All Tasks', 'Completed', 'Maple Café Website', 'Trailhead App', 'Studio Rebrand', 'Non-Negotiable'];
   const total = readData().tasks.length;
   for (const name of pages) {
     await app.click('.nav-item', name);

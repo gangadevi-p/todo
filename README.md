@@ -34,7 +34,7 @@ Only a salted hash of the password is stored (`nudge-auth.json`). This is a loca
 
 ## Demo for your portfolio
 
-`npm run build:demo` writes a static, browser-only copy of the app to `demo/`. Upload that folder to any static host (or embed it in an iframe) and it opens straight into the made-up sample workspace (Maple Café Website, Trailhead App, Studio Rebrand, Home), with no sign-in screen.
+`npm run build:demo` writes a static, browser-only copy of the app to `demo/`. Upload that folder to any static host (or embed it in an iframe) and it opens straight into the made-up sample workspace (Maple Café Website, Trailhead App, Studio Rebrand, Non-Negotiable), with no sign-in screen.
 
 It is completely separate from your own space: the desktop app keeps using `%APPDATA%\Nudge\nudge-data.json`, while the demo keeps each visitor's edits in their own browser (localStorage) and never sees your real tasks.
 
