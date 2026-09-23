@@ -515,10 +515,6 @@ kbd {
   display: flex;
   align-items: center;
   gap: 2px;
-  opacity: 0;
-}
-.sidebar:hover .sidebar-top-actions {
-  opacity: 1;
 }
 .sidebar-scroll {
   flex: 1;
