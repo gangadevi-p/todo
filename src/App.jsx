@@ -128,6 +128,7 @@ function handleKey(e, model) {
 export default function App() {
   const today = useTodayClock();
   const tasks = useData((s) => s.tasks);
+  const trash = useData((s) => s.trash || []);
   const projects = useData((s) => s.projects);
   const prefs = useData((s) => s.prefs);
   const view = useUI((u) => u.view);
@@ -137,8 +138,8 @@ export default function App() {
   const platform = useUI((u) => u.platform);
 
   const model = useMemo(
-    () => buildView(view, { tasks, projects, today, lingering, prefs }),
-    [view, tasks, projects, today, lingering, prefs],
+    () => buildView(view, { tasks, projects, trash, today, lingering, prefs }),
+    [view, tasks, trash, projects, today, lingering, prefs],
   );
 
   // "system" leaves no attribute, so the OS-preference media query in CSS keeps driving it.
@@ -163,15 +164,26 @@ export default function App() {
   modelRef.current = model;
   useEffect(() => {
     const onKey = (e) => handleKey(e, modelRef.current);
+    const clearOutsideTask = (e) => {
+      // Use capture so nested sections cannot stop this from clearing the
+      // active row when the person clicks their empty space.
+      const staysActive = e.target.closest?.('[data-task-row], .panel, .floating, .modal, [role="dialog"], .task-preview');
+      if (!staysActive && ui.get().selectedId) {
+        hidePreview();
+        selectTask(null, false);
+      }
+    };
     // Mouse clicks shouldn't leave focus parked on buttons, or Enter/Space
     // would re-trigger them instead of acting on the selected task.
     const onClick = (e) => {
       if (e.detail > 0) e.target.closest?.('button')?.blur();
     };
     window.addEventListener('keydown', onKey);
+    window.addEventListener('pointerdown', clearOutsideTask, true);
     window.addEventListener('click', onClick);
     return () => {
       window.removeEventListener('keydown', onKey);
+      window.removeEventListener('pointerdown', clearOutsideTask, true);
       window.removeEventListener('click', onClick);
     };
   }, []);

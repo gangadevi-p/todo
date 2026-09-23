@@ -1,6 +1,7 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import { seedData, defaultPrefs } from './seed';
 import { plural, uid, PROJECT_COLORS } from './lib/util';
+import { normalizeTextStyle } from './lib/textStyle';
 
 // ---------------------------------------------------------------------------
 // Tiny external stores. `data` is persisted; `ui` is session-only.
@@ -22,7 +23,7 @@ function createStore(initial) {
   };
 }
 
-export const data = createStore({ projects: [], tasks: [], prefs: defaultPrefs() });
+export const data = createStore({ projects: [], tasks: [], trash: [], prefs: defaultPrefs() });
 
 export const ui = createStore({
   platform: 'web',
@@ -56,11 +57,12 @@ const patchUI = (patch) => ui.set((u) => ({ ...u, ...patch }));
 
 const bridge = typeof window !== 'undefined' ? window.nudge : undefined;
 const LS_KEY = 'nudge:data:v1';
+export const TRASH_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 let saveTimer = null;
 
 function payload() {
-  const { projects, tasks, prefs } = data.get();
-  return { version: 1, savedAt: Date.now(), projects, tasks, prefs };
+  const { projects, tasks, trash, prefs } = data.get();
+  return { version: 2, savedAt: Date.now(), projects, tasks, trash, prefs };
 }
 
 function writeNow(sync) {
@@ -97,8 +99,9 @@ function normalizeTask(t, i) {
     completedAt: t.completedAt || null,
     order: Number.isFinite(t.order) ? t.order : i + 1,
     subtasks: Array.isArray(t.subtasks)
-      ? t.subtasks.map((s) => ({ id: s.id || uid(), title: s.title || '', done: Boolean(s.done) }))
+      ? t.subtasks.map((s) => ({ id: s.id || uid(), title: s.title || '', done: Boolean(s.done), textStyle: normalizeTextStyle(s.textStyle) }))
       : [],
+    textStyle: normalizeTextStyle(t.textStyle),
   };
 }
 
@@ -109,6 +112,7 @@ function normalize(raw) {
     createdAt: p.createdAt || Date.now(),
     order: Number.isFinite(p.order) ? p.order : i + 1,
     color: p.color || PROJECT_COLORS[i % PROJECT_COLORS.length],
+    textStyle: normalizeTextStyle(p.textStyle),
   }));
   const ids = new Set(projects.map((p) => p.id));
   let tasks = (raw.tasks || []).map(normalizeTask).map((t) =>
@@ -116,7 +120,15 @@ function normalize(raw) {
   const taskIds = new Set(tasks.map((t) => t.id));
   tasks = tasks.map((t) =>
     t.parentId && (t.parentId === t.id || !taskIds.has(t.parentId)) ? { ...t, parentId: null } : t);
-  return { projects, tasks, prefs: { ...defaultPrefs(), ...(raw.prefs || {}) } };
+  const cutoff = Date.now() - TRASH_RETENTION_MS;
+  const trash = (raw.trash || [])
+    .map((t, i) => ({
+      ...normalizeTask(t, i),
+      deletedAt: Number.isFinite(t.deletedAt) ? t.deletedAt : Date.now(),
+      trashBatchId: t.trashBatchId || t.id || uid(),
+    }))
+    .filter((t) => t.deletedAt > cutoff);
+  return { projects, tasks, trash, prefs: { ...defaultPrefs(), ...(raw.prefs || {}) } };
 }
 
 export async function loadData() {
@@ -131,7 +143,7 @@ export async function loadData() {
   }
   const initial = raw && Array.isArray(raw.tasks) ? normalize(raw) : seedData();
   data.set(initial);
-  if (!raw) scheduleSave();
+  if (!raw || initial.trash.length !== (raw.trash || []).length) scheduleSave();
 
   let view = initial.prefs.view || 'today';
   if (view.startsWith('project:') && !initial.projects.some((p) => `project:${p.id}` === view)) view = 'today';
@@ -139,8 +151,24 @@ export async function loadData() {
 }
 
 function commit(updater) {
-  data.set(updater);
+  data.set((s) => {
+    const next = updater(s);
+    const cutoff = Date.now() - TRASH_RETENTION_MS;
+    const trash = (next.trash || []).filter((t) => t.deletedAt > cutoff);
+    return trash.length === (next.trash || []).length ? next : { ...next, trash };
+  });
   scheduleSave();
+}
+
+// Keep an open app tidy too; loading the app and every other saved change also
+// prune expired entries through normalize() and commit().
+if (typeof window !== 'undefined') {
+  window.setInterval(() => {
+    const cutoff = Date.now() - TRASH_RETENTION_MS;
+    if (data.get().trash?.some((t) => t.deletedAt <= cutoff)) {
+      commit((s) => ({ ...s, trash: s.trash.filter((t) => t.deletedAt > cutoff) }));
+    }
+  }, 15 * 60 * 1000);
 }
 
 // ---------------------------------------------------------------------------
@@ -198,6 +226,7 @@ export function createTask(fields = {}) {
       addedToToday: false,
       completedAt: null,
       subtasks: [],
+      textStyle: normalizeTextStyle(),
       ...fields,
       id,
       title,
@@ -251,18 +280,12 @@ export function toggleToday(id) {
 export function deleteTask(id) {
   const task = findTask(id);
   if (!task) return;
-  const before = data.get().tasks;
-  const removeIds = new Set([id, ...descendantIds(id, before)]);
-  const removed = before.filter((t) => removeIds.has(t.id));
-  commit((s) => ({ ...s, tasks: s.tasks.filter((t) => !removeIds.has(t.id)) }));
-  const u = ui.get();
-  if (removeIds.has(u.selectedId)) patchUI({ selectedId: null, panelOpen: false });
-  hidePreview();
+  const { removed, batchId } = moveTasksToTrash([id]);
   const extra = removed.length - 1;
-  toast(`Deleted “${truncate(task.title, 32)}”${extra ? ` and ${plural(extra, 'sub-task')}` : ''}`, {
-    label: 'Undo',
-    run: () => commit((s) => ({ ...s, tasks: [...s.tasks, ...removed] })),
-  });
+  toast(`Moved “${truncate(task.title, 32)}”${extra ? ` and ${plural(extra, 'sub-task')}` : ''} to Trash`, {
+    label: 'Undo · Ctrl+Z',
+    run: () => restoreTrashBatch(batchId),
+  }, 8000);
 }
 
 export function duplicateTask(id) {
@@ -318,7 +341,7 @@ export function addSubtask(taskId, title = '', index = null, extra = {}) {
   const id = extra.id || uid();
   patchSubtasks(taskId, (list) => {
     const next = [...list];
-    next.splice(index == null ? next.length : index, 0, { id, title, done: Boolean(extra.done) });
+    next.splice(index == null ? next.length : index, 0, { id, title, done: Boolean(extra.done), textStyle: normalizeTextStyle(extra.textStyle) });
     return next;
   });
   return id;
@@ -327,8 +350,22 @@ export function addSubtask(taskId, title = '', index = null, extra = {}) {
 export const updateSubtask = (taskId, subId, patch) =>
   patchSubtasks(taskId, (list) => list.map((st) => (st.id === subId ? { ...st, ...patch } : st)));
 
-export const removeSubtask = (taskId, subId) =>
+export function removeSubtask(taskId, subId) {
+  const task = findTask(taskId);
+  const index = task?.subtasks.findIndex((st) => st.id === subId) ?? -1;
+  const removed = index >= 0 ? task.subtasks[index] : null;
+  if (!removed) return;
   patchSubtasks(taskId, (list) => list.filter((st) => st.id !== subId));
+  toast(`Deleted checklist item “${truncate(removed.title || 'Untitled', 28)}”`, {
+    label: 'Undo · Ctrl+Z',
+    run: () => patchSubtasks(taskId, (list) => {
+      if (list.some((st) => st.id === removed.id)) return list;
+      const next = [...list];
+      next.splice(Math.min(index, next.length), 0, removed);
+      return next;
+    }),
+  }, 8000);
+}
 
 // ---------------------------------------------------------------------------
 // Bulk selection: pick any mix of tasks and subtasks, then mark them all
@@ -343,8 +380,13 @@ export function parseSelectionKey(key) {
   return kind === 'task' ? { kind: 'task', id: a } : { kind: 'subtask', taskId: a, id: b };
 }
 
-export function setSelecting(on) {
-  patchUI({ selecting: on, selected: new Set() });
+/**
+ * Enter or leave bulk-select mode. When task IDs are supplied, enter with
+ * every task in the current page already selected (the Select button's
+ * expected behaviour); callers can still toggle individual rows afterwards.
+ */
+export function setSelecting(on, taskIds = []) {
+  patchUI({ selecting: on, selected: on ? new Set(taskIds.map(taskKey)) : new Set() });
 }
 
 export function toggleSelected(key) {
@@ -428,6 +470,7 @@ export function createProject({ id = uid(), name, color, order } = {}) {
         createdAt: now(),
         order: Number.isFinite(order) ? order : maxOrder(s.projects) + 1,
         color: color || nextProjectColor(s.projects),
+        textStyle: normalizeTextStyle(),
       },
     ],
   }));
@@ -440,19 +483,76 @@ export function renameProject(id, name) {
   commit((s) => ({ ...s, projects: s.projects.map((p) => (p.id === id ? { ...p, name: clean } : p)) }));
 }
 
-/** Removes many tasks at once, including anything nested under them. Undoable. */
-export function deleteTasks(ids) {
+export function updateProject(id, patch) {
+  commit((s) => ({ ...s, projects: s.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)) }));
+}
+
+/** Moves a batch of tasks to Trash, always keeping each major task's descendants together. */
+function moveTasksToTrash(ids) {
   const all = data.get().tasks;
   const set = new Set(ids.flatMap((id) => [id, ...descendantIds(id, all)]));
   const removed = all.filter((t) => set.has(t.id));
-  if (!removed.length) return;
+  if (!removed.length) return { removed: [], batchId: null };
+  const batchId = uid();
+  const deletedAt = now();
   hidePreview();
-  commit((s) => ({ ...s, tasks: s.tasks.filter((t) => !set.has(t.id)) }));
+  commit((s) => ({
+    ...s,
+    tasks: s.tasks.filter((t) => !set.has(t.id)),
+    trash: [...(s.trash || []), ...removed.map((t) => ({ ...t, deletedAt, trashBatchId: batchId }))],
+  }));
   const u = ui.get();
   if (removed.some((t) => t.id === u.selectedId)) patchUI({ selectedId: null, panelOpen: false });
+  return { removed, batchId };
+}
+
+/** Restore every task that was deleted together, including nested tasks. */
+export function restoreTrashBatch(batchId) {
+  if (!batchId) return;
+  commit((s) => {
+    const restored = (s.trash || []).filter((t) => t.trashBatchId === batchId);
+    if (!restored.length) return s;
+    const existing = new Set(s.tasks.map((t) => t.id));
+    return {
+      ...s,
+      tasks: [...s.tasks, ...restored.filter((t) => !existing.has(t.id)).map(({ deletedAt, trashBatchId, ...t }) => t)],
+      trash: s.trash.filter((t) => t.trashBatchId !== batchId),
+    };
+  });
+  toast('Restored from Trash');
+}
+
+export function permanentlyDeleteTrashBatch(batchId) {
+  commit((s) => ({ ...s, trash: (s.trash || []).filter((t) => t.trashBatchId !== batchId) }));
+}
+
+export function confirmPermanentlyDeleteTrashBatch(batchId, title) {
+  askConfirm({
+    title: `Delete “${truncate(title, 32)}” permanently?`,
+    body: 'This cannot be undone.',
+    confirmLabel: 'Delete permanently',
+    onConfirm: () => permanentlyDeleteTrashBatch(batchId),
+  });
+}
+
+export function confirmEmptyTrash() {
+  const count = data.get().trash?.length || 0;
+  if (!count) return;
+  askConfirm({
+    title: 'Empty Trash?',
+    body: `This will permanently delete ${count} task${count === 1 ? '' : 's'}. This cannot be undone.`,
+    confirmLabel: 'Empty Trash',
+    onConfirm: () => commit((s) => ({ ...s, trash: [] })),
+  });
+}
+
+/** Moves many tasks to Trash, including anything nested under them. Undoable. */
+export function deleteTasks(ids) {
+  const { removed, batchId } = moveTasksToTrash(ids);
+  if (!removed.length) return;
   toast(
-    `Deleted ${removed.length} task${removed.length === 1 ? '' : 's'}`,
-    { label: 'Undo', run: () => commit((s) => ({ ...s, tasks: [...s.tasks, ...removed] })) },
+    `Moved ${removed.length} task${removed.length === 1 ? '' : 's'} to Trash`,
+    { label: 'Undo · Ctrl+Z', run: () => restoreTrashBatch(batchId) },
     8000,
   );
 }
@@ -466,7 +566,7 @@ export function confirmDeleteTasks(ids, scope, note = '') {
   }
   askConfirm({
     title: 'Are you sure?',
-    body: `This will delete all ${n} task${n === 1 ? '' : 's'} in ${scope}.${note} You can undo right after.`,
+    body: `This will delete all ${n} task${n === 1 ? '' : 's'} in ${scope}.${note} You can undo with Ctrl+Z or from Trash.`,
     confirmLabel: n === 1 ? 'Delete task' : `Delete all ${n}`,
     onConfirm: () => deleteTasks(ids),
   });
@@ -479,12 +579,27 @@ export function confirmDeleteAll(project) {
 }
 
 export function deleteProject(id) {
+  const before = data.get();
+  const project = before.projects.find((p) => p.id === id);
+  if (!project) return;
+  const taskIds = new Set(before.tasks.filter((t) => t.projectId === id).map((t) => t.id));
   commit((s) => ({
     ...s,
     projects: s.projects.filter((p) => p.id !== id),
     tasks: s.tasks.map((t) => (t.projectId === id ? { ...t, projectId: null } : t)),
   }));
   if (ui.get().view === `project:${id}`) navigate('inbox');
+  toast(`Deleted project “${truncate(project.name, 32)}”`, {
+    label: 'Undo · Ctrl+Z',
+    run: () => {
+      commit((s) => ({
+        ...s,
+        projects: s.projects.some((p) => p.id === project.id) ? s.projects : [...s.projects, project],
+        tasks: s.tasks.map((t) => (taskIds.has(t.id) ? { ...t, projectId: project.id } : t)),
+      }));
+      toast(`Restored project “${truncate(project.name, 32)}”`);
+    },
+  }, 8000);
 }
 
 export function placeProject(id, prevId, nextId) {
@@ -651,13 +766,12 @@ let lastUndo = null;
 export function toast(message, action, ms = 4500) {
   const id = uid();
   ui.set((u) => ({ ...u, toasts: [...u.toasts.slice(-2), { id, message, action }] }));
-  if (action?.label === 'Undo') lastUndo = { id, run: action.run };
+  if (action?.label?.startsWith('Undo')) lastUndo = { id, run: action.run };
   setTimeout(() => dismissToast(id), ms);
 }
 
 export function dismissToast(id) {
   ui.set((u) => ({ ...u, toasts: u.toasts.filter((t) => t.id !== id) }));
-  if (lastUndo?.id === id) lastUndo = null;
 }
 
 export function runToastAction(t) {

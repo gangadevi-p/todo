@@ -1,35 +1,45 @@
 import { useEffect, useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { createTask, useData } from '../store';
+import { createTask, setChildTasksOpen, useData } from '../store';
 import { TaskRow } from './TaskRow';
 
-/** Whether the "add a sub-task" field should be showing for a task with none yet — set only from the right-click menu, since there's no row control for it any more. */
+/** Whether a task's inline sub-task field was opened from its context menu. */
 export function useShowChildAdd(taskId) {
   return useData((s) => Boolean(s.prefs.childTasksOpen?.[taskId]));
 }
 
-/** One-line "+" that reveals a plain text field for a new sub-task, in place — not a field left sitting open under the list. */
-function AddChildTask({ parent, autoFocus }) {
-  const [adding, setAdding] = useState(Boolean(autoFocus));
+/** Hover-only control shown in a task's left gutter. */
+export function ChildAddButton({ task, className = '' }) {
+  return (
+    <button
+      type="button"
+      className={`child-add-button ${className}`.trim()}
+      title="Add sub-task"
+      aria-label="Add sub-task"
+      onClick={(e) => {
+        e.stopPropagation();
+        setChildTasksOpen(task.id, true);
+      }}
+    >
+      <Plus size={15} strokeWidth={2.1} />
+    </button>
+  );
+}
+
+/** The inline text field revealed by a task's left-gutter add control. */
+export function AddChildTask({ parent, open = false }) {
   const [value, setValue] = useState('');
   const inputRef = useRef(null);
 
   useEffect(() => {
-    if (adding) inputRef.current?.focus();
-  }, [adding]);
+    if (open) inputRef.current?.focus();
+  }, [open]);
 
-  if (!adding) {
-    return (
-      <button type="button" className="child-add-trigger" onClick={(e) => { e.stopPropagation(); setAdding(true); }}>
-        <Plus size={12} strokeWidth={2.2} />
-        <span>Add sub-task</span>
-      </button>
-    );
-  }
+  if (!open) return null;
 
   const submit = () => {
     const clean = value.trim();
-    if (!clean) { setAdding(false); return; }
+    if (!clean) { setChildTasksOpen(parent.id, false); return; }
     createTask({ title: clean, parentId: parent.id, projectId: parent.projectId, addedToToday: parent.addedToToday });
     setValue('');
   };
@@ -49,11 +59,11 @@ function AddChildTask({ parent, autoFocus }) {
             e.preventDefault();
             submit();
           } else if (e.key === 'Escape') {
-            setAdding(false);
+            setChildTasksOpen(parent.id, false);
           }
         }}
         onBlur={() => {
-          if (!value.trim()) setAdding(false);
+          if (!value.trim()) setChildTasksOpen(parent.id, false);
         }}
       />
     </div>
@@ -61,9 +71,10 @@ function AddChildTask({ parent, autoFocus }) {
 }
 
 /** Recursively renders a task's sub-tasks (full tasks of their own, which can have further sub-tasks), indented one level deeper each time. */
-export function ChildTaskList({ task, kids, depth, show, today, projectsById }) {
+export function ChildTaskList({ task, kids, depth, show, today, projectsById, autoFocus = false }) {
   return (
     <div className="child-tasks" style={{ '--depth': depth }} onClick={(e) => e.stopPropagation()}>
+      <AddChildTask parent={task} open={autoFocus} />
       {kids.map((c) => (
         <TaskRow
           key={c.id}
@@ -76,7 +87,6 @@ export function ChildTaskList({ task, kids, depth, show, today, projectsById }) 
           projectsById={projectsById}
         />
       ))}
-      <AddChildTask parent={task} autoFocus={kids.length === 0} />
     </div>
   );
 }

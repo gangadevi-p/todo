@@ -21,6 +21,7 @@ export function NewTaskForm({ defaults }) {
   const [status, setStatus] = useState(defaults.status || 'todo');
   const [priority, setPriority] = useState(defaults.priority || null);
   const [projectId, setProjectId] = useState(defaults.projectId || null);
+  const parentId = defaults.parentId || null;
   const [dueDate, setDueDate] = useState(defaults.dueDate || null);
   const addedToToday = Boolean(defaults.addedToToday);
   const [subtasks, setSubtasks] = useState([]);
@@ -65,6 +66,7 @@ export function NewTaskForm({ defaults }) {
       status,
       priority,
       projectId,
+      parentId,
       dueDate,
       addedToToday,
       subtasks: steps,

@@ -1,5 +1,4 @@
 import { addDays, completedHeading, diffDays, longDate, toKey, upcomingHeading } from './dates';
-import { avgCompletionMs, formatDuration, remainingWork } from './eta';
 import { plural } from './util';
 
 const byOrder = (a, b) => a.order - b.order;
@@ -7,7 +6,7 @@ const byCompletedDesc = (a, b) => (b.completedAt || 0) - (a.completedAt || 0);
 
 export const inToday = (t, today) => t.addedToToday || (!!t.dueDate && t.dueDate <= today);
 
-export const NAV_VIEWS = ['inbox', 'today', 'upcoming', 'all', 'completed'];
+export const NAV_VIEWS = ['inbox', 'today', 'upcoming', 'all', 'completed', 'trash'];
 
 /** Status columns for Board view, built from any flat task list. */
 function statusBoardGroups(list, statusOf, addDefaults) {
@@ -49,32 +48,66 @@ export function taskProgress(t, statusOf) {
 }
 
 /**
- * Todo / done breakdown plus a checklist-weighted average for a
- * section's overview panel, and an ETA for the work still open in it: this
- * section's own past pace (created → completed) when it has enough history,
- * otherwise the app-wide pace.
+ * Todo / done breakdown, checklist-weighted completion, and the nearest due
+ * date for a section overview panel.
  */
-function progressStats(scope, statusOf, globalAvgMs) {
+function progressStats(scope, statusOf, today) {
   const total = scope.length;
-  const sectionAvgMs = avgCompletionMs(scope);
-  const avgMs = sectionAvgMs ?? globalAvgMs;
-  const remaining = remainingWork(scope.filter((t) => statusOf(t) !== 'done'), (t) => taskProgress(t, statusOf));
+  const nearestDue = scope
+    .filter((t) => statusOf(t) !== 'done' && t.dueDate)
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
+  const days = nearestDue ? diffDays(nearestDue.dueDate, today) : null;
+  const label = days == null ? null
+    : days < 0 ? `${Math.abs(days)} ${Math.abs(days) === 1 ? 'day' : 'days'} overdue`
+      : days === 0 ? 'Due today'
+        : days === 1 ? 'Due tomorrow'
+          : `Due in ${days} days`;
   return {
     kind: 'progress',
     todo: scope.filter((t) => statusOf(t) === 'todo').length,
     done: scope.filter((t) => statusOf(t) === 'done').length,
     total,
     avgProgress: total ? scope.reduce((sum, t) => sum + taskProgress(t, statusOf), 0) / total : 0,
-    eta: avgMs != null && remaining > 0 ? formatDuration(avgMs * remaining) : null,
-    etaBasis: avgMs == null ? null : sectionAvgMs != null ? 'section' : 'global',
+    deadline: nearestDue ? { date: nearestDue.dueDate, days, label } : null,
   };
+}
+
+/**
+ * A project or section with several major tasks is easier to scan as a set of
+ * headings than as two status buckets. Each heading becomes a board column;
+ * its nested tasks and checklist stay inside that column.
+ */
+function headingBoardGroups(headings, allTasks, addDefaults) {
+  return headings.map((heading) => {
+    const children = allTasks.filter((t) => t.parentId === heading.id).sort(byOrder);
+    const checklistCount = heading.subtasks?.length || 0;
+    return {
+      id: `heading:${heading.id}`,
+      heading: true,
+      headingTask: heading,
+      title: heading.title || 'Untitled',
+      tasks: children,
+      count: children.length + checklistCount,
+      checklistTask: checklistCount ? heading : null,
+      collapsible: false,
+      sortable: true,
+      patch: () => ({ ...addDefaults, parentId: heading.id }),
+      add: { defaults: { ...addDefaults, parentId: heading.id } },
+    };
+  });
+}
+
+/** Only a task that actually owns nested work qualifies as a board heading. */
+function majorHeadings(headings, allTasks) {
+  return headings.filter((heading) =>
+    heading.subtasks?.length || allTasks.some((t) => t.parentId === heading.id));
 }
 
 /**
  * Turns the raw task list into what a view renders: titled groups of tasks,
  * each knowing how a dropped task should change and where new tasks go.
  */
-export function buildView(viewId, { tasks: allTasks, projects, today, lingering, prefs }) {
+export function buildView(viewId, { tasks: allTasks, projects, trash = [], today, lingering, prefs }) {
   // Sub-tasks (tasks nested under another task via parentId) only ever show
   // indented under their parent, wherever it appears — never as their own
   // top-level row, the same way a checklist item doesn't get one either.
@@ -84,7 +117,6 @@ export function buildView(viewId, { tasks: allTasks, projects, today, lingering,
   const statusOf = (t) => (t.id in lingering ? lingering[t.id] : t.status);
   const collapsedKey = (gid) => `${viewId}:${gid}`;
   const sectionMode = prefs.sectionModes?.[viewId] === 'board' ? 'board' : 'list';
-  const globalAvgMs = avgCompletionMs(tasks);
 
   const model = {
     id: viewId,
@@ -102,6 +134,7 @@ export function buildView(viewId, { tasks: allTasks, projects, today, lingering,
     emptyText: '',
     total: 0,
     stats: null,
+    taskIdsOverride: null,
   };
 
   // A flat, chrome-less list of open tasks, plus a proper "Done" section
@@ -122,9 +155,15 @@ export function buildView(viewId, { tasks: allTasks, projects, today, lingering,
       model.emptyText = 'Inbox is clear. Capture anything with the quick-add shortcut and organise it later.';
       model.deleteScope = 'Inbox';
       model.mode = sectionMode;
-      model.stats = progressStats(scope, statusOf, globalAvgMs);
+      model.stats = progressStats(scope, statusOf, today);
       if (sectionMode === 'board') {
-        model.groups = statusBoardGroups(scope, statusOf, { projectId: null });
+        const majors = majorHeadings(scope, allTasks);
+        if (majors.length > 1) {
+          model.groups = headingBoardGroups(majors, allTasks, { projectId: null });
+          model.taskIdsOverride = scope.map((t) => t.id);
+        } else {
+          model.groups = statusBoardGroups(scope, statusOf, { projectId: null });
+        }
         model.total = list.length;
       } else {
         mainAndDone(list, scope.filter((t) => statusOf(t) === 'done').sort(byCompletedDesc), () => ({ projectId: null }));
@@ -141,9 +180,15 @@ export function buildView(viewId, { tasks: allTasks, projects, today, lingering,
       model.newTaskDefaults = { addedToToday: true };
       model.deleteScope = 'Today';
       model.mode = sectionMode;
-      model.stats = progressStats(scope, statusOf, globalAvgMs);
+      model.stats = progressStats(scope, statusOf, today);
       if (sectionMode === 'board') {
-        model.groups = statusBoardGroups(scope, statusOf, { addedToToday: true });
+        const majors = majorHeadings(scope, allTasks);
+        if (majors.length > 1) {
+          model.groups = headingBoardGroups(majors, allTasks, { addedToToday: true });
+          model.taskIdsOverride = scope.map((t) => t.id);
+        } else {
+          model.groups = statusBoardGroups(scope, statusOf, { addedToToday: true });
+        }
         model.total = list.length;
       } else {
         mainAndDone(list, scope.filter((t) => statusOf(t) === 'done').sort(byCompletedDesc), () => ({ addedToToday: true }));
@@ -160,10 +205,16 @@ export function buildView(viewId, { tasks: allTasks, projects, today, lingering,
       model.newTaskDefaults = { dueDate: addDays(today, 1) };
       model.deleteScope = 'Upcoming';
       model.mode = sectionMode;
-      model.stats = progressStats(scope, statusOf, globalAvgMs);
+      model.stats = progressStats(scope, statusOf, today);
       if (sectionMode === 'board') {
         model.show.due = true;
-        model.groups = statusBoardGroups(scope, statusOf, { dueDate: addDays(today, 1) });
+        const majors = majorHeadings(scope, allTasks);
+        if (majors.length > 1) {
+          model.groups = headingBoardGroups(majors, allTasks, { dueDate: addDays(today, 1) });
+          model.taskIdsOverride = scope.map((t) => t.id);
+        } else {
+          model.groups = statusBoardGroups(scope, statusOf, { dueDate: addDays(today, 1) });
+        }
         model.total = list.length;
       } else {
         const dates = [...new Set(list.map((t) => t.dueDate))].sort();
@@ -185,37 +236,30 @@ export function buildView(viewId, { tasks: allTasks, projects, today, lingering,
       break;
     }
     case 'all': {
-      const open = tasks.filter(isOpen);
+      const buckets = [{ id: 'inbox', title: 'Inbox', projectId: null, icon: 'inbox' }].concat(
+        [...projects].sort(byOrder).map((p) => ({ id: p.id, title: p.name, projectId: p.id, color: p.color })));
       model.title = 'All Tasks';
-      model.subtitle = plural(open.length, 'open task');
+      model.subtitle = plural(tasks.length, 'task');
       model.show.project = false;
-      model.emptyText = 'No open tasks. Enjoy the quiet.';
+      model.emptyText = 'No tasks yet. Add one to Inbox or a project.';
       model.deleteScope = 'All Tasks';
       model.mode = sectionMode;
-      model.stats = progressStats(tasks, statusOf, globalAvgMs);
-      if (sectionMode === 'board') {
-        model.show.project = true;
-        model.groups = statusBoardGroups(tasks, statusOf, {});
-        model.total = open.length;
-      } else {
-        const buckets = [{ id: 'inbox', title: 'Inbox', projectId: null, icon: 'inbox' }].concat(
-          [...projects].sort(byOrder).map((p) => ({ id: p.id, title: p.name, projectId: p.id, color: p.color })));
-        model.groups = buckets
-          .map((b) => ({
-            id: b.id,
-            title: b.title,
-            color: b.color,
-            icon: b.icon,
-            tasks: open.filter((t) => (t.projectId || null) === b.projectId).sort(byOrder),
-            sortable: true,
-            collapsible: true,
-            patch: () => ({ projectId: b.projectId }),
-            add: { defaults: { projectId: b.projectId } },
-          }))
-          .filter((g) => g.tasks.length);
-        model.groups.push(doneGroup(tasks.filter((t) => statusOf(t) === 'done').sort(byCompletedDesc)));
-        model.total = open.length;
-      }
+      model.stats = progressStats(tasks, statusOf, today);
+      // All Tasks is deliberately organised by project, never by completion
+      // status. Empty projects stay visible so this view is a complete map of
+      // the workspace and also provides a quick add point for every project.
+      model.groups = buckets.map((b) => ({
+        id: b.id,
+        title: b.title,
+        color: b.color,
+        icon: b.icon,
+        tasks: tasks.filter((t) => (t.projectId || null) === b.projectId).sort(byOrder),
+        sortable: true,
+        collapsible: sectionMode === 'list',
+        patch: () => ({ projectId: b.projectId }),
+        add: { defaults: { projectId: b.projectId } },
+      }));
+      model.total = tasks.length;
       break;
     }
     case 'completed': {
@@ -227,15 +271,7 @@ export function buildView(viewId, { tasks: allTasks, projects, today, lingering,
       model.emptyText = 'Completed tasks will appear here. Check something off to get started.';
       model.deleteScope = 'Completed';
       model.mode = sectionMode;
-      model.stats = {
-        kind: 'completed',
-        total: list.length,
-        today: list.filter((t) => diffDays(today, toKey(new Date(t.completedAt || t.createdAt))) === 0).length,
-        week: list.filter((t) => {
-          const n = diffDays(today, toKey(new Date(t.completedAt || t.createdAt)));
-          return n >= 0 && n < 7;
-        }).length,
-      };
+      model.stats = progressStats(list, statusOf, today);
       if (sectionMode === 'board') {
         model.groups = statusBoardGroups(list, statusOf, null);
         model.total = list.length;
@@ -253,6 +289,15 @@ export function buildView(viewId, { tasks: allTasks, projects, today, lingering,
         });
         model.total = list.length;
       }
+      break;
+    }
+    case 'trash': {
+      model.title = 'Trash';
+      model.subtitle = trash.length ? `${plural(trash.length, 'task')} retained for 7 days` : 'Deleted tasks stay here for 7 days';
+      model.emptyText = 'Trash is empty.';
+      model.total = trash.length;
+      model.mode = 'list';
+      model.stats = null;
       break;
     }
     case 'project': {
@@ -274,8 +319,8 @@ export function buildView(viewId, { tasks: allTasks, projects, today, lingering,
       model.deleteScope = `“${project.name}”`;
       model.deleteNote = ' The project itself stays.';
       model.show.project = false;
-      model.stats = progressStats(own, statusOf, globalAvgMs);
-      model.groups = [
+      model.stats = progressStats(own, statusOf, today);
+      const statusGroups = [
         // In list mode the page title already reads "<project name>", so the
         // main task group needs no "Todo" label of its own — only Board,
         // whose columns have no such heading above them, still shows one.
@@ -287,6 +332,13 @@ export function buildView(viewId, { tasks: allTasks, projects, today, lingering,
         patch: () => ({ status: g.statusId }),
         add: g.statusId === 'done' ? null : { defaults: { projectId: pid, status: g.statusId } },
       }));
+      const majors = majorHeadings(own, allTasks);
+      if (mode === 'board' && majors.length > 1) {
+        model.groups = headingBoardGroups(majors, allTasks, { projectId: pid });
+        model.taskIdsOverride = own.map((t) => t.id);
+      } else {
+        model.groups = statusGroups;
+      }
       model.total = own.length;
       break;
     }
@@ -300,6 +352,6 @@ export function buildView(viewId, { tasks: allTasks, projects, today, lingering,
   }
   model.flat = model.groups.flatMap((g) => (g.collapsed ? [] : g.tasks));
   // Everything listed on the page: what "Delete all" removes.
-  model.taskIds = model.groups.flatMap((g) => g.tasks.map((t) => t.id));
+  model.taskIds = model.taskIdsOverride || model.groups.flatMap((g) => g.tasks.map((t) => t.id));
   return model;
 }

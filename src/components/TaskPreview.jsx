@@ -7,6 +7,7 @@ import { dueLabelLong } from '../lib/dates';
 import { priorityLabel, statusLabel } from '../lib/util';
 import { useToday } from '../lib/useToday';
 import { Checkbox, PriorityIcon, ProjectDot, StatusIcon } from './bits';
+import { textStyleProps } from '../lib/textStyle';
 
 const WIDTH = 340;
 const GAP = 10;
@@ -100,7 +101,7 @@ function PreviewCard({ task, pinned }) {
 
       <div className="preview-title-row">
         <Checkbox state={task.status} onToggle={() => toggleComplete(task.id)} />
-        <div className={`preview-title${done ? ' done' : ''}`}>{task.title}</div>
+        <div className={`preview-title${done ? ' done' : ''} ${textStyleProps(task.textStyle).className}`} style={textStyleProps(task.textStyle).style}>{task.title}</div>
       </div>
 
       <div className="preview-chips">
@@ -139,7 +140,6 @@ function PreviewCard({ task, pinned }) {
         <div className="preview-section">
           <div className="section-label">
             <span>Checklist</span>
-            <span className="section-count">{doneSubs}/{task.subtasks.length}</span>
           </div>
           <div className="progress" aria-hidden="true">
             <span style={{ width: `${(doneSubs / task.subtasks.length) * 100}%` }} />

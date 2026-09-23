@@ -126,8 +126,47 @@ let app = await connect(ws);
 try {
   await sleep(1500);
   check('app opens with starter tasks', (await app.eval('document.querySelectorAll("[data-task-row]").length')) > 0);
+  // Select all is intentionally safe to check first: Cancel leaves the starter
+  // workspace untouched for the rest of this end-to-end flow.
+  const currentRows = await app.eval('document.querySelectorAll("[data-task-row]").length');
+  await app.click('.btn', 'Select all');
+  check('Select all selects every task in the current section', await app.eval(`(() => {
+    const count = document.querySelector('.select-count')?.innerText;
+    const picked = document.querySelectorAll('[data-task-row].picked').length;
+    const enabled = [...document.querySelectorAll('.topbar-actions .btn')]
+      .filter((b) => /Mark done|Delete/.test(b.innerText))
+      .every((b) => !b.disabled);
+    return count === ${JSON.stringify(`${currentRows} selected`)} && picked === ${currentRows} && enabled;
+  })()`));
+  await app.click('.btn', 'Cancel');
   const projectId = (name) => readData().projects.find((p) => p.name === name).id;
   const countIn = (pid) => readData().tasks.filter((x) => x.projectId === pid).length;
+  const athera = projectId('Athera');
+
+  const trashTarget = await app.eval(`(() => {
+    const row = document.querySelector('[data-task-row]');
+    return { id: row.dataset.id, title: row.querySelector('.row-title')?.innerText };
+  })()`);
+  await app.click('.row-delete');
+  check('Delete moves a task into Trash', await until(() => !readData().tasks.some((t) => t.id === trashTarget.id) && readData().trash.some((t) => t.id === trashTarget.id)));
+  await app.click('.nav-item', 'Trash');
+  check('Trash shows the deleted task', await app.eval(`document.querySelector('.trash-row-copy strong')?.innerText === ${JSON.stringify(trashTarget.title)}`));
+  await app.click('.trash-row .btn', 'Restore');
+  check('Restore returns the task from Trash', await until(() => readData().tasks.some((t) => t.id === trashTarget.id) && !readData().trash.some((t) => t.id === trashTarget.id)));
+
+  await app.click('.nav-item', 'All Tasks');
+  check('All Tasks lists Inbox and every project, not a separate status group', await app.eval(`(() => {
+    const heads = [...document.querySelectorAll('.group-head')].map((h) => h.querySelector('.group-title')?.innerText);
+    return ${JSON.stringify(['Inbox', ...readData().projects.map((p) => p.name)])}.every((name) => heads.includes(name)) && !heads.includes('Done');
+  })()`));
+
+  await app.click('.nav-item', 'Athera');
+  await app.click('.segmented button', 'Board');
+  check('Board keeps status columns when a project has only one major task', await app.eval(`(() => {
+    const heads = [...document.querySelectorAll('.column-head .group-title')].map((el) => el.innerText);
+    return heads.includes('Todo') && heads.includes('Done') && !document.querySelector('.column-checklist');
+  })()`));
+  await app.click('.segmented button', 'List');
 
   // 1. Delete all + "Are you sure?" on every page --------------------------------------
   const pages = ['Inbox', 'Today', 'Upcoming', 'All Tasks', 'Completed', 'Athera', 'CueUp', 'Portfolio', 'Personal'];
@@ -209,7 +248,6 @@ try {
   // 4. "+" in a group opens the popup with that group's settings ---------------------------------
   await app.click('.nav-item', 'Athera');
   check('no inline "New task" rows remain', await app.eval('!document.querySelector(".composer, .composer-idle")'));
-  const athera = projectId('Athera');
   // Mark the In Progress header's + so a real click can target it.
   await app.eval(`(() => {
     const head = [...document.querySelectorAll('.group-head')].find((h) => h.innerText.includes('In Progress'));

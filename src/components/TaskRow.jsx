@@ -1,43 +1,43 @@
 import { memo } from 'react';
-import { AlignLeft, CalendarDays, GripVertical, ListChecks, ListTree, Sun } from 'lucide-react';
-import { activateTask, focusTaskTitle, hoverTask, leaveTask, taskKey, toggleComplete, toggleSelected, useChildTasks, useUI } from '../store';
+import { CalendarDays, GripVertical, Trash2 } from 'lucide-react';
+import { activateTask, deleteTask, focusTaskTitle, hoverTask, leaveTask, taskKey, toggleComplete, toggleSelected, useChildTasks, useUI } from '../store';
 import { dueLabel } from '../lib/dates';
 import { priorityLabel } from '../lib/util';
-import { inToday } from '../lib/views';
 import { endDrag, startTaskDrag } from '../lib/dnd';
-import { Checkbox, PriorityIcon, ProjectDot } from './bits';
-import { ChildTaskList, useShowChildAdd } from './ChildTasks';
+import { Checkbox, PriorityIcon } from './bits';
+import { ChildAddButton, ChildTaskList, useShowChildAdd } from './ChildTasks';
 import { openTaskMenu } from './taskMenu';
 import { rectOf } from './MenuLayer';
 import { SubtaskTree } from './Subtasks';
+import { textStyleProps } from '../lib/textStyle';
 
-/** Small, quiet metadata shown to the right of a row or under a card title. */
-export function TaskMeta({ task, project, show, today }) {
+/** Checklist and child-task progress, kept beside the task title rather than right-aligned with other metadata. */
+export function TaskProgress({ task, kids = [] }) {
   const doneSubs = task.subtasks.filter((s) => s.done).length;
-  const kids = useChildTasks(task.id);
   const doneKids = kids.filter((c) => c.status === 'done').length;
-  const due = show.due && task.dueDate ? dueLabel(task.dueDate, today) : null;
-  const open = task.status !== 'done';
+  if (!task.subtasks.length && !kids.length) return null;
   return (
-    <>
-      {show.today && open && inToday(task, today) && (
-        <span className="meta meta-today" title="In Today"><Sun size={13} strokeWidth={2} /></span>
-      )}
-      {task.notes.trim() && (
-        <span className="meta" title="Has notes"><AlignLeft size={13} strokeWidth={1.9} /></span>
-      )}
+    <span className="task-progress">
       {task.subtasks.length > 0 && (
-        <span className={`meta meta-subs${doneSubs === task.subtasks.length ? ' all' : ''}`} title="Checklist">
-          <ListChecks size={13} strokeWidth={1.9} />
+        <span className={`task-progress-item${doneSubs === task.subtasks.length ? ' all' : ''}`} title="Checklist">
           {doneSubs}/{task.subtasks.length}
         </span>
       )}
       {kids.length > 0 && (
-        <span className={`meta meta-children${doneKids === kids.length ? ' all' : ''}`} title="Sub-tasks">
-          <ListTree size={13} strokeWidth={1.9} />
+        <span className={`task-progress-item children${doneKids === kids.length ? ' all' : ''}`} title="Sub-tasks">
           {doneKids}/{kids.length}
         </span>
       )}
+    </span>
+  );
+}
+
+/** Small, quiet metadata shown to the right of a row or under a card title. */
+export function TaskMeta({ task, show, today }) {
+  const due = show.due && task.dueDate ? dueLabel(task.dueDate, today) : null;
+  const open = task.status !== 'done';
+  return (
+    <>
       {task.priority && (
         <span className="meta" title={`${priorityLabel(task.priority)} priority`}><PriorityIcon level={task.priority} /></span>
       )}
@@ -47,17 +47,11 @@ export function TaskMeta({ task, project, show, today }) {
           {due.text}
         </span>
       )}
-      {show.project && project && (
-        <span className="meta meta-project">
-          <ProjectDot color={project.color} size={7} />
-          {project.name}
-        </span>
-      )}
     </>
   );
 }
 
-export const TaskRow = memo(function TaskRow({ task, project, show, today, draggable, depth = 0, projectsById }) {
+export const TaskRow = memo(function TaskRow({ task, show, today, draggable, depth = 0, projectsById }) {
   const dragging = useUI((u) => u.draggingId === task.id);
   const selecting = useUI((u) => u.selecting);
   const selected = useUI((u) => u.selectedId === task.id);
@@ -110,18 +104,44 @@ export const TaskRow = memo(function TaskRow({ task, project, show, today, dragg
             <GripVertical size={14} strokeWidth={1.8} />
           </span>
         )}
+        {!selecting && <ChildAddButton task={task} />}
         <Checkbox
           state={selecting ? (picked ? 'done' : 'todo') : task.status}
           onToggle={() => (selecting ? toggleSelected(key) : toggleComplete(task.id))}
         />
-        <span className="row-title">{task.title || 'Untitled'}</span>
-        <span className="row-meta">
-          <TaskMeta task={task} project={project} show={show} today={today} />
+        <span className="row-title-line">
+          <span className="row-title">
+            <span className={`task-title-text ${textStyleProps(task.textStyle).className}`} style={textStyleProps(task.textStyle).style}>{task.title || 'Untitled'}</span>
+          </span>
+          <TaskProgress task={task} kids={kids} />
         </span>
+        <span className="row-meta">
+          <TaskMeta task={task} show={show} today={today} />
+        </span>
+        {!selecting && (
+          <button
+            type="button"
+            className="icon-btn sm row-delete"
+            title="Delete task"
+            aria-label="Delete task"
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteTask(task.id);
+            }}
+          >
+            <Trash2 size={14} strokeWidth={1.9} />
+          </button>
+        )}
       </div>
-      {(kids.length > 0 || showChildAdd) && (
-        <ChildTaskList task={task} kids={kids} depth={depth + 1} show={show} today={today} projectsById={projectsById} />
-      )}
+      <ChildTaskList
+        task={task}
+        kids={kids}
+        depth={depth + 1}
+        show={show}
+        today={today}
+        projectsById={projectsById}
+        autoFocus={showChildAdd}
+      />
       {task.subtasks.length > 0 && <SubtaskTree task={task} variant="row" />}
     </>
   );

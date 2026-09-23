@@ -13,6 +13,8 @@ import { Checkbox, PriorityIcon, ProjectDot, StatusIcon } from './bits';
 import { rectOf } from './MenuLayer';
 import { SubtaskTree } from './Subtasks';
 import { openDatePicker, priorityItems, projectItems, statusItems } from './taskMenu';
+import { TextStyleControls } from './TextStyle';
+import { textStyleProps } from '../lib/textStyle';
 
 function useAutosize(ref, value) {
   useLayoutEffect(() => {
@@ -132,7 +134,8 @@ function PanelBody({ task, project }) {
         <Checkbox state={task.status} size="lg" onToggle={() => toggleComplete(task.id)} />
         <textarea
           ref={titleRef}
-          className={`panel-title${task.status === 'done' ? ' done' : ''}`}
+          className={`panel-title${task.status === 'done' ? ' done' : ''} ${textStyleProps(task.textStyle).className}`}
+          style={textStyleProps(task.textStyle).style}
           value={title}
           rows={1}
           spellCheck
@@ -153,6 +156,9 @@ function PanelBody({ task, project }) {
       </div>
 
       <div className="props">
+        <div className="prop text-style-prop">
+          <TextStyleControls value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} />
+        </div>
         <PropRow icon={CircleDashed} label="Status">
           <button type="button" className="prop-btn" onClick={(e) => menuAt(e, statusItems(task))}>
             <StatusIcon status={task.status} />
@@ -231,7 +237,6 @@ function Checklist({ task }) {
     <section className="panel-section">
       <div className="section-label">
         <span>Checklist</span>
-        {total > 0 && <span className="section-count">{done}/{total}</span>}
       </div>
       {total > 0 && (
         <div className="progress" aria-hidden="true">

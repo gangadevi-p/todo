@@ -13,6 +13,7 @@ import { useEffectiveTheme } from '../lib/useTheme';
 import { plural } from '../lib/util';
 import { Kbd, ProjectDot, ProjectRing } from './bits';
 import { rectOf } from './MenuLayer';
+import { textStyleProps } from '../lib/textStyle';
 
 const NAV = [
   { id: 'inbox', label: 'Inbox', icon: Inbox, drop: (t) => ({ projectId: null }), dropMsg: 'Moved to Inbox' },
@@ -20,6 +21,7 @@ const NAV = [
   { id: 'upcoming', label: 'Upcoming', icon: CalendarDays },
   { id: 'all', label: 'All Tasks', icon: Layers },
   { id: 'completed', label: 'Completed', icon: CircleCheck, drop: () => ({ status: 'done' }), dropMsg: 'Marked complete' },
+  { id: 'trash', label: 'Trash', icon: Trash2 },
 ];
 
 function NameInput({ initial = '', placeholder, onSubmit, onCancel }) {
@@ -162,7 +164,7 @@ function ProjectItem({ project, active, count, progress, editing, onReorderTarge
         <span className="nav-icon project-icon" title={`${Math.round(progress * 100)}% done`}>
           <ProjectRing color={project.color} progress={progress} />
         </span>
-        <span className="nav-label">{project.name}</span>
+        <span className={`nav-label ${textStyleProps(project.textStyle).className}`} style={textStyleProps(project.textStyle).style}>{project.name}</span>
         {count ? <span className="nav-count">{count}</span> : null}
         <span
           className="nav-more"
@@ -183,6 +185,7 @@ function ProjectItem({ project, active, count, progress, editing, onReorderTarge
 
 export function Sidebar({ view }) {
   const tasks = useData((s) => s.tasks);
+  const trash = useData((s) => s.trash || []);
   const projects = useData((s) => s.projects);
   const editingId = useUI((u) => u.editingProjectId);
   const theme = useData((s) => s.prefs.theme);
@@ -255,7 +258,7 @@ export function Sidebar({ view }) {
               key={item.id}
               item={item}
               active={view === item.id}
-              count={item.id === 'inbox' ? counts.inbox : item.id === 'today' ? counts.today : 0}
+              count={item.id === 'inbox' ? counts.inbox : item.id === 'today' ? counts.today : item.id === 'trash' ? trash.length : 0}
             />
           ))}
         </div>

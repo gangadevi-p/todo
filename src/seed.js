@@ -89,7 +89,7 @@ export function seedData() {
     task('Review competitor screens', { status: 'done', completedAt: now - 3 * 3600000 }),
   ];
 
-  return { projects, tasks, prefs: defaultPrefs() };
+  return { projects, tasks, trash: [], prefs: defaultPrefs() };
 }
 
 export function defaultPrefs() {

@@ -1,7 +1,9 @@
 import { useRef } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { addSubtask, removeSubtask, subtaskKey, toggleSelected, updateSubtask, useUI } from '../store';
 import { Checkbox } from './bits';
+import { TextStyleButton } from './TextStyle';
+import { textStyleProps } from '../lib/textStyle';
 
 /** Focuses a subtask's title field once it's in the DOM — used right after creating one. */
 export const focusSubtask = (id) => {
@@ -32,6 +34,8 @@ function SubtaskRow({ task, subtask, index, focus }) {
       />
       <input
         data-subtask-input={subtask.id}
+        className={textStyleProps(subtask.textStyle).className}
+        style={textStyleProps(subtask.textStyle).style}
         value={subtask.title}
         spellCheck
         readOnly={selecting}
@@ -60,8 +64,16 @@ function SubtaskRow({ task, subtask, index, focus }) {
         }}
       />
       {!selecting && (
-        <button type="button" className="icon-btn sm sub-del" title="Remove item" onClick={() => removeSubtask(task.id, subtask.id)}>
-          <X size={13} />
+        <TextStyleButton
+          className="sub-style"
+          value={subtask.textStyle}
+          onChange={(textStyle) => updateSubtask(task.id, subtask.id, { textStyle })}
+          label="Style checklist text"
+        />
+      )}
+      {!selecting && (
+        <button type="button" className="icon-btn sm sub-del" title="Delete checklist item" onClick={() => removeSubtask(task.id, subtask.id)}>
+          <Trash2 size={13} />
         </button>
       )}
     </div>
