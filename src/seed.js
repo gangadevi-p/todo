@@ -2,7 +2,7 @@ import { addDays, todayKey } from './lib/dates';
 import { uid, PROJECT_COLORS } from './lib/util';
 
 /** Bump when the sample workspace changes, so demos saved earlier are replaced with the new one. */
-export const DEMO_VERSION = 3;
+export const DEMO_VERSION = 4;
 
 /** App name shown in the demo space, so it isn't mistaken for the owner's workspace. */
 export const DEMO_NAME = 'Demo Workspace';
@@ -24,6 +24,8 @@ export function seedData() {
   const [cafe, trail, studio, basics] = projects.map((p) => p.id);
 
   let order = 0;
+  // Checklist items are [title, done, nested items?].
+  const item = ([t, done, children = []]) => ({ id: uid(), title: t, done, subtasks: children.map(item) });
   const task = (title, extra = {}) => ({
     id: uid(),
     title,
@@ -38,7 +40,7 @@ export function seedData() {
     order: ++order,
     subtasks: [],
     ...extra,
-    ...(extra.subtasks ? { subtasks: extra.subtasks.map(([t, done]) => ({ id: uid(), title: t, done })) } : {}),
+    ...(extra.subtasks ? { subtasks: extra.subtasks.map(item) } : {}),
   });
 
   const tasks = [
@@ -93,7 +95,15 @@ export function seedData() {
     task('8 hours of work', { projectId: basics }),
     task('4–6 litres of water', { projectId: basics }),
     task('3 meals', { projectId: basics }),
-    task('1 hour of focused workout', { projectId: basics }),
+    task('1 hour of focused workout', {
+      projectId: basics,
+      subtasks: [['Upper body', false, [
+        ['Bicep curls', false],
+        ['Shoulder press', false],
+        ['Lat pull-down', false],
+        ['Lateral raises', false],
+      ]]],
+    }),
     task('Self care', { projectId: basics }),
 
     // Completed inbox task
