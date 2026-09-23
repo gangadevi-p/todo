@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, CalendarDays, CheckSquare, CircleCheck, Columns3, Inbox, Layers, List, PanelLeftOpen, Plus, Sun, Trash2, X } from 'lucide-react';
 import {
-  confirmDeleteSelection, confirmDeleteTasks, markSelectionDone, openMobileNav, openNewTask, parseSelectionKey, renameProject, setPref, setProjectMode,
+  confirmDeleteSelection, confirmDeleteTasks, getSpace, markSelectionDone, openMobileNav, openNewTask, parseSelectionKey, renameProject, setPref, setProjectMode,
   updateProject, setSectionMode, setSelecting, useUI,
 } from '../store';
 import { Board } from './Board';
@@ -226,6 +226,12 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
               </p>
             )}
           </header>
+          {view === 'today' && getSpace() === 'demo' && (
+            <div className="demo-banner" role="note">
+              <strong>This is demo data, not original.</strong>
+              <span>Created to show how this space works.</span>
+            </div>
+          )}
           <SectionStats stats={model.stats} />
           {isTrash ? <TrashView /> : isBoard ? <Board model={filteredModel} /> : <TaskList model={filteredModel} />}
         </div>

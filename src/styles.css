@@ -3196,3 +3196,28 @@ mark {
 .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 .auth-note { margin: 0; font-size: 11.5px; color: var(--text-3); text-align: center; }
 .auth-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+/* Demo space notice on Today */
+.demo-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 20px;
+  padding: 18px 20px;
+  border: 1px dashed var(--amber);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--amber) 10%, transparent);
+}
+.demo-banner strong {
+  font-size: 26px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.demo-banner span {
+  font-size: 15px;
+  color: var(--text-2);
+}
+@media (max-width: 600px) {
+  .demo-banner strong { font-size: 21px; }
+}

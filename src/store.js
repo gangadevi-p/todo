@@ -173,7 +173,8 @@ export async function loadData(which = 'owner') {
   data.set(initial);
   if (!raw || initial.trash.length !== (raw.trash || []).length) scheduleSave();
 
-  let view = initial.prefs.view || 'today';
+  // The demo always opens on Today, so visitors land on the sample day.
+  let view = space === 'demo' ? 'today' : initial.prefs.view || 'today';
   if (view.startsWith('project:') && !initial.projects.some((p) => `project:${p.id}` === view)) view = 'today';
   patchUI({ platform, view, statsFilter: view === 'completed' ? 'done' : 'todo' });
 }
