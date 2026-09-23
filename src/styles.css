@@ -1244,7 +1244,11 @@ kbd {
   color: var(--text-2);
 }
 .group-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .group-sub {
   color: var(--text-3);
@@ -1588,9 +1592,12 @@ kbd {
 .column {
   display: flex;
   flex-direction: column;
-  /* Heading boards contain real nested checklists, not just short card
-     titles. Give those rows a comfortable reading and editing measure. */
-  width: 360px;
+  /* Each column hugs its own content's width, between a comfortable
+     minimum for reading/editing checklist rows and a sane maximum so a
+     single long line can't stretch a card too wide. */
+  width: fit-content;
+  min-width: 280px;
+  max-width: 460px;
   flex: none;
   padding: 24px;
   border-radius: 10px;
