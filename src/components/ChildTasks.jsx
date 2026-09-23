@@ -14,8 +14,8 @@ export function ChildAddButton({ task, className = '' }) {
     <button
       type="button"
       className={`child-add-button ${className}`.trim()}
-      title="Add sub-task"
-      aria-label="Add sub-task"
+      title="Add nested task"
+      aria-label="Add nested task"
       onClick={(e) => {
         e.stopPropagation();
         setChildTasksOpen(task.id, true);
@@ -49,7 +49,7 @@ export function AddChildTask({ parent, open = false }) {
       <Plus size={13} strokeWidth={2} className="sub-add-icon" />
       <input
         ref={inputRef}
-        placeholder="Sub-task"
+        placeholder="Nested task"
         value={value}
         onClick={(e) => e.stopPropagation()}
         onChange={(e) => setValue(e.target.value)}
