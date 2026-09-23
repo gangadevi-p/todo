@@ -7,7 +7,7 @@ import { Checkbox, ProjectDot, StatusIcon } from './bits';
 import { AddChildTask, ChildAddButton, ChildTaskList, useShowChildAdd } from './ChildTasks';
 import { SubtaskTree } from './Subtasks';
 import { TaskMeta, TaskPriority, TaskProgress, TaskRow } from './TaskRow';
-import { useProjectsById, withDropLine } from './TaskList';
+import { EmptyState, useProjectsById, withDropLine } from './TaskList';
 import { openTaskMenu } from './taskMenu';
 import { textStyleProps } from '../lib/textStyle';
 import { TextStyleButton } from './TextStyle';
@@ -106,11 +106,20 @@ export function Board({ model }) {
   const { target, handlers } = useTaskDrop();
   const projectsById = useProjectsById();
   const draggingId = useUI((u) => u.draggingId);
+  const statsFilter = useUI((u) => u.statsFilter);
   const today = useToday();
+
+  // Genuinely empty columns still show their "add" affordance (e.g. a brand
+  // new project); only a filter narrowing everything away should replace the
+  // board with a plain message instead of a wall of empty columns.
+  if (statsFilter && !model.groups.some((g) => g.tasks.length > 0)) {
+    return <EmptyState text={model.emptyText} />;
+  }
 
   return (
     <div className="board">
       {model.groups.map((col) => {
+        if (col.filteredEmpty) return null;
         const isTarget = target?.groupId === col.id;
         return (
           <section key={col.id} className={`column${isTarget ? ' drop-active' : ''}`} {...handlers(col)}>

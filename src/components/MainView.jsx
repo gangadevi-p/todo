@@ -22,11 +22,12 @@ const FILTER_EMPTY_TEXT = {
 /** Narrows a view's groups down to just the tasks matching the overview bar's active tab. */
 function applyStatsFilter(model, filter) {
   if (!filter) return model;
-  const groups = model.groups.map((g) => (
-    g.statusId && g.statusId !== filter
-      ? { ...g, tasks: [] }
-      : { ...g, tasks: g.tasks.filter((t) => t.status === filter) }
-  ));
+  const groups = model.groups.map((g) => {
+    const tasks = g.statusId && g.statusId !== filter ? [] : g.tasks.filter((t) => t.status === filter);
+    // A group with nothing left after filtering has no business still showing
+    // an "add" drop zone or a board column's empty placeholder.
+    return tasks.length === 0 ? { ...g, tasks, add: null, checklistTask: null, filteredEmpty: true } : { ...g, tasks };
+  });
   const taskIds = groups.flatMap((g) => g.tasks.map((t) => t.id));
   const total = taskIds.length;
   return { ...model, groups, taskIds, total, emptyText: total === 0 ? FILTER_EMPTY_TEXT[filter] : model.emptyText };
