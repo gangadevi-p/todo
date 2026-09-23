@@ -484,7 +484,9 @@ kbd {
   min-height: 0;
   margin: 24px 0 24px 24px;
   border-right: 1px solid var(--border);
+  border-radius: 16px;
   background: var(--bg-sidebar);
+  overflow: hidden;
 }
 .sidebar-top {
   display: flex;
