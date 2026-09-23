@@ -70,7 +70,7 @@ export function TaskPriority({ task }) {
   );
 }
 
-export const TaskRow = memo(function TaskRow({ task, show, today, draggable, depth = 0, projectsById, completedChecklistOnly = false }) {
+export const TaskRow = memo(function TaskRow({ task, show, today, draggable, depth = 0, projectsById, completedChecklistOnly = false, todoChecklistOnly = false }) {
   const dragging = useUI((u) => u.draggingId === task.id);
   const selecting = useUI((u) => u.selecting);
   const selected = useUI((u) => u.selectedId === task.id);
@@ -169,7 +169,7 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
         projectsById={projectsById}
         autoFocus={showChildAdd}
       />
-      {task.subtasks.length > 0 && <SubtaskTree task={task} variant="row" completedOnly={completedChecklistOnly} />}
+      {task.subtasks.length > 0 && <SubtaskTree task={task} variant="row" completedOnly={completedChecklistOnly} todoOnly={todoChecklistOnly} />}
     </>
   );
 });

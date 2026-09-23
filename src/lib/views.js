@@ -182,7 +182,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       model.stats = progressStats(scope, statusOf, today);
       if (sectionMode === 'board') {
         const majors = majorHeadings(scope, allTasks);
-        if (majors.length > 1) {
+        if (majors.length > 0) {
           model.groups = headingBoardGroups(majors, allTasks, { projectId: null });
           model.taskIdsOverride = scope.map((t) => t.id);
         } else {
@@ -207,7 +207,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       model.stats = progressStats(scope, statusOf, today);
       if (sectionMode === 'board') {
         const majors = majorHeadings(scope, allTasks);
-        if (majors.length > 1) {
+        if (majors.length > 0) {
           model.groups = headingBoardGroups(majors, allTasks, { addedToToday: true });
           model.taskIdsOverride = scope.map((t) => t.id);
         } else {
@@ -233,7 +233,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       if (sectionMode === 'board') {
         model.show.due = true;
         const majors = majorHeadings(scope, allTasks);
-        if (majors.length > 1) {
+        if (majors.length > 0) {
           model.groups = headingBoardGroups(majors, allTasks, { dueDate: addDays(today, 1) });
           model.taskIdsOverride = scope.map((t) => t.id);
         } else {
@@ -353,7 +353,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
         add: g.statusId === 'done' ? null : { defaults: { projectId: pid, status: g.statusId } },
       }));
       const majors = majorHeadings(own, allTasks);
-      if (mode === 'board' && majors.length > 1) {
+      if (mode === 'board' && majors.length > 0) {
         model.groups = headingBoardGroups(majors, allTasks, { projectId: pid });
         model.taskIdsOverride = own.map((t) => t.id);
       } else {

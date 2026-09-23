@@ -1596,9 +1596,9 @@ kbd {
   /* Each column hugs its own content's width, between a comfortable
      minimum for reading/editing checklist rows and a sane maximum so a
      single long line can't stretch a card too wide. */
-  width: fit-content;
-  min-width: 280px;
-  max-width: 460px;
+  width: 420px;
+  min-width: min(420px, calc(100vw - 48px));
+  max-width: calc(100vw - 48px);
   flex: none;
   padding: 24px;
   border-radius: 10px;
@@ -1646,6 +1646,24 @@ kbd {
   gap: 6px;
   min-height: 36px;
 }
+.column-card-grid {
+  width: min(900px, calc(100vw - 48px));
+  max-width: none;
+}
+.column-card-grid .column-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 10px;
+}
+.column-card-grid .card {
+  min-width: 0;
+}
+@media (max-width: 720px) {
+  .column-card-grid .column-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .column-empty {
   display: grid;
   place-items: center;
@@ -1688,6 +1706,15 @@ kbd {
   align-items: flex-start;
   gap: 9px;
 }
+.card-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  margin-top: -3px;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
 .card-main .check {
   margin-top: 2px;
 }
@@ -1722,22 +1749,12 @@ kbd {
 }
 .task-title-text.text-capsule { max-width: 100%; }
 .card-delete {
-  position: absolute;
-  top: 6px;
-  right: 6px;
   color: var(--text-3);
-  opacity: 0;
 }
 .card-style {
-  position: absolute;
-  top: 6px;
-  right: 31px;
-  opacity: 0;
 }
-.card:hover .card-delete,
-.card:focus-within .card-delete,
-.card:hover .card-style,
-.card:focus-within .card-style {
+.card:hover .card-actions,
+.card:focus-within .card-actions {
   opacity: 1;
 }
 .card-delete:hover {
@@ -2102,6 +2119,29 @@ kbd {
 }
 .subtasks-card .sub-row {
   margin: 0 -6px;
+}
+.subtasks-board {
+  gap: 8px;
+}
+.subtasks-board .sub-row {
+  min-height: 54px;
+  height: auto;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  box-shadow: 0 1px 2px rgba(15, 15, 15, 0.035);
+}
+.subtasks-board .sub-row:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-card);
+}
+.subtasks-board .sub-row input {
+  font-size: 14px;
+}
+.subtasks-board .sub-row[style*="--sub-depth"] {
+  margin-left: calc(var(--sub-depth) * 20px);
 }
 .subtasks-panel .sub-row {
   height: 32px;

@@ -11,6 +11,7 @@ import { TaskList } from './TaskList';
 import { TrashView } from './TrashView';
 import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
+import { flattenChecklist } from '../lib/checklist';
 
 const VIEW_ICONS = { inbox: Inbox, today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck, trash: Trash2 };
 
@@ -21,15 +22,36 @@ const FILTER_EMPTY_TEXT = {
 
 /** Narrows a view's groups down to just the tasks matching the overview bar's active tab. */
 function applyStatsFilter(model, filter) {
-  if (!filter) return model;
   const groups = model.groups.map((g) => {
     const tasks = g.statusId && g.statusId !== filter ? [] : g.tasks.filter((t) => t.status === filter);
+    const canShowChecklistParents = filter === 'done' && (!g.statusId || g.statusId === 'done');
+    const parentCandidates = [
+      ...(g.completedChecklistParents || []),
+      ...(canShowChecklistParents ? g.tasks.filter((task) =>
+        task.status !== 'done' && flattenChecklist(task.subtasks).some((item) => item.done)) : []),
+    ];
+    const completedChecklistParents = canShowChecklistParents
+      ? [...new Map(parentCandidates.map((task) => [task.id, task])).values()]
+      : [];
+    const checklistTask = g.checklistTask && flattenChecklist(g.checklistTask.subtasks)
+      .some((item) => filter === 'done' ? item.done : !item.done)
+      ? g.checklistTask
+      : null;
+    const hasVisibleWork = tasks.length > 0 || completedChecklistParents.length > 0 || Boolean(checklistTask);
     // A group with nothing left after filtering has no business still showing
     // an "add" drop zone or a board column's empty placeholder.
-    return tasks.length === 0 ? { ...g, tasks, add: null, checklistTask: null, filteredEmpty: true } : { ...g, tasks };
+    return {
+      ...g,
+      tasks,
+      completedChecklistParents,
+      checklistTask,
+      checklistStatus: filter,
+      add: filter === 'todo' && hasVisibleWork ? g.add : null,
+      filteredEmpty: !hasVisibleWork,
+    };
   });
   const taskIds = groups.flatMap((g) => g.tasks.map((t) => t.id));
-  const total = taskIds.length;
+  const total = groups.reduce((count, g) => count + g.tasks.length + (g.completedChecklistParents || []).length, 0);
   return { ...model, groups, taskIds, total, emptyText: total === 0 ? FILTER_EMPTY_TEXT[filter] : model.emptyText };
 }
 

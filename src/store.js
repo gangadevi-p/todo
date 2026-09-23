@@ -43,7 +43,7 @@ export const ui = createStore({
   popup: null, // { kind: 'task' | 'project' | 'subtask', nonce, ... } while a create popup is open
   selecting: false, // bulk-select mode: rows/subtasks pick instead of opening or toggling
   selected: new Set(), // keys from taskKey()/subtaskKey() picked while selecting
-  statsFilter: null, // 'todo' | 'done' | null — which status the overview bar's tabs narrow the page to
+  statsFilter: 'todo', // 'todo' | 'done' — the active status tab for the current section
 });
 
 export const useData = (sel) => useSyncExternalStore(data.subscribe, () => sel(data.get()));
@@ -158,7 +158,7 @@ export async function loadData() {
 
   let view = initial.prefs.view || 'today';
   if (view.startsWith('project:') && !initial.projects.some((p) => `project:${p.id}` === view)) view = 'today';
-  patchUI({ platform, view });
+  patchUI({ platform, view, statsFilter: view === 'completed' ? 'done' : 'todo' });
 }
 
 function commit(updater) {
@@ -773,13 +773,13 @@ export function toggleCollapsed(key) {
 
 export function navigate(view) {
   clearPreviewTimers();
-  patchUI({ view, selectedId: null, panelOpen: false, menu: null, preview: null, statsFilter: null });
+  patchUI({ view, selectedId: null, panelOpen: false, menu: null, preview: null, statsFilter: view === 'completed' ? 'done' : 'todo' });
   setPref('view', view);
 }
 
-/** Narrows the current page to only todo or only done tasks; clicking the active one clears it. */
+/** Narrows the current page to either Todo or Done. */
 export function setStatsFilter(kind) {
-  ui.set((u) => ({ ...u, statsFilter: u.statsFilter === kind ? null : kind }));
+  ui.set((u) => ({ ...u, statsFilter: kind }));
 }
 
 export function selectTask(id, open = true) {

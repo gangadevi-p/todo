@@ -6,13 +6,13 @@ import { useToday } from '../lib/useToday';
 import { Checkbox, ProjectDot, StatusIcon } from './bits';
 import { AddChildTask, ChildAddButton, ChildTaskList, useShowChildAdd } from './ChildTasks';
 import { SubtaskTree } from './Subtasks';
-import { TaskMeta, TaskPriority, TaskProgress, TaskRow } from './TaskRow';
+import { TaskMeta, TaskPriority, TaskProgress } from './TaskRow';
 import { EmptyState, useProjectsById, withDropLine } from './TaskList';
 import { openTaskMenu } from './taskMenu';
 import { textStyleProps } from '../lib/textStyle';
 import { TextStyleButton } from './TextStyle';
 
-const Card = memo(function Card({ task, show, today, projectsById }) {
+const Card = memo(function Card({ task, show, today, projectsById, checklistStatus }) {
   const dragging = useUI((u) => u.draggingId === task.id);
   const selecting = useUI((u) => u.selecting);
   const selected = useUI((u) => u.selectedId === task.id);
@@ -44,28 +44,6 @@ const Card = memo(function Card({ task, show, today, projectsById }) {
     >
       <div className="card-main">
         {!selecting && <ChildAddButton task={task} className="card-child-add" />}
-        {!selecting && (
-          <TextStyleButton
-            className="card-style"
-            value={task.textStyle}
-            onChange={(textStyle) => updateTask(task.id, { textStyle })}
-            label="Style task text"
-          />
-        )}
-        {!selecting && (
-          <button
-            type="button"
-            className="icon-btn sm card-delete"
-            title="Delete task"
-            aria-label="Delete task"
-            onClick={(e) => {
-              e.stopPropagation();
-              deleteTask(task.id);
-            }}
-          >
-            <Trash2 size={14} strokeWidth={1.9} />
-          </button>
-        )}
         <Checkbox
           state={selecting ? (picked ? 'done' : 'todo') : task.status}
           onToggle={() => (selecting ? toggleSelected(key) : toggleComplete(task.id))}
@@ -77,6 +55,28 @@ const Card = memo(function Card({ task, show, today, projectsById }) {
           <TaskProgress task={task} kids={kids} />
           <TaskPriority task={task} />
         </span>
+        {!selecting && (
+          <span className="card-actions">
+            <TextStyleButton
+              className="card-style"
+              value={task.textStyle}
+              onChange={(textStyle) => updateTask(task.id, { textStyle })}
+              label="Style task text"
+            />
+            <button
+              type="button"
+              className="icon-btn sm card-delete"
+              title="Delete task"
+              aria-label="Delete task"
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteTask(task.id);
+              }}
+            >
+              <Trash2 size={14} strokeWidth={1.9} />
+            </button>
+          </span>
+        )}
       </div>
       {hasMeta ? (
         <div className="card-meta">
@@ -92,7 +92,7 @@ const Card = memo(function Card({ task, show, today, projectsById }) {
         projectsById={projectsById}
         autoFocus={showChildAdd}
       />
-      {task.subtasks.length > 0 && <SubtaskTree task={task} variant="card" />}
+      {task.subtasks.length > 0 && <SubtaskTree task={task} variant="card" completedOnly={checklistStatus === 'done'} todoOnly={checklistStatus === 'todo'} />}
     </div>
   );
 });
@@ -112,7 +112,7 @@ export function Board({ model }) {
   // Genuinely empty columns still show their "add" affordance (e.g. a brand
   // new project); only a filter narrowing everything away should replace the
   // board with a plain message instead of a wall of empty columns.
-  if (statsFilter && !model.groups.some((g) => g.tasks.length > 0)) {
+  if (statsFilter && !model.groups.some((g) => g.tasks.length > 0 || g.checklistTask)) {
     return <EmptyState text={model.emptyText} />;
   }
 
@@ -121,8 +121,9 @@ export function Board({ model }) {
       {model.groups.map((col) => {
         if (col.filteredEmpty) return null;
         const isTarget = target?.groupId === col.id;
+        const useCardGrid = !col.heading && col.tasks.length > 1;
         return (
-          <section key={col.id} className={`column${isTarget ? ' drop-active' : ''}`} {...handlers(col)}>
+          <section key={col.id} className={`column${useCardGrid ? ' column-card-grid' : ''}${isTarget ? ' drop-active' : ''}`} {...handlers(col)}>
             <header className="column-head">
               {col.statusId ? <StatusIcon status={col.statusId} size={13} /> : col.heading ? (
                 <button
@@ -157,26 +158,17 @@ export function Board({ model }) {
             <div className="column-body">
               {col.heading && <HeadingAddField task={col.headingTask} />}
               {withDropLine(col.tasks, draggingId, isTarget && col.sortable ? target.index : null, (t) => (
-                col.heading ? (
-                  <TaskRow
-                    task={t}
-                    show={model.show}
-                    today={today}
-                    draggable
-                    projectsById={projectsById}
-                  />
-                ) : (
-                  <Card
-                    task={t}
-                    show={model.show}
-                    today={today}
-                    projectsById={projectsById}
-                  />
-                )
+                <Card
+                  task={t}
+                  show={{ ...model.show, completed: col.checklistStatus === 'done' }}
+                  today={today}
+                  projectsById={projectsById}
+                  checklistStatus={col.checklistStatus}
+                />
               ))}
               {col.checklistTask && (
                 <div className="column-checklist">
-                  <SubtaskTree task={col.checklistTask} variant="board" />
+                  <SubtaskTree task={col.checklistTask} variant="board" completedOnly={col.checklistStatus === 'done'} todoOnly={col.checklistStatus === 'todo'} />
                 </div>
               )}
               {col.tasks.length === 0 && !col.checklistTask && <div className="column-empty">No sub-tasks · add one</div>}

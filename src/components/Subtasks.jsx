@@ -15,7 +15,17 @@ function hasCompletedItem(item) {
   return item.done || (item.subtasks || []).some(hasCompletedItem);
 }
 
-function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = false }) {
+function hasTodoItem(item) {
+  return !item.done || (item.subtasks || []).some(hasTodoItem);
+}
+
+function visibleItems(items, completedOnly, todoOnly) {
+  if (completedOnly) return items.filter(hasCompletedItem);
+  if (todoOnly) return items.filter(hasTodoItem);
+  return items;
+}
+
+function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = false, todoOnly = false }) {
   const selecting = useUI((u) => u.selecting);
   const key = subtaskKey(task.id, subtask.id);
   const picked = useUI((u) => u.selected.has(key));
@@ -104,8 +114,8 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         </button>
       )}
       </div>
-      {(completedOnly ? (subtask.subtasks || []).filter(hasCompletedItem) : (subtask.subtasks || [])).map((child, childIndex) => (
-        <SubtaskRow key={child.id} task={task} subtask={child} index={childIndex} focus={focus} depth={depth + 1} completedOnly={completedOnly} />
+      {visibleItems(subtask.subtasks || [], completedOnly, todoOnly).map((child, childIndex) => (
+        <SubtaskRow key={child.id} task={task} subtask={child} index={childIndex} focus={focus} depth={depth + 1} completedOnly={completedOnly} todoOnly={todoOnly} />
       ))}
     </>
   );
@@ -116,7 +126,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
  * Clicks inside are kept from reaching the row/card, whose own click opens
  * the task — otherwise checking an item or typing would activate it instead.
  */
-export function SubtaskTree({ task, variant = 'row', completedOnly = false }) {
+export function SubtaskTree({ task, variant = 'row', completedOnly = false, todoOnly = false }) {
   const ref = useRef(null);
   const focus = (i) => {
     const st = task.subtasks[i];
@@ -130,8 +140,8 @@ export function SubtaskTree({ task, variant = 'row', completedOnly = false }) {
       onMouseDown={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
     >
-      {(completedOnly ? task.subtasks.filter(hasCompletedItem) : task.subtasks).map((st, i) => (
-        <SubtaskRow key={st.id} task={task} subtask={st} index={i} focus={focus} completedOnly={completedOnly} />
+      {visibleItems(task.subtasks, completedOnly, todoOnly).map((st, i) => (
+        <SubtaskRow key={st.id} task={task} subtask={st} index={i} focus={focus} completedOnly={completedOnly} todoOnly={todoOnly} />
       ))}
     </div>
   );

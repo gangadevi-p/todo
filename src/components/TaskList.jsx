@@ -88,7 +88,8 @@ export function TaskList({ model }) {
                     draggable={Boolean(g.patch)}
                     depth={0}
                     projectsById={projectsById}
-                    completedChecklistOnly={Boolean(g.showCompleted)}
+                    completedChecklistOnly={Boolean(g.showCompleted) || g.checklistStatus === 'done'}
+                    todoChecklistOnly={g.checklistStatus === 'todo'}
                   />
                 ))}
                 {checklistParents.map((task) => (
