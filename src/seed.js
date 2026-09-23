@@ -4,6 +4,9 @@ import { uid, PROJECT_COLORS } from './lib/util';
 /** Bump when the sample workspace changes, so demos saved earlier are replaced with the new one. */
 export const DEMO_VERSION = 2;
 
+/** App name shown in the demo space, so it isn't mistaken for the owner's workspace. */
+export const DEMO_NAME = 'Demo Workspace';
+
 // Made-up sample workspace for the demo space only. None of it is real work.
 // Everything here can be edited or deleted like any other task.
 export function seedData() {

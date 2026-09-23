@@ -6,6 +6,7 @@ import {
   askConfirm, closeMobileNav, confirmDeleteAll, flushSave, getSpace, deleteProject, findTask, navigate, openMenu, openNewProject, openSearch, placeProject, renameProject,
   setEditingProject, setHelp, setPref, toast, updateTask, useData, useUI,
 } from '../store';
+import { DEMO_NAME } from '../seed';
 import { authEnabled, publicWeb } from '../lib/auth';
 import { inToday, taskProgress } from '../lib/views';
 import { drag, endDrag, startProjectDrag } from '../lib/dnd';
@@ -238,7 +239,7 @@ export function Sidebar({ view, isMobile = false }) {
               <path d="M6 10.4l2.7 2.7L14.2 7.4" fill="none" stroke="var(--bg)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </span>
-          <span className="brand-name">Gani's Work</span>
+          <span className="brand-name">{getSpace() === 'demo' ? DEMO_NAME : "Gani's Work"}</span>
         </div>
         <div className="sidebar-top-actions">
           <button

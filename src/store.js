@@ -1,5 +1,5 @@
 import { useMemo, useSyncExternalStore } from 'react';
-import { seedData, defaultPrefs, DEMO_VERSION } from './seed';
+import { seedData, defaultPrefs, DEMO_VERSION, DEMO_NAME } from './seed';
 import { plural, uid, PROJECT_COLORS } from './lib/util';
 import { normalizeTextStyle } from './lib/textStyle';
 
@@ -156,8 +156,11 @@ function normalize(raw) {
   return { projects, tasks, trash, prefs: { ...defaultPrefs(), ...(raw.prefs || {}) } };
 }
 
+const APP_TITLE = typeof document !== 'undefined' ? document.title : '';
+
 export async function loadData(which = 'owner') {
   space = which;
+  if (typeof document !== 'undefined') document.title = space === 'demo' ? DEMO_NAME : APP_TITLE;
   let raw = null;
   let platform = 'web';
   if (bridge) {
