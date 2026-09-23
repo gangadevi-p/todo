@@ -717,22 +717,25 @@ kbd {
   padding: 26px clamp(20px, 4cqw, 40px) 40px;
 }
 .page-head {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   column-gap: 12px;
+  row-gap: 8px;
   margin-bottom: 24px;
 }
 .page-head-actions {
   display: flex;
   align-items: center;
-  justify-self: end;
+  flex: none;
   gap: 8px;
   min-width: 0;
+  margin-left: auto;
 }
 .page-icon {
   display: grid;
   place-items: center;
+  flex: none;
   width: 24px;
   color: var(--text-2);
 }
@@ -754,12 +757,15 @@ kbd {
 .page-title-line {
   display: flex;
   align-items: center;
-  min-width: 0;
+  flex: 1 1 160px;
+  min-width: 160px;
+  overflow: hidden;
   gap: 7px;
 }
 .page-title-line .page-title {
-  flex: none;
-  max-width: calc(100% - 32px);
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
 }
 .page-add {
   flex: none;
