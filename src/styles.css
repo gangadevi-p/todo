@@ -713,7 +713,8 @@ kbd {
   padding: 26px clamp(24px, 6cqw, 64px) 160px;
 }
 .page-board {
-  max-width: none;
+  width: fit-content;
+  max-width: 100%;
   padding: 26px clamp(20px, 4cqw, 40px) 40px;
 }
 .page-head {
