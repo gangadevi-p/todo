@@ -19,7 +19,10 @@ let round = 0;
 app.on('browser-window-created', (_e, win) => {
   win.webContents.on('did-finish-load', async () => {
     round += 1;
-    await wait(1500);
+    await wait(600);
+    // The sign-in screen comes first; the smoke test uses the demo space.
+    await win.webContents.executeJavaScript(`[...document.querySelectorAll('.auth-card button')].find((b) => /demo/i.test(b.textContent))?.click()`);
+    await wait(1200);
     const shot = path.join(os.tmpdir(), `smoke-${round}.png`);
     fs.writeFileSync(shot, (await win.webContents.capturePage()).toPNG());
     const state = await win.webContents.executeJavaScript(`({
@@ -38,7 +41,7 @@ app.on('browser-window-created', (_e, win) => {
       await wait(800);
       win.reload();
     } else {
-      const saved = JSON.parse(fs.readFileSync(path.join(dir, 'nudge-data.json'), 'utf8'));
+      const saved = JSON.parse(fs.readFileSync(path.join(dir, 'nudge-demo-data.json'), 'utf8'));
       const found = saved.tasks.some((t) => t.title === 'Smoke test task' && !t.projectId);
       console.log(`persisted: ${found} (tasks=${saved.tasks.length}, projects=${saved.projects.length})`);
       app.quit();

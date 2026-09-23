@@ -24,6 +24,20 @@ Everything is stored in one JSON file (the folder is still named `Nudge`, the ap
 
 The app copies it to `nudge-data.backup.json` each time it starts. If the file ever gets corrupted, the app sets it aside and falls back to that backup instead of overwriting it.
 
+## Sign-in and spaces
+
+The desktop app opens on a sign-in screen. The first time, you create a user name and password; after that you sign in with them. Your existing tasks are not touched and are what opens when you sign in (`nudge-data.json`).
+
+**Open the demo space** on the same screen opens a separate workspace with sample tasks (`nudge-demo-data.json`). Nothing you do there affects your own space, and it never shows your tasks. Use the logout icon in the sidebar to sign out or leave the demo.
+
+Only a salted hash of the password is stored (`nudge-auth.json`). This is a local screen lock, not encryption: the data files are still plain JSON on disk. If you forget the password, delete `nudge-auth.json` from the data folder and you can create a new one; your tasks stay.
+
+## Demo for your portfolio
+
+`npm run build:demo` writes a static, browser-only copy of the app to `demo/`. Upload that folder to any static host (or embed it in an iframe) and it opens straight into the sample Athera / CueUp / Portfolio / Personal workspace, with no sign-in screen.
+
+It is completely separate from your own space: the desktop app keeps using `%APPDATA%\Nudge\nudge-data.json`, while the demo keeps each visitor's edits in their own browser (localStorage) and never sees your real tasks.
+
 ## Keyboard
 
 | Shortcut | Action |

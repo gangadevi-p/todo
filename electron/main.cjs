@@ -9,8 +9,16 @@ app.setName('Nudge');
 if (process.platform === 'win32') app.setAppUserModelId('app.nudge.tasks');
 
 const userFile = (name) => path.join(app.getPath('userData'), name);
-const DATA = () => userFile('nudge-data.json');
-const BACKUP = () => userFile('nudge-data.backup.json');
+// Two separate spaces: "owner" is the personal data (file names unchanged so
+// existing installs keep everything), "demo" is a sample copy for showing off.
+const SPACES = {
+  owner: { data: 'nudge-data.json', backup: 'nudge-data.backup.json' },
+  demo: { data: 'nudge-demo-data.json', backup: 'nudge-demo-data.backup.json' },
+};
+const spaceOf = (space) => SPACES[space] || SPACES.owner;
+const DATA = (space) => userFile(spaceOf(space).data);
+const BACKUP = (space) => userFile(spaceOf(space).backup);
+const AUTH = () => userFile('nudge-auth.json');
 const WINDOW_STATE = () => userFile('window-state.json');
 
 // ---------- persistence ----------
@@ -29,23 +37,23 @@ function writeJsonAtomic(file, value) {
   fs.renameSync(tmp, file);
 }
 
-function loadData() {
-  if (!fs.existsSync(DATA())) return null;
-  const data = readJson(DATA());
+function loadData(space) {
+  if (!fs.existsSync(DATA(space))) return null;
+  const data = readJson(DATA(space));
   if (data && Array.isArray(data.tasks)) {
     // One backup per launch, so a bad session can always be rolled back.
-    try { fs.copyFileSync(DATA(), BACKUP()); } catch {}
+    try { fs.copyFileSync(DATA(space), BACKUP(space)); } catch {}
     return data;
   }
   // The data file is unreadable: keep it aside instead of overwriting it.
-  try { fs.renameSync(DATA(), userFile(`nudge-data.corrupt-${Date.now()}.json`)); } catch {}
-  const backup = readJson(BACKUP());
+  try { fs.renameSync(DATA(space), userFile(`${spaceOf(space).data}.corrupt-${Date.now()}.json`)); } catch {}
+  const backup = readJson(BACKUP(space));
   return backup && Array.isArray(backup.tasks) ? backup : null;
 }
 
-function saveData(data) {
+function saveData(space, data) {
   try {
-    writeJsonAtomic(DATA(), data);
+    writeJsonAtomic(DATA(space), data);
     return true;
   } catch (err) {
     console.error('Failed to save data', err);
@@ -53,9 +61,17 @@ function saveData(data) {
   }
 }
 
-ipcMain.handle('store:load', () => ({ data: loadData(), platform: process.platform }));
-ipcMain.on('store:save', (_e, data) => saveData(data));
-ipcMain.on('store:save-sync', (e, data) => { e.returnValue = saveData(data); });
+ipcMain.handle('store:load', (_e, space) => ({ data: loadData(space), platform: process.platform }));
+ipcMain.on('store:save', (_e, space, data) => saveData(space, data));
+ipcMain.on('store:save-sync', (e, space, data) => { e.returnValue = saveData(space, data); });
+
+// Sign-in credentials (salted hash only). Set once; delete nudge-auth.json to reset.
+ipcMain.handle('auth:get', () => readJson(AUTH()) || null);
+ipcMain.handle('auth:set', (_e, cred) => {
+  if (fs.existsSync(AUTH())) return false;
+  if (!cred || typeof cred.username !== 'string' || typeof cred.salt !== 'string' || typeof cred.hash !== 'string') return false;
+  try { writeJsonAtomic(AUTH(), { username: cred.username, salt: cred.salt, hash: cred.hash, iterations: cred.iterations }); return true; } catch { return false; }
+});
 
 // ---------- window ----------
 

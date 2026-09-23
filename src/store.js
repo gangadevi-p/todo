@@ -58,7 +58,9 @@ const patchUI = (patch) => ui.set((u) => ({ ...u, ...patch }));
 // ---------------------------------------------------------------------------
 
 const bridge = typeof window !== 'undefined' ? window.nudge : undefined;
-const LS_KEY = 'nudge:data:v1';
+const LS_KEYS = { owner: 'nudge:data:v1', demo: 'nudge:demo:v1' };
+let space = 'owner'; // which workspace is open; set by loadData()
+export const getSpace = () => space;
 export const TRASH_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 let saveTimer = null;
 
@@ -71,10 +73,21 @@ function writeNow(sync) {
   clearTimeout(saveTimer);
   saveTimer = null;
   const p = payload();
-  if (bridge) sync ? bridge.saveSync(p) : bridge.save(p);
+  if (bridge) sync ? bridge.saveSync(space, p) : bridge.save(space, p);
   else {
-    try { localStorage.setItem(LS_KEY, JSON.stringify(p)); } catch {}
+    try { localStorage.setItem(LS_KEYS[space], JSON.stringify(p)); } catch {}
   }
+}
+
+/** Browser build: seeds the personal space from an exported nudge-data.json. */
+export function importOwnerData(obj) {
+  if (!obj || !Array.isArray(obj.tasks)) return false;
+  try { localStorage.setItem(LS_KEYS.owner, JSON.stringify(obj)); return true; } catch { return false; }
+}
+
+/** Writes any pending change right away (used before signing out). */
+export function flushSave() {
+  if (saveTimer) writeNow(true);
 }
 
 function scheduleSave() {
@@ -143,17 +156,20 @@ function normalize(raw) {
   return { projects, tasks, trash, prefs: { ...defaultPrefs(), ...(raw.prefs || {}) } };
 }
 
-export async function loadData() {
+export async function loadData(which = 'owner') {
+  space = which;
   let raw = null;
   let platform = 'web';
   if (bridge) {
-    const res = await bridge.load();
+    const res = await bridge.load(space);
     raw = res?.data ?? null;
     platform = res?.platform ?? 'web';
   } else {
-    try { raw = JSON.parse(localStorage.getItem(LS_KEY)); } catch {}
+    try { raw = JSON.parse(localStorage.getItem(LS_KEYS[space])); } catch {}
   }
-  const initial = raw && Array.isArray(raw.tasks) ? normalize(raw) : seedData();
+  // A brand-new personal space in the browser starts empty (only the demo gets sample tasks).
+  const empty = { projects: [], tasks: [], trash: [], prefs: defaultPrefs() };
+  const initial = raw && Array.isArray(raw.tasks) ? normalize(raw) : space === 'owner' && !bridge ? empty : seedData();
   data.set(initial);
   if (!raw || initial.trash.length !== (raw.trash || []).length) scheduleSave();
 

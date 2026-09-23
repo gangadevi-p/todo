@@ -1,11 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
 import {
-  CalendarDays, CircleCheck, CircleHelp, Ellipsis, Eraser, Inbox, Layers, Moon, PanelLeftClose, Pencil, Plus, Search, Sun, Trash2,
+  CalendarDays, CircleCheck, CircleHelp, Ellipsis, Eraser, Inbox, Layers, Moon, PanelLeftClose, Pencil, Plus, Search, Sun, Trash2, UserRound,
 } from 'lucide-react';
 import {
-  askConfirm, closeMobileNav, confirmDeleteAll, deleteProject, findTask, navigate, openMenu, openNewProject, openSearch, placeProject, renameProject,
+  askConfirm, closeMobileNav, confirmDeleteAll, flushSave, getSpace, deleteProject, findTask, navigate, openMenu, openNewProject, openSearch, placeProject, renameProject,
   setEditingProject, setHelp, setPref, toast, updateTask, useData, useUI,
 } from '../store';
+import { authEnabled, publicWeb } from '../lib/auth';
 import { inToday, taskProgress } from '../lib/views';
 import { drag, endDrag, startProjectDrag } from '../lib/dnd';
 import { useToday } from '../lib/useToday';
@@ -307,6 +308,20 @@ export function Sidebar({ view, isMobile = false }) {
       </div>
 
       <div className="sidebar-foot">
+        {authEnabled && (
+          <button
+            type="button"
+            className="nav-item muted"
+            onClick={() => {
+              flushSave();
+              if (publicWeb) location.hash = getSpace() === 'demo' ? '#owner' : '';
+              window.location.reload();
+            }}
+          >
+            <UserRound size={16} strokeWidth={1.8} className="nav-icon" />
+            <span className="nav-label">{getSpace() === 'demo' ? 'Login' : 'Sign out'}</span>
+          </button>
+        )}
         <button type="button" className="nav-item muted" onClick={() => setHelp(true)}>
           <CircleHelp size={16} strokeWidth={1.8} className="nav-icon" />
           <span className="nav-label">Shortcuts</span>

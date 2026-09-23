@@ -9,6 +9,7 @@
     "dev": "node scripts/dev.mjs",
     "web": "vite",
     "build": "vite build",
+    "build:demo": "vite build --outDir demo",
     "start": "vite build && electron .",
     "icon": "electron scripts/make-icon.cjs",
     "smoke": "vite build && electron scripts/smoke.cjs",
