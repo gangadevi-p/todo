@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { addSubtaskAfter, indentSubtask, removeSubtask, subtaskKey, toggleSelected, updateSubtask, useUI } from '../store';
+import { addNestedSubtask, addSubtaskAfter, removeSubtask, subtaskKey, toggleSelected, updateSubtask, useUI } from '../store';
 import { Checkbox } from './bits';
 import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
@@ -20,14 +20,12 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0 }) {
     const id = addSubtaskAfter(task.id, subtask.id);
     if (id) focusSubtask(id);
   };
-  const indent = () => {
+  const addNested = () => {
     suppressEmptyDelete.current = true;
-    if (!indentSubtask(task.id, subtask.id)) {
-      suppressEmptyDelete.current = false;
-      return;
-    }
-    focusSubtask(subtask.id);
-    requestAnimationFrame(() => { suppressEmptyDelete.current = false; });
+    focusSubtask(addNestedSubtask(task.id, subtask.id));
+    // Focusing the new child blurs the parent. Keep an empty parent alive
+    // during that hand-off so its new child is not removed with it.
+    requestAnimationFrame(() => requestAnimationFrame(() => { suppressEmptyDelete.current = false; }));
   };
 
   return (
@@ -64,7 +62,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0 }) {
             else e.currentTarget.blur();
           } else if (e.key === 'Tab' && !e.shiftKey) {
             e.preventDefault();
-            indent();
+            addNested();
           } else if (e.key === 'Backspace' && !subtask.title) {
             e.preventDefault();
             removeSubtask(task.id, subtask.id);

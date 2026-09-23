@@ -418,31 +418,6 @@ function insertChecklistSibling(list, siblingId, item) {
   return list;
 }
 
-/** Move an item beneath the sibling immediately above it, at the same depth. */
-function indentChecklistItem(list, itemId) {
-  for (let index = 0; index < list.length; index += 1) {
-    const item = list[index];
-    if (item.id === itemId) {
-      if (index === 0) return { list, indented: false };
-      const parent = list[index - 1];
-      const nested = [...(parent.subtasks || []), item];
-      return {
-        list: [...list.slice(0, index - 1), { ...parent, subtasks: nested }, ...list.slice(index + 1)],
-        indented: true,
-      };
-    }
-    if (!item.subtasks?.length) continue;
-    const nested = indentChecklistItem(item.subtasks, itemId);
-    if (nested.indented) {
-      return {
-        list: [...list.slice(0, index), { ...item, subtasks: nested.list }, ...list.slice(index + 1)],
-        indented: true,
-      };
-    }
-  }
-  return { list, indented: false };
-}
-
 function updateSelectedChecklist(list, selectedIds, patch) {
   return list.map((item) => ({
     ...item,
@@ -495,15 +470,6 @@ export function addSubtaskAfter(taskId, siblingId, title = '', extra = {}) {
   return id;
 }
 
-/** Indent a checklist item beneath the sibling above it (the Tab-key action). */
-export function indentSubtask(taskId, subtaskId) {
-  const task = findTask(taskId);
-  if (!task) return false;
-  const result = indentChecklistItem(task.subtasks, subtaskId);
-  if (!result.indented) return false;
-  patchSubtasks(taskId, () => result.list);
-  return true;
-}
 
 export const updateSubtask = (taskId, subId, patch) =>
   patchSubtasks(taskId, (list) => mapChecklistItem(list, subId, (item) => ({ ...item, ...patch })));
