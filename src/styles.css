@@ -1710,6 +1710,15 @@ kbd {
   margin: 7px 0 0 25px;
   color: var(--text-3);
   font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.card:hover .card-meta,
+.card:focus-within .card-meta {
+  opacity: 1;
+}
+.card-priority {
+  flex: none;
 }
 
 /* ==========================================================================

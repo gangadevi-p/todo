@@ -6,7 +6,7 @@ import { useToday } from '../lib/useToday';
 import { Checkbox, ProjectDot, StatusIcon } from './bits';
 import { AddChildTask, ChildAddButton, ChildTaskList, useShowChildAdd } from './ChildTasks';
 import { SubtaskTree } from './Subtasks';
-import { TaskMeta, TaskProgress, TaskRow } from './TaskRow';
+import { TaskMeta, TaskPriority, TaskProgress, TaskRow } from './TaskRow';
 import { useProjectsById, withDropLine } from './TaskList';
 import { openTaskMenu } from './taskMenu';
 import { textStyleProps } from '../lib/textStyle';
@@ -21,7 +21,7 @@ const Card = memo(function Card({ task, show, today, projectsById }) {
   const picked = useUI((u) => u.selected.has(key));
   const kids = useChildTasks(task.id);
   const showChildAdd = useShowChildAdd(task.id);
-  const hasMeta = task.priority || task.dueDate || task.notes.trim() || task.addedToToday;
+  const hasMeta = Boolean(show.due && task.dueDate);
   const cls = [
     'card', selected && 'selected', picked && 'picked', task.status === 'done' && 'done', completing && 'completing', dragging && 'dragging',
   ].filter(Boolean).join(' ');
@@ -75,11 +75,12 @@ const Card = memo(function Card({ task, show, today, projectsById }) {
             <span className={`task-title-text ${textStyleProps(task.textStyle).className}`} style={textStyleProps(task.textStyle).style}>{task.title || 'Untitled'}</span>
           </span>
           <TaskProgress task={task} kids={kids} />
+          <TaskPriority task={task} />
         </span>
       </div>
       {hasMeta ? (
         <div className="card-meta">
-          <TaskMeta task={task} show={show} today={today} />
+          <TaskMeta task={task} show={show} today={today} hidePriority />
         </div>
       ) : null}
       <ChildTaskList

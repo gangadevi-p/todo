@@ -36,12 +36,12 @@ export function TaskProgress({ task, kids = [] }) {
 }
 
 /** Small, quiet metadata shown to the right of a row or under a card title. */
-export function TaskMeta({ task, show, today }) {
+export function TaskMeta({ task, show, today, hidePriority = false }) {
   const due = show.due && task.dueDate ? dueLabel(task.dueDate, today) : null;
   const open = task.status !== 'done';
   return (
     <>
-      {task.priority && (
+      {!hidePriority && task.priority && (
         <span className="meta" title={`${priorityLabel(task.priority)} priority`}><PriorityIcon level={task.priority} /></span>
       )}
       {due && (
@@ -51,6 +51,16 @@ export function TaskMeta({ task, show, today }) {
         </span>
       )}
     </>
+  );
+}
+
+/** Priority badge kept beside a card's title, on the same line, regardless of hover. */
+export function TaskPriority({ task }) {
+  if (!task.priority) return null;
+  return (
+    <span className="meta card-priority" title={`${priorityLabel(task.priority)} priority`}>
+      <PriorityIcon level={task.priority} />
+    </span>
   );
 }
 
