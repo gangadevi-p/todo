@@ -1,4 +1,5 @@
 import { CalendarDays } from 'lucide-react';
+import { PriorityIcon } from './bits';
 
 /** A small "how much is done" overview shown at the top of every section. */
 export function SectionStats({ stats }) {
@@ -34,6 +35,11 @@ export function SectionStats({ stats }) {
           className={`stats-deadline${deadline.days < 0 ? ' overdue' : ''}`}
           title={`Nearest open task due ${deadline.date}`}
         >
+          {deadline.priority && (
+            <span className="stats-deadline-priority" title={`Average ${deadline.priority} priority across tasks`}>
+              <PriorityIcon level={deadline.priority} size={14} />
+            </span>
+          )}
           <CalendarDays size={13} strokeWidth={2} />
           <span>{deadline.label}</span>
         </div>

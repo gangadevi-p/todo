@@ -84,6 +84,16 @@ if (typeof window !== 'undefined') {
   window.addEventListener('beforeunload', () => { if (saveTimer) writeNow(true); });
 }
 
+function normalizeChecklistItem(item = {}) {
+  return {
+    id: item.id || uid(),
+    title: item.title || '',
+    done: Boolean(item.done),
+    textStyle: normalizeTextStyle(item.textStyle),
+    subtasks: Array.isArray(item.subtasks) ? item.subtasks.map(normalizeChecklistItem) : [],
+  };
+}
+
 function normalizeTask(t, i) {
   return {
     id: t.id || uid(),
@@ -93,14 +103,13 @@ function normalizeTask(t, i) {
     priority: ['low', 'medium', 'high'].includes(t.priority) ? t.priority : null,
     projectId: t.projectId || null,
     parentId: t.parentId || null,
+    isHeading: Boolean(t.isHeading),
     dueDate: t.dueDate || null,
     addedToToday: Boolean(t.addedToToday),
     createdAt: t.createdAt || Date.now(),
     completedAt: t.completedAt || null,
     order: Number.isFinite(t.order) ? t.order : i + 1,
-    subtasks: Array.isArray(t.subtasks)
-      ? t.subtasks.map((s) => ({ id: s.id || uid(), title: s.title || '', done: Boolean(s.done), textStyle: normalizeTextStyle(s.textStyle) }))
-      : [],
+    subtasks: Array.isArray(t.subtasks) ? t.subtasks.map(normalizeChecklistItem) : [],
     textStyle: normalizeTextStyle(t.textStyle),
   };
 }
@@ -222,12 +231,14 @@ export function createTask(fields = {}) {
       priority: null,
       projectId: null,
       parentId: null,
+      isHeading: false,
       dueDate: null,
       addedToToday: false,
       completedAt: null,
       subtasks: [],
       textStyle: normalizeTextStyle(),
       ...fields,
+      subtasks: Array.isArray(fields.subtasks) ? fields.subtasks.map(normalizeChecklistItem) : [],
       id,
       title,
       createdAt: now(),
@@ -298,7 +309,7 @@ export function duplicateTask(id) {
     id: uid(),
     createdAt: now(),
     order: next ? (task.order + next.order) / 2 : task.order + 1,
-    subtasks: task.subtasks.map((st) => ({ ...st, id: uid() })),
+    subtasks: task.subtasks.map(cloneChecklistItem),
   };
   commit((st) => ({ ...st, tasks: [...st.tasks, copy] }));
   return copy.id;
@@ -330,6 +341,122 @@ export function placeTask(id, prevId, nextId, patch = {}) {
 
 // Subtasks ------------------------------------------------------------------
 
+function cloneChecklistItem(item) {
+  return { ...item, id: uid(), subtasks: (item.subtasks || []).map(cloneChecklistItem) };
+}
+
+function mapChecklistItem(list, itemId, patch) {
+  let changed = false;
+  const next = list.map((item) => {
+    if (item.id === itemId) {
+      changed = true;
+      return patch(item);
+    }
+    if (!item.subtasks?.length) return item;
+    const subtasks = mapChecklistItem(item.subtasks, itemId, patch);
+    if (subtasks === item.subtasks) return item;
+    changed = true;
+    return { ...item, subtasks };
+  });
+  return changed ? next : list;
+}
+
+function findChecklistItem(list, itemId, parentId = null) {
+  for (let index = 0; index < list.length; index += 1) {
+    const item = list[index];
+    if (item.id === itemId) return { item, index, parentId };
+    const nested = findChecklistItem(item.subtasks || [], itemId, item.id);
+    if (nested) return nested;
+  }
+  return null;
+}
+
+function removeChecklistItem(list, itemId, parentId = null) {
+  for (let index = 0; index < list.length; index += 1) {
+    const item = list[index];
+    if (item.id === itemId) {
+      return { list: [...list.slice(0, index), ...list.slice(index + 1)], removed: item, index, parentId };
+    }
+    const nested = removeChecklistItem(item.subtasks || [], itemId, item.id);
+    if (nested.removed) {
+      return {
+        ...nested,
+        list: [...list.slice(0, index), { ...item, subtasks: nested.list }, ...list.slice(index + 1)],
+      };
+    }
+  }
+  return { list, removed: null, index: -1, parentId: null };
+}
+
+function restoreChecklistItem(list, parentId, item, index) {
+  if (!parentId) {
+    if (findChecklistItem(list, item.id)) return list;
+    const next = [...list];
+    next.splice(Math.min(index, next.length), 0, item);
+    return next;
+  }
+  return mapChecklistItem(list, parentId, (parent) => {
+    if (findChecklistItem(parent.subtasks || [], item.id)) return parent;
+    const subtasks = [...(parent.subtasks || [])];
+    subtasks.splice(Math.min(index, subtasks.length), 0, item);
+    return { ...parent, subtasks };
+  });
+}
+
+function insertChecklistSibling(list, siblingId, item) {
+  for (let index = 0; index < list.length; index += 1) {
+    const current = list[index];
+    if (current.id === siblingId) {
+      return [...list.slice(0, index + 1), item, ...list.slice(index + 1)];
+    }
+    if (!current.subtasks?.length) continue;
+    const subtasks = insertChecklistSibling(current.subtasks, siblingId, item);
+    if (subtasks !== current.subtasks) {
+      return [...list.slice(0, index), { ...current, subtasks }, ...list.slice(index + 1)];
+    }
+  }
+  return list;
+}
+
+/** Move an item beneath the sibling immediately above it, at the same depth. */
+function indentChecklistItem(list, itemId) {
+  for (let index = 0; index < list.length; index += 1) {
+    const item = list[index];
+    if (item.id === itemId) {
+      if (index === 0) return { list, indented: false };
+      const parent = list[index - 1];
+      const nested = [...(parent.subtasks || []), item];
+      return {
+        list: [...list.slice(0, index - 1), { ...parent, subtasks: nested }, ...list.slice(index + 1)],
+        indented: true,
+      };
+    }
+    if (!item.subtasks?.length) continue;
+    const nested = indentChecklistItem(item.subtasks, itemId);
+    if (nested.indented) {
+      return {
+        list: [...list.slice(0, index), { ...item, subtasks: nested.list }, ...list.slice(index + 1)],
+        indented: true,
+      };
+    }
+  }
+  return { list, indented: false };
+}
+
+function updateSelectedChecklist(list, selectedIds, patch) {
+  return list.map((item) => ({
+    ...item,
+    ...(selectedIds.has(item.id) ? patch(item) : {}),
+    subtasks: updateSelectedChecklist(item.subtasks || [], selectedIds, patch),
+  }));
+}
+
+function deleteSelectedChecklist(list, selectedIds) {
+  return list
+    .filter((item) => !selectedIds.has(item.id))
+    .map((item) => ({ ...item, subtasks: deleteSelectedChecklist(item.subtasks || [], selectedIds) }));
+}
+
 function patchSubtasks(taskId, fn) {
   commit((s) => ({
     ...s,
@@ -341,29 +468,54 @@ export function addSubtask(taskId, title = '', index = null, extra = {}) {
   const id = extra.id || uid();
   patchSubtasks(taskId, (list) => {
     const next = [...list];
-    next.splice(index == null ? next.length : index, 0, { id, title, done: Boolean(extra.done), textStyle: normalizeTextStyle(extra.textStyle) });
+    next.splice(index == null ? next.length : index, 0, normalizeChecklistItem({ ...extra, id, title }));
     return next;
   });
   return id;
 }
 
+/** Add a checklist item directly beneath another checklist item. */
+export function addNestedSubtask(taskId, parentSubtaskId, title = '', extra = {}) {
+  const id = extra.id || uid();
+  const item = normalizeChecklistItem({ ...extra, id, title });
+  patchSubtasks(taskId, (list) => mapChecklistItem(list, parentSubtaskId, (parent) => ({
+    ...parent,
+    subtasks: [...(parent.subtasks || []), item],
+  })));
+  return id;
+}
+
+/** Add a checklist item directly after another item at the same depth. */
+export function addSubtaskAfter(taskId, siblingId, title = '', extra = {}) {
+  const task = findTask(taskId);
+  if (!task || !findChecklistItem(task.subtasks, siblingId)) return null;
+  const id = extra.id || uid();
+  const item = normalizeChecklistItem({ ...extra, id, title });
+  patchSubtasks(taskId, (list) => insertChecklistSibling(list, siblingId, item));
+  return id;
+}
+
+/** Indent a checklist item beneath the sibling above it (the Tab-key action). */
+export function indentSubtask(taskId, subtaskId) {
+  const task = findTask(taskId);
+  if (!task) return false;
+  const result = indentChecklistItem(task.subtasks, subtaskId);
+  if (!result.indented) return false;
+  patchSubtasks(taskId, () => result.list);
+  return true;
+}
+
 export const updateSubtask = (taskId, subId, patch) =>
-  patchSubtasks(taskId, (list) => list.map((st) => (st.id === subId ? { ...st, ...patch } : st)));
+  patchSubtasks(taskId, (list) => mapChecklistItem(list, subId, (item) => ({ ...item, ...patch })));
 
 export function removeSubtask(taskId, subId) {
   const task = findTask(taskId);
-  const index = task?.subtasks.findIndex((st) => st.id === subId) ?? -1;
-  const removed = index >= 0 ? task.subtasks[index] : null;
-  if (!removed) return;
-  patchSubtasks(taskId, (list) => list.filter((st) => st.id !== subId));
+  const found = task ? findChecklistItem(task.subtasks, subId) : null;
+  if (!found) return;
+  const { item: removed, index, parentId } = found;
+  patchSubtasks(taskId, (list) => removeChecklistItem(list, subId).list);
   toast(`Deleted checklist item “${truncate(removed.title || 'Untitled', 28)}”`, {
-    label: 'Undo · Ctrl+Z',
-    run: () => patchSubtasks(taskId, (list) => {
-      if (list.some((st) => st.id === removed.id)) return list;
-      const next = [...list];
-      next.splice(Math.min(index, next.length), 0, removed);
-      return next;
-    }),
+    label: 'Undo · Ctrl+Z', run: () => patchSubtasks(taskId, (list) => restoreChecklistItem(list, parentId, removed, index)),
   }, 8000);
 }
 
@@ -412,7 +564,7 @@ export function markSelectionDone(entries) {
     tasks: s.tasks.map((t) => {
       let next = taskIds.has(t.id) ? applyPatch(t, { status: 'done' }) : t;
       const subIds = subByTask.get(t.id);
-      if (subIds) next = { ...next, subtasks: next.subtasks.map((st) => (subIds.has(st.id) ? { ...st, done: true } : st)) };
+      if (subIds) next = { ...next, subtasks: updateSelectedChecklist(next.subtasks, subIds, () => ({ done: true })) };
       return next;
     }),
   }));
@@ -429,7 +581,7 @@ export function deleteSelection(entries) {
       ...s,
       tasks: s.tasks.map((t) => {
         const ids = subEntries.filter((e) => e.taskId === t.id).map((e) => e.id);
-        return ids.length ? { ...t, subtasks: t.subtasks.filter((st) => !ids.includes(st.id)) } : t;
+        return ids.length ? { ...t, subtasks: deleteSelectedChecklist(t.subtasks, new Set(ids)) } : t;
       }),
     }));
   }
@@ -442,7 +594,7 @@ export function confirmDeleteSelection(keys) {
   if (!n) return;
   askConfirm({
     title: 'Are you sure?',
-    body: `This will delete ${n} selected item${n === 1 ? '' : 's'}. You can undo the tasks right after; checklist items can't be undone.`,
+    body: `This will delete ${n} selected item${n === 1 ? '' : 's'}. You can undo right after with Ctrl+Z.`,
     confirmLabel: `Delete ${n}`,
     onConfirm: () => deleteSelection(entries),
   });

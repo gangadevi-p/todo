@@ -1,5 +1,6 @@
 import { addDays, completedHeading, diffDays, longDate, toKey, upcomingHeading } from './dates';
 import { plural } from './util';
+import { flattenChecklist } from './checklist';
 
 const byOrder = (a, b) => a.order - b.order;
 const byCompletedDesc = (a, b) => (b.completedAt || 0) - (a.completedAt || 0);
@@ -43,7 +44,8 @@ function doneGroup(list) {
  */
 export function taskProgress(t, statusOf) {
   if (statusOf(t) === 'done') return 1;
-  if (t.subtasks?.length) return t.subtasks.filter((s) => s.done).length / t.subtasks.length;
+  const checklist = flattenChecklist(t.subtasks);
+  if (checklist.length) return checklist.filter((s) => s.done).length / checklist.length;
   return 0;
 }
 
@@ -52,7 +54,16 @@ export function taskProgress(t, statusOf) {
  * date for a section overview panel.
  */
 function progressStats(scope, statusOf, today) {
-  const total = scope.length;
+  // A major task is real work itself, and each checklist item beneath it is
+  // real work too. Count both, alongside nested child tasks already in scope.
+  const checklist = scope.flatMap((t) => flattenChecklist(t.subtasks));
+  const total = scope.length + checklist.length;
+  // The overview is a summary of both major tasks and nested tasks, so its
+  // priority marker represents their average rather than one due task.
+  const priorityValues = scope.flatMap((t) => ({ low: 1, medium: 2, high: 3 }[t.priority] || []));
+  const averagePriority = priorityValues.length
+    ? ['low', 'medium', 'high'][Math.round(priorityValues.reduce((sum, value) => sum + value, 0) / priorityValues.length) - 1]
+    : null;
   const nearestDue = scope
     .filter((t) => statusOf(t) !== 'done' && t.dueDate)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
@@ -64,11 +75,13 @@ function progressStats(scope, statusOf, today) {
           : `Due in ${days} days`;
   return {
     kind: 'progress',
-    todo: scope.filter((t) => statusOf(t) === 'todo').length,
-    done: scope.filter((t) => statusOf(t) === 'done').length,
+    todo: scope.filter((t) => statusOf(t) === 'todo').length + checklist.filter((st) => !st.done).length,
+    done: scope.filter((t) => statusOf(t) === 'done').length + checklist.filter((st) => st.done).length,
     total,
-    avgProgress: total ? scope.reduce((sum, t) => sum + taskProgress(t, statusOf), 0) / total : 0,
-    deadline: nearestDue ? { date: nearestDue.dueDate, days, label } : null,
+    avgProgress: total
+      ? (scope.filter((t) => statusOf(t) === 'done').length + checklist.filter((st) => st.done).length) / total
+      : 0,
+    deadline: nearestDue ? { date: nearestDue.dueDate, days, label, priority: averagePriority } : null,
   };
 }
 
@@ -80,7 +93,7 @@ function progressStats(scope, statusOf, today) {
 function headingBoardGroups(headings, allTasks, addDefaults) {
   return headings.map((heading) => {
     const children = allTasks.filter((t) => t.parentId === heading.id).sort(byOrder);
-    const checklistCount = heading.subtasks?.length || 0;
+    const checklistCount = flattenChecklist(heading.subtasks).length;
     return {
       id: `heading:${heading.id}`,
       heading: true,
@@ -100,7 +113,7 @@ function headingBoardGroups(headings, allTasks, addDefaults) {
 /** Only a task that actually owns nested work qualifies as a board heading. */
 function majorHeadings(headings, allTasks) {
   return headings.filter((heading) =>
-    heading.subtasks?.length || allTasks.some((t) => t.parentId === heading.id));
+    heading.isHeading || flattenChecklist(heading.subtasks).length || allTasks.some((t) => t.parentId === heading.id));
 }
 
 /**

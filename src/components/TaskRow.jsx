@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { CalendarDays, GripVertical, Trash2 } from 'lucide-react';
-import { activateTask, deleteTask, focusTaskTitle, hoverTask, leaveTask, taskKey, toggleComplete, toggleSelected, useChildTasks, useUI } from '../store';
+import { activateTask, deleteTask, focusTaskTitle, hoverTask, leaveTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
 import { dueLabel } from '../lib/dates';
 import { priorityLabel } from '../lib/util';
 import { endDrag, startTaskDrag } from '../lib/dnd';
@@ -10,17 +10,20 @@ import { openTaskMenu } from './taskMenu';
 import { rectOf } from './MenuLayer';
 import { SubtaskTree } from './Subtasks';
 import { textStyleProps } from '../lib/textStyle';
+import { TextStyleButton } from './TextStyle';
+import { flattenChecklist } from '../lib/checklist';
 
 /** Checklist and child-task progress, kept beside the task title rather than right-aligned with other metadata. */
 export function TaskProgress({ task, kids = [] }) {
-  const doneSubs = task.subtasks.filter((s) => s.done).length;
+  const checklist = flattenChecklist(task.subtasks);
+  const doneSubs = checklist.filter((s) => s.done).length;
   const doneKids = kids.filter((c) => c.status === 'done').length;
-  if (!task.subtasks.length && !kids.length) return null;
+  if (!checklist.length && !kids.length) return null;
   return (
     <span className="task-progress">
-      {task.subtasks.length > 0 && (
-        <span className={`task-progress-item${doneSubs === task.subtasks.length ? ' all' : ''}`} title="Checklist">
-          {doneSubs}/{task.subtasks.length}
+      {checklist.length > 0 && (
+        <span className={`task-progress-item${doneSubs === checklist.length ? ' all' : ''}`} title="Checklist">
+          {doneSubs}/{checklist.length}
         </span>
       )}
       {kids.length > 0 && (
@@ -118,6 +121,14 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
         <span className="row-meta">
           <TaskMeta task={task} show={show} today={today} />
         </span>
+        {!selecting && (
+          <TextStyleButton
+            className="row-style"
+            value={task.textStyle}
+            onChange={(textStyle) => updateTask(task.id, { textStyle })}
+            label="Style task text"
+          />
+        )}
         {!selecting && (
           <button
             type="button"

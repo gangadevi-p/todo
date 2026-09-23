@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { addSubtask, removeSubtask, subtaskKey, toggleSelected, updateSubtask, useUI } from '../store';
+import { addSubtaskAfter, indentSubtask, removeSubtask, subtaskKey, toggleSelected, updateSubtask, useUI } from '../store';
 import { Checkbox } from './bits';
 import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
@@ -10,20 +10,35 @@ export const focusSubtask = (id) => {
   requestAnimationFrame(() => document.querySelector(`[data-subtask-input="${id}"]`)?.focus());
 };
 
-function SubtaskRow({ task, subtask, index, focus }) {
+function SubtaskRow({ task, subtask, index, focus, depth = 0 }) {
   const selecting = useUI((u) => u.selecting);
   const key = subtaskKey(task.id, subtask.id);
   const picked = useUI((u) => u.selected.has(key));
+  const suppressEmptyDelete = useRef(false);
 
-  const insertAfter = () => focusSubtask(addSubtask(task.id, '', index + 1));
+  const addSibling = () => {
+    const id = addSubtaskAfter(task.id, subtask.id);
+    if (id) focusSubtask(id);
+  };
+  const indent = () => {
+    suppressEmptyDelete.current = true;
+    if (!indentSubtask(task.id, subtask.id)) {
+      suppressEmptyDelete.current = false;
+      return;
+    }
+    focusSubtask(subtask.id);
+    requestAnimationFrame(() => { suppressEmptyDelete.current = false; });
+  };
 
   return (
-    <div
-      className={`sub-row${subtask.done ? ' done' : ''}${picked ? ' picked' : ''}`}
-      onClick={selecting ? () => toggleSelected(key) : undefined}
-    >
+    <>
+      <div
+        className={`sub-row${subtask.done ? ' done' : ''}${picked ? ' picked' : ''}`}
+        style={depth ? { '--sub-depth': depth } : undefined}
+        onClick={selecting ? () => toggleSelected(key) : undefined}
+      >
       {!selecting && (
-        <button type="button" className="sub-add-left" title="Add subtask below" onClick={insertAfter}>
+        <button type="button" className="sub-add-left" title="Add subtask below" onClick={addSibling}>
           <Plus size={12} strokeWidth={2.2} />
         </button>
       )}
@@ -45,8 +60,11 @@ function SubtaskRow({ task, subtask, index, focus }) {
           if (e.nativeEvent.isComposing) return;
           if (e.key === 'Enter') {
             e.preventDefault();
-            if (subtask.title.trim()) insertAfter();
+            if (subtask.title.trim()) addSibling();
             else e.currentTarget.blur();
+          } else if (e.key === 'Tab' && !e.shiftKey) {
+            e.preventDefault();
+            indent();
           } else if (e.key === 'Backspace' && !subtask.title) {
             e.preventDefault();
             removeSubtask(task.id, subtask.id);
@@ -60,7 +78,7 @@ function SubtaskRow({ task, subtask, index, focus }) {
           }
         }}
         onBlur={() => {
-          if (!subtask.title.trim()) removeSubtask(task.id, subtask.id);
+          if (!subtask.title.trim() && !suppressEmptyDelete.current) removeSubtask(task.id, subtask.id);
         }}
       />
       {!selecting && (
@@ -76,7 +94,11 @@ function SubtaskRow({ task, subtask, index, focus }) {
           <Trash2 size={13} />
         </button>
       )}
-    </div>
+      </div>
+      {(subtask.subtasks || []).map((child, childIndex) => (
+        <SubtaskRow key={child.id} task={task} subtask={child} index={childIndex} focus={focus} depth={depth + 1} />
+      ))}
+    </>
   );
 }
 

@@ -487,11 +487,11 @@ kbd {
 }
 .sidebar-top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  height: 44px;
+  height: 68px;
   flex: none;
-  padding: 0 8px 0 16px;
+  padding: 24px 8px 0 16px;
 }
 .platform-darwin .sidebar-top {
   padding-left: 84px;
@@ -517,11 +517,11 @@ kbd {
 .sidebar-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 6px 8px 16px;
+  padding: 6px 8px 16px 16px;
 }
 .sidebar-foot {
   flex: none;
-  padding: 6px 8px 10px;
+  padding: 6px 8px 10px 16px;
 }
 
 .nav-group {
@@ -1334,8 +1334,13 @@ kbd {
   color: var(--text-3);
   opacity: 0;
 }
+.row-style {
+  opacity: 0;
+}
 .row:hover .row-delete,
-.row:focus-within .row-delete {
+.row:focus-within .row-delete,
+.row:hover .row-style,
+.row:focus-within .row-style {
   opacity: 1;
 }
 .row-delete:hover {
@@ -1449,6 +1454,12 @@ kbd {
 .column:hover .column-child-add {
   opacity: 1;
 }
+.card-child-add {
+  position: static;
+  flex: none;
+  margin: 0 -3px 0 0;
+  transform: none;
+}
 .row.dragging,
 .card.dragging {
   opacity: 0.35;
@@ -1545,9 +1556,11 @@ kbd {
 .column {
   display: flex;
   flex-direction: column;
-  width: 296px;
+  /* Heading boards contain real nested checklists, not just short card
+     titles. Give those rows a comfortable reading and editing measure. */
+  width: 360px;
   flex: none;
-  padding: 4px 6px 6px;
+  padding: 24px;
   border-radius: 10px;
   background: var(--bg-column);
   transition: background 0.12s, box-shadow 0.12s;
@@ -1561,7 +1574,7 @@ kbd {
   align-items: center;
   gap: 8px;
   height: 34px;
-  padding: 0 2px 0 6px;
+  padding: 0;
   font-size: 13px;
   font-weight: 600;
 }
@@ -1569,8 +1582,23 @@ kbd {
   margin-right: -2px;
   color: var(--text-3);
 }
+.column-major-add {
+  margin: 0 -2px 0 -3px;
+  color: var(--text-3);
+}
 .column-add:hover {
   color: var(--text);
+}
+.column-major-add:hover {
+  color: var(--text);
+}
+.column-style {
+  margin-left: auto;
+  opacity: 0;
+}
+.column:hover .column-style,
+.column:focus-within .column-style {
+  opacity: 1;
 }
 .column-body {
   display: flex;
@@ -1635,10 +1663,15 @@ kbd {
   -webkit-box-orient: vertical;
 }
 .column-checklist {
-  margin: 0 3px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
 }
 .column-checklist .sub-row {
   margin: 0;
+  min-width: 0;
+  overflow: visible;
 }
 .card-title-line {
   display: flex;
@@ -1655,8 +1688,16 @@ kbd {
   color: var(--text-3);
   opacity: 0;
 }
+.card-style {
+  position: absolute;
+  top: 6px;
+  right: 31px;
+  opacity: 0;
+}
 .card:hover .card-delete,
-.card:focus-within .card-delete {
+.card:focus-within .card-delete,
+.card:hover .card-style,
+.card:focus-within .card-style {
   opacity: 1;
 }
 .card-delete:hover {
@@ -1945,6 +1986,7 @@ kbd {
   opacity: 0;
 }
 .sub-style {
+  margin-left: auto;
   opacity: 0;
 }
 .sub-row:hover .sub-del,
@@ -1992,6 +2034,9 @@ kbd {
 }
 .subtasks-inline .sub-row {
   height: 28px;
+}
+.subtasks-inline .sub-row[style*="--sub-depth"] {
+  margin-left: calc(var(--sub-depth) * 20px - 8px);
 }
 .subtasks-row {
   padding: 1px 8px 5px 48px;

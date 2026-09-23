@@ -13,7 +13,6 @@ import { useEffectiveTheme } from '../lib/useTheme';
 import { plural } from '../lib/util';
 import { Kbd, ProjectDot, ProjectRing } from './bits';
 import { rectOf } from './MenuLayer';
-import { textStyleProps } from '../lib/textStyle';
 
 const NAV = [
   { id: 'inbox', label: 'Inbox', icon: Inbox, drop: (t) => ({ projectId: null }), dropMsg: 'Moved to Inbox' },
@@ -164,7 +163,7 @@ function ProjectItem({ project, active, count, progress, editing, onReorderTarge
         <span className="nav-icon project-icon" title={`${Math.round(progress * 100)}% done`}>
           <ProjectRing color={project.color} progress={progress} />
         </span>
-        <span className={`nav-label ${textStyleProps(project.textStyle).className}`} style={textStyleProps(project.textStyle).style}>{project.name}</span>
+        <span className="nav-label">{project.name}</span>
         {count ? <span className="nav-count">{count}</span> : null}
         <span
           className="nav-more"

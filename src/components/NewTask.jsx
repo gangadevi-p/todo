@@ -67,6 +67,7 @@ export function NewTaskForm({ defaults }) {
       priority,
       projectId,
       parentId,
+      isHeading: Boolean(defaults.isHeading),
       dueDate,
       addedToToday,
       subtasks: steps,

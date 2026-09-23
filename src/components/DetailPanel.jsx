@@ -15,6 +15,7 @@ import { SubtaskTree } from './Subtasks';
 import { openDatePicker, priorityItems, projectItems, statusItems } from './taskMenu';
 import { TextStyleControls } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
+import { flattenChecklist } from '../lib/checklist';
 
 function useAutosize(ref, value) {
   useLayoutEffect(() => {
@@ -230,8 +231,9 @@ function PanelBody({ task, project }) {
 }
 
 function Checklist({ task }) {
-  const total = task.subtasks.length;
-  const done = task.subtasks.filter((s) => s.done).length;
+  const checklist = flattenChecklist(task.subtasks);
+  const total = checklist.length;
+  const done = checklist.filter((s) => s.done).length;
 
   return (
     <section className="panel-section">

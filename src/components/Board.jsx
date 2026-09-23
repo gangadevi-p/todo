@@ -1,6 +1,6 @@
 import { memo } from 'react';
-import { Inbox, ListTree, Plus, Trash2 } from 'lucide-react';
-import { activateTask, deleteTask, focusTaskTitle, hoverTask, leaveTask, openNewTask, taskKey, toggleComplete, toggleSelected, useChildTasks, useUI } from '../store';
+import { Inbox, Plus, Trash2 } from 'lucide-react';
+import { activateTask, deleteTask, focusTaskTitle, hoverTask, leaveTask, openNewTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
 import { endDrag, startTaskDrag, useTaskDrop } from '../lib/dnd';
 import { useToday } from '../lib/useToday';
 import { Checkbox, ProjectDot, StatusIcon } from './bits';
@@ -10,6 +10,7 @@ import { TaskMeta, TaskProgress, TaskRow } from './TaskRow';
 import { useProjectsById, withDropLine } from './TaskList';
 import { openTaskMenu } from './taskMenu';
 import { textStyleProps } from '../lib/textStyle';
+import { TextStyleButton } from './TextStyle';
 
 const Card = memo(function Card({ task, show, today, projectsById }) {
   const dragging = useUI((u) => u.draggingId === task.id);
@@ -43,6 +44,14 @@ const Card = memo(function Card({ task, show, today, projectsById }) {
     >
       <div className="card-main">
         {!selecting && <ChildAddButton task={task} className="card-child-add" />}
+        {!selecting && (
+          <TextStyleButton
+            className="card-style"
+            value={task.textStyle}
+            onChange={(textStyle) => updateTask(task.id, { textStyle })}
+            label="Style task text"
+          />
+        )}
         {!selecting && (
           <button
             type="button"
@@ -105,10 +114,25 @@ export function Board({ model }) {
         return (
           <section key={col.id} className={`column${isTarget ? ' drop-active' : ''}`} {...handlers(col)}>
             <header className="column-head">
-              {col.heading && <ChildAddButton task={col.headingTask} className="column-child-add" />}
-              {col.statusId ? <StatusIcon status={col.statusId} size={13} /> : col.heading ? <ListTree size={14} strokeWidth={1.9} className="group-icon" /> : col.color ? <ProjectDot color={col.color} /> : <Inbox size={14} strokeWidth={1.9} className="group-icon" />}
+              {col.statusId ? <StatusIcon status={col.statusId} size={13} /> : col.heading ? (
+                <button
+                  type="button"
+                  className="icon-btn sm column-major-add"
+                  title="Add major heading"
+                  aria-label="Add major heading"
+                  onClick={() => openNewTask({ ...model.newTaskDefaults, isHeading: true })}
+                >
+                  <Plus size={15} />
+                </button>
+              ) : col.color ? <ProjectDot color={col.color} /> : <Inbox size={14} strokeWidth={1.9} className="group-icon" />}
               <span className={`group-title ${textStyleProps(col.headingTask?.textStyle).className}`} style={textStyleProps(col.headingTask?.textStyle).style}>{col.title}</span>
               <span className="group-count">{col.count ?? col.tasks.length}</span>
+              {col.heading && <TextStyleButton
+                className="column-style"
+                value={col.headingTask.textStyle}
+                onChange={(textStyle) => updateTask(col.headingTask.id, { textStyle })}
+                label="Style heading text"
+              />}
               {col.add && !col.heading && (
                 <button
                   type="button"

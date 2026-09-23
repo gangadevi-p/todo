@@ -8,6 +8,7 @@ import { priorityLabel, statusLabel } from '../lib/util';
 import { useToday } from '../lib/useToday';
 import { Checkbox, PriorityIcon, ProjectDot, StatusIcon } from './bits';
 import { textStyleProps } from '../lib/textStyle';
+import { flattenChecklist } from '../lib/checklist';
 
 const WIDTH = 340;
 const GAP = 10;
@@ -69,8 +70,9 @@ function PreviewCard({ task, pinned }) {
   }, [pinned]);
 
   const done = task.status === 'done';
-  const doneSubs = task.subtasks.filter((s) => s.done).length;
-  const shown = task.subtasks.slice(0, MAX_CHECKLIST);
+  const checklist = flattenChecklist(task.subtasks);
+  const doneSubs = checklist.filter((s) => s.done).length;
+  const shown = checklist.slice(0, MAX_CHECKLIST);
   const hasNotes = task.notes.trim().length > 0;
   const due = task.dueDate ? dueLabelLong(task.dueDate, today) : null;
   const overdue = task.dueDate && task.dueDate < today && !done;
@@ -136,13 +138,13 @@ function PreviewCard({ task, pinned }) {
         </div>
       )}
 
-      {task.subtasks.length > 0 && (
+      {checklist.length > 0 && (
         <div className="preview-section">
           <div className="section-label">
             <span>Checklist</span>
           </div>
           <div className="progress" aria-hidden="true">
-            <span style={{ width: `${(doneSubs / task.subtasks.length) * 100}%` }} />
+            <span style={{ width: `${(doneSubs / checklist.length) * 100}%` }} />
           </div>
           {shown.map((st) => (
             <div key={st.id} className={`preview-sub${st.done ? ' done' : ''}`}>
@@ -150,13 +152,13 @@ function PreviewCard({ task, pinned }) {
               <span>{st.title || 'Untitled'}</span>
             </div>
           ))}
-          {task.subtasks.length > shown.length && (
-            <div className="preview-more">+{task.subtasks.length - shown.length} more</div>
+          {checklist.length > shown.length && (
+            <div className="preview-more">+{checklist.length - shown.length} more</div>
           )}
         </div>
       )}
 
-      {!hasNotes && task.subtasks.length === 0 && (
+      {!hasNotes && checklist.length === 0 && (
         <div className="preview-empty">No notes or checklist yet.</div>
       )}
     </div>
