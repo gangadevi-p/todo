@@ -1,4 +1,4 @@
-import { addDays, completedHeading, diffDays, longDate, toKey, upcomingHeading } from './dates';
+import { addDays, diffDays, longDate, upcomingHeading } from './dates';
 import { plural } from './util';
 import { flattenChecklist } from './checklist';
 
@@ -281,27 +281,18 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       model.subtitle = list.length ? plural(list.length, 'completed task') : 'Finished work lands here';
       model.show.due = false;
       model.show.today = false;
-      model.emptyText = 'Completed tasks will appear here. Check something off to get started.';
+      model.emptyText = "You didn't complete anything yet — start working, bro.";
       model.deleteScope = 'Completed';
       model.mode = sectionMode;
       model.stats = progressStats(list, statusOf, today);
+      // Every task here is already done, so there's no "Todo" side to show
+      // and nothing to drop onto — just the full, flat list of what's finished.
       if (sectionMode === 'board') {
-        model.groups = statusBoardGroups(list, statusOf, null);
-        model.total = list.length;
+        model.groups = [{ id: 'done', statusId: 'done', title: 'Done', tasks: list, collapsible: false, sortable: false, patch: null, add: null }];
       } else {
-        const days = [];
-        const byDay = new Map();
-        for (const t of list) {
-          const key = toKey(new Date(t.completedAt || t.createdAt));
-          if (!byDay.has(key)) { byDay.set(key, []); days.push(key); }
-          byDay.get(key).push(t);
-        }
-        model.groups = days.map((key) => {
-          const h = completedHeading(key, today);
-          return { id: key, title: h.title, sub: h.sub, tasks: byDay.get(key), sortable: false, patch: null, locked: true };
-        });
-        model.total = list.length;
+        model.groups = [{ id: 'main', title: null, tasks: list, sortable: false, patch: null }];
       }
+      model.total = list.length;
       break;
     }
     case 'trash': {
