@@ -141,7 +141,7 @@ try {
   await app.click('.btn', 'Cancel');
   const projectId = (name) => readData().projects.find((p) => p.name === name).id;
   const countIn = (pid) => readData().tasks.filter((x) => x.projectId === pid).length;
-  const athera = projectId('Athera');
+  const cafe = projectId('Maple Café Website');
 
   const trashTarget = await app.eval(`(() => {
     const row = document.querySelector('[data-task-row]');
@@ -160,7 +160,7 @@ try {
     return ${JSON.stringify(['Inbox', ...readData().projects.map((p) => p.name)])}.every((name) => heads.includes(name)) && !heads.includes('Done');
   })()`));
 
-  await app.click('.nav-item', 'Athera');
+  await app.click('.nav-item', 'Maple Café Website');
   await app.click('.segmented button', 'Board');
   check('Board keeps status columns when a project has only one major task', await app.eval(`(() => {
     const heads = [...document.querySelectorAll('.column-head .group-title')].map((el) => el.innerText);
@@ -169,7 +169,7 @@ try {
   await app.click('.segmented button', 'List');
 
   // 1. Delete all + "Are you sure?" on every page --------------------------------------
-  const pages = ['Inbox', 'Today', 'Upcoming', 'All Tasks', 'Completed', 'Athera', 'CueUp', 'Portfolio', 'Personal'];
+  const pages = ['Inbox', 'Today', 'Upcoming', 'All Tasks', 'Completed', 'Maple Café Website', 'Trailhead App', 'Studio Rebrand', 'Home'];
   const total = readData().tasks.length;
   for (const name of pages) {
     await app.click('.nav-item', name);
@@ -246,7 +246,7 @@ try {
   await app.key('Escape');
 
   // 4. "+" in a group opens the popup with that group's settings ---------------------------------
-  await app.click('.nav-item', 'Athera');
+  await app.click('.nav-item', 'Maple Café Website');
   check('no inline "New task" rows remain', await app.eval('!document.querySelector(".composer, .composer-idle")'));
   // Mark the In Progress header's + so a real click can target it.
   await app.eval(`(() => {
@@ -257,13 +257,13 @@ try {
   await sleep(300);
   check('+ opens the popup, pre-filled for that group', await app.eval(`(() => {
     const on = [...document.querySelectorAll('.popup .pill.on')].map(p => p.innerText.trim());
-    return !!document.querySelector('.popup') && on.includes('In Progress') && document.querySelector('.pill-select').innerText.includes('Athera');
+    return !!document.querySelector('.popup') && on.includes('In Progress') && document.querySelector('.pill-select').innerText.includes('Maple Café Website');
   })()`));
   await app.type('E2E group task');
   await app.key('Enter');
   await until(() => readData().tasks.some((x) => x.title === 'E2E group task'));
   t = readData().tasks.find((x) => x.title === 'E2E group task');
-  check('task created in that group', !!t && t.projectId === athera && t.status === 'in_progress');
+  check('task created in that group', !!t && t.projectId === cafe && t.status === 'in_progress');
 
   // 5. Ctrl+N ---------------------------------------------------------------------------------
   await app.key('n', 2);
@@ -278,7 +278,7 @@ try {
   // The New Task popup earlier left the shared "wide" pref on, so this popup opens wide too.
   check('wide layout puts Details in a second column', await app.eval('getComputedStyle(document.querySelector(".pp-cols")).gridTemplateColumns.split(" ").length === 2'));
   const projId = await app.eval('document.querySelector(".pp-ro.mono").innerText');
-  await app.type('athera');
+  await app.type('maple');
   check('duplicate project name is blocked', (await app.eval('!!document.querySelector(".pp-error")')) && (await app.eval('document.querySelector(".pp-foot .btn-primary").disabled')));
   await app.selectAll();
   await app.type('E2E Project');
@@ -303,13 +303,13 @@ try {
   await app.key('Escape');
 
   // 8. Delete all on a project + Undo ------------------------------------------------------------
-  await app.click('.nav-item', 'Athera');
-  const before = countIn(athera);
+  await app.click('.nav-item', 'Maple Café Website');
+  const before = countIn(cafe);
   await app.click('.btn-danger-ghost');
   await app.click('.confirm .btn-danger');
-  check('Delete all clears the project (project stays)', (await until(() => countIn(athera) === 0)) && readData().projects.some((p) => p.id === athera));
+  check('Delete all clears the project (project stays)', (await until(() => countIn(cafe) === 0)) && readData().projects.some((p) => p.id === cafe));
   await app.click('.toast-action', 'Undo');
-  check('Undo restores every task', await until(() => countIn(athera) === before), `${countIn(athera)} tasks`);
+  check('Undo restores every task', await until(() => countIn(cafe) === before), `${countIn(cafe)} tasks`);
 
   // 9. Persistence across restart --------------------------------------------------------------
   const saved = readData().tasks.length;

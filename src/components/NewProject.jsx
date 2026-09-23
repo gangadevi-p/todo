@@ -62,7 +62,7 @@ export function NewProjectForm() {
           autoFocus
           value={name}
           spellCheck
-          placeholder="e.g. Athera"
+          placeholder="e.g. Website redesign"
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.nativeEvent.isComposing) {

@@ -1,5 +1,5 @@
 import { useMemo, useSyncExternalStore } from 'react';
-import { seedData, defaultPrefs } from './seed';
+import { seedData, defaultPrefs, DEMO_VERSION } from './seed';
 import { plural, uid, PROJECT_COLORS } from './lib/util';
 import { normalizeTextStyle } from './lib/textStyle';
 
@@ -167,11 +167,14 @@ export async function loadData(which = 'owner') {
   } else {
     try { raw = JSON.parse(localStorage.getItem(LS_KEYS[space])); } catch {}
   }
-  // A brand-new personal space in the browser starts empty (only the demo gets sample tasks).
+  // Only the demo gets sample tasks; a brand-new personal space starts empty.
+  // A demo saved from an older sample set is replaced with the current one.
   const empty = { projects: [], tasks: [], trash: [], prefs: defaultPrefs() };
-  const initial = raw && Array.isArray(raw.tasks) ? normalize(raw) : space === 'owner' && !bridge ? empty : seedData();
+  const stale = space === 'demo' && raw?.prefs?.demoVersion !== DEMO_VERSION;
+  const saved = raw && Array.isArray(raw.tasks) && !stale;
+  const initial = saved ? normalize(raw) : space === 'demo' ? seedData() : empty;
   data.set(initial);
-  if (!raw || initial.trash.length !== (raw.trash || []).length) scheduleSave();
+  if (!saved || initial.trash.length !== (raw.trash || []).length) scheduleSave();
 
   // The demo always opens on Today, so visitors land on the sample day.
   let view = space === 'demo' ? 'today' : initial.prefs.view || 'today';

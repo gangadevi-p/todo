@@ -1,21 +1,24 @@
 import { addDays, todayKey } from './lib/dates';
 import { uid, PROJECT_COLORS } from './lib/util';
 
-// A small, realistic starting workspace so the app never opens empty.
+/** Bump when the sample workspace changes, so demos saved earlier are replaced with the new one. */
+export const DEMO_VERSION = 2;
+
+// Made-up sample workspace for the demo space only. None of it is real work.
 // Everything here can be edited or deleted like any other task.
 export function seedData() {
   const today = todayKey();
   const now = Date.now();
   const day = 86400000;
 
-  const projects = ['Athera', 'CueUp', 'Portfolio', 'Personal'].map((name, i) => ({
+  const projects = ['Maple Café Website', 'Trailhead App', 'Studio Rebrand', 'Home'].map((name, i) => ({
     id: uid(),
     name,
     createdAt: now,
     order: i + 1,
     color: PROJECT_COLORS[i],
   }));
-  const [athera, cueup, portfolio, personal] = projects.map((p) => p.id);
+  const [cafe, trail, studio, home] = projects.map((p) => p.id);
 
   let order = 0;
   const task = (title, extra = {}) => ({
@@ -37,59 +40,59 @@ export function seedData() {
 
   const tasks = [
     // Today
-    task('Define homepage hierarchy', { projectId: athera, priority: 'high', addedToToday: true }),
-    task('Explore typography options', {
-      projectId: athera,
+    task('Sketch the menu page layout', { projectId: cafe, priority: 'high', addedToToday: true }),
+    task('Pick a warm colour palette', {
+      projectId: cafe,
       priority: 'medium',
       addedToToday: true,
-      notes: 'Pair a serif display face with a neutral sans for UI.\nCheck weights at small sizes.',
+      notes: 'Cream, espresso brown and one bright accent.\nCheck contrast on buttons.',
     }),
-    task('Review product card states', { projectId: athera, addedToToday: true }),
-    task('Create mobile navigation', { projectId: cueup, addedToToday: true }),
+    task('Write opening-hours section', { projectId: cafe, addedToToday: true }),
+    task('Design the trail map screen', { projectId: trail, addedToToday: true }),
 
     // Inbox
-    task('Explore alternative navigation'),
-    task('Check contrast ratio'),
-    task('Fix prototype transition'),
+    task('Try a darker footer'),
+    task('Collect icon references'),
+    task('Rename files in the shared folder'),
 
-    // Athera
-    task('Create furniture product card variants', {
-      projectId: athera,
+    // Maple Café Website
+    task('Design the online order flow', {
+      projectId: cafe,
       priority: 'medium',
       dueDate: addDays(today, 2),
-      notes: 'Try 3 layouts\nConsider image-heavy variant\nCheck mobile behavior',
-      subtasks: [['Desktop version', true], ['Tablet version', false], ['Mobile version', false]],
+      notes: 'Keep it to three steps\nShow pickup time clearly\nTest on a small phone',
+      subtasks: [['Choose items', true], ['Pickup time', false], ['Confirmation', false]],
     }),
-    task('Define visual direction', { projectId: athera }),
-    task('Create homepage wireframe', { projectId: athera }),
-    task('Design product listing', { projectId: athera }),
-    task('Design product details', { projectId: athera }),
-    task('Explore navigation', { projectId: athera, priority: 'low' }),
-    task('Build design system', { projectId: athera, priority: 'high' }),
-    task('Competitive analysis', { projectId: athera, status: 'done', completedAt: now - 2 * day }),
-    task('Define user flow', { projectId: athera, status: 'done', completedAt: now - day }),
+    task('Photograph the pastries', { projectId: cafe }),
+    task('Build the home page hero', { projectId: cafe }),
+    task('Add a gallery section', { projectId: cafe }),
+    task('Set up the contact form', { projectId: cafe }),
+    task('Try a sticky header', { projectId: cafe, priority: 'low' }),
+    task('Create a small style guide', { projectId: cafe, priority: 'high' }),
+    task('Gather reference cafés', { projectId: cafe, status: 'done', completedAt: now - 2 * day }),
+    task('Agree on the site map', { projectId: cafe, status: 'done', completedAt: now - day }),
 
-    // CueUp
-    task('Mobile navigation states', { projectId: cueup }),
-    task('Create mobile screens', { projectId: cueup, dueDate: addDays(today, 2) }),
-    task('Prepare prototype', { projectId: cueup, dueDate: addDays(today, 4), priority: 'medium' }),
-    task('Finalize empty states', { projectId: cueup }),
-    task('Review accessibility', { projectId: cueup, priority: 'low' }),
+    // Trailhead App
+    task('Onboarding screens', { projectId: trail }),
+    task('Saved trails list', { projectId: trail, dueDate: addDays(today, 2) }),
+    task('Clickable prototype for testing', { projectId: trail, dueDate: addDays(today, 4), priority: 'medium' }),
+    task('Offline mode message', { projectId: trail }),
+    task('Check tap target sizes', { projectId: trail, priority: 'low' }),
 
-    // Portfolio
-    task('Finalize typography', { projectId: portfolio, dueDate: addDays(today, 1), priority: 'high' }),
-    task('Fix navigation spacing', { projectId: portfolio }),
-    task('Fix card spacing', { projectId: portfolio }),
-    task('Export assets', { projectId: portfolio }),
+    // Studio Rebrand
+    task('Choose the new logo direction', { projectId: studio, dueDate: addDays(today, 1), priority: 'high' }),
+    task('Update business cards', { projectId: studio }),
+    task('Refresh social media banners', { projectId: studio }),
+    task('Export the brand kit', { projectId: studio }),
 
-    // Personal
-    task('Sort inspiration screenshots', { projectId: personal }),
+    // Home
+    task('Plan weekend groceries', { projectId: home }),
 
     // Completed inbox task
-    task('Review competitor screens', { status: 'done', completedAt: now - 3 * 3600000 }),
+    task('Clear the desktop screenshots', { status: 'done', completedAt: now - 3 * 3600000 }),
   ];
 
-  return { projects, tasks, trash: [], prefs: defaultPrefs() };
+  return { projects, tasks, trash: [], prefs: { ...defaultPrefs(), demoVersion: DEMO_VERSION } };
 }
 
 export function defaultPrefs() {
