@@ -81,7 +81,7 @@ function createWindow() {
     minWidth: 860,
     minHeight: 560,
     show: false,
-    title: 'Nudge',
+    title: "Gani's Work",
     icon: path.join(__dirname, '..', 'build', 'icon.png'),
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#191919' : '#ffffff',
     titleBarStyle: 'hidden',

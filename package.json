@@ -1,6 +1,6 @@
 {
   "name": "nudge",
-  "productName": "Nudge",
+  "productName": "Gani's Work",
   "version": "1.0.0",
   "description": "A calm, keyboard-first task list for designers.",
   "main": "electron/main.cjs",
@@ -25,10 +25,10 @@
     "react-dom": "^19.3.0",
     "vite": "^8.3.0"
   },
-  "author": "Nudge",
+  "author": "Gani's Work",
   "build": {
     "appId": "app.nudge.tasks",
-    "productName": "Nudge",
+    "productName": "Gani's Work",
     "copyright": "Personal use",
     "files": [
       "dist/**",
@@ -60,7 +60,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Nudge"
+      "shortcutName": "Gani's Work"
     },
     "mac": {
       "target": "dmg",

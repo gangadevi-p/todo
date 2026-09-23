@@ -237,7 +237,7 @@ export function Sidebar({ view }) {
               <path d="M6 10.4l2.7 2.7L14.2 7.4" fill="none" stroke="var(--bg)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </span>
-          <span className="brand-name">Nudge</span>
+          <span className="brand-name">Gani's Work</span>
         </div>
         <button type="button" className="icon-btn no-drag sidebar-collapse" title="Hide sidebar (Ctrl \)" onClick={() => setPref('sidebarCollapsed', true)}>
           <PanelLeftClose size={16} strokeWidth={1.8} />

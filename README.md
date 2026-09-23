@@ -1,4 +1,4 @@
-# Nudge
+# Gani's Work
 
 A calm, keyboard-first desktop to-do list for designers. It's built for one thing: quickly capturing, organising and finishing design tasks.
 
@@ -13,11 +13,11 @@ npm run dev        # desktop app with hot reload while editing (F12 opens DevToo
 npm run dist       # build a Windows installer into release/
 ```
 
-`npm run dist` creates `release/Nudge Setup 1.0.0.exe`, plus a ready-to-run `release/win-unpacked/Nudge.exe`. The app isn't code-signed (`scripts/no-sign.cjs` skips signing), so Windows SmartScreen may warn you the first time you run it.
+`npm run dist` creates `release/Gani's Work Setup 1.0.0.exe`, plus a ready-to-run `release/win-unpacked/Gani's Work.exe`. The app isn't code-signed (`scripts/no-sign.cjs` skips signing), so Windows SmartScreen may warn you the first time you run it.
 
 ## Where your data lives
 
-Everything is stored in one JSON file:
+Everything is stored in one JSON file (the folder is still named `Nudge`, the app's original internal name, so existing installs keep their data):
 
 - Windows: `%APPDATA%\Nudge\nudge-data.json`
 - macOS: `~/Library/Application Support/Nudge/nudge-data.json`
@@ -61,7 +61,7 @@ Every kind of creation opens the same popup: **New task**, **New project** (the 
 
 - Only the title (or name) is required. Type it and press Enter.
 - The popup shows every detail: title, notes, status, priority, project, due date, add to Today and subtasks, plus the generated ID, created and completed times, project ID and order.
-- The expand button at the top right makes it wide, with the details in a second column. Nudge remembers your choice.
+- The expand button at the top right makes it wide, with the details in a second column. Gani's Work remembers your choice.
 - It warns about a task with the same name in the same project, and won't let you create two projects with the same name.
 
 ## Delete all
