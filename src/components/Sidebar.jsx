@@ -239,7 +239,7 @@ export function Sidebar({ view }) {
           </span>
           <span className="brand-name">Gani's Work</span>
         </div>
-        <button type="button" className="icon-btn no-drag sidebar-collapse" title="Hide sidebar (Ctrl \)" onClick={() => setPref('sidebarCollapsed', true)}>
+        <button type="button" className="icon-btn no-drag sidebar-collapse" title="Hide sidebar" onClick={() => setPref('sidebarCollapsed', true)}>
           <PanelLeftClose size={16} strokeWidth={1.8} />
         </button>
       </div>

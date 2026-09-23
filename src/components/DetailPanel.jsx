@@ -53,7 +53,7 @@ function PanelHeader({ task, project }) {
         <button
           type="button"
           className={`icon-btn${planned ? ' on-today' : ''}`}
-          title={planned ? 'Remove from Today (T)' : inToday(task, today) ? 'Due today · pin to Today (T)' : 'Add to Today (T)'}
+          title={planned ? 'Remove from Today' : inToday(task, today) ? 'Due today · pin to Today' : 'Add to Today'}
           onClick={() => updateTask(task.id, { addedToToday: !planned })}
         >
           <Sun size={16} strokeWidth={1.9} />
@@ -76,7 +76,7 @@ function PanelHeader({ task, project }) {
         >
           <Ellipsis size={16} />
         </button>
-        <button type="button" className="icon-btn" title="Close (Esc)" onClick={closePanel}>
+        <button type="button" className="icon-btn" title="Close" onClick={closePanel}>
           <X size={16} />
         </button>
       </div>

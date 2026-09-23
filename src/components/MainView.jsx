@@ -189,7 +189,7 @@ export function MainView({ model, sidebarCollapsed }) {
     <main className="main">
       <div className={`topbar drag-region${scrolled ? ' scrolled' : ''}`}>
         {sidebarCollapsed && (
-          <button type="button" className="icon-btn no-drag" title="Show sidebar (Ctrl \)" onClick={() => setPref('sidebarCollapsed', false)}>
+          <button type="button" className="icon-btn no-drag" title="Show sidebar" onClick={() => setPref('sidebarCollapsed', false)}>
             <PanelLeftOpen size={16} strokeWidth={1.8} />
           </button>
         )}
@@ -210,7 +210,7 @@ export function MainView({ model, sidebarCollapsed }) {
                 type="button"
                 className="icon-btn page-add"
                 onClick={newTask}
-                title="New task (N)"
+                title="New task"
                 aria-label="New task"
               >
                 <Plus size={17} strokeWidth={2.2} />

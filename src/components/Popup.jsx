@@ -110,7 +110,7 @@ export function Popup({ title, subtitle, dirty, canSubmit, submitLabel, onSubmit
             >
               {wide ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
             </button>
-            <button type="button" className="icon-btn" title="Close (Esc)" onClick={closePopup}>
+            <button type="button" className="icon-btn" title="Close" onClick={closePopup}>
               <X size={16} />
             </button>
           </div>
