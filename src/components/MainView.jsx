@@ -14,6 +14,11 @@ import { textStyleProps } from '../lib/textStyle';
 
 const VIEW_ICONS = { inbox: Inbox, today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck, trash: Trash2 };
 
+const FILTER_EMPTY_TEXT = {
+  todo: 'Nothing left to do here — everything is done.',
+  done: 'You have done nothing till now. Start working and finish them off.',
+};
+
 /** Narrows a view's groups down to just the tasks matching the overview bar's active tab. */
 function applyStatsFilter(model, filter) {
   if (!filter) return model;
@@ -23,7 +28,8 @@ function applyStatsFilter(model, filter) {
       : { ...g, tasks: g.tasks.filter((t) => t.status === filter) }
   ));
   const taskIds = groups.flatMap((g) => g.tasks.map((t) => t.id));
-  return { ...model, groups, taskIds, total: taskIds.length };
+  const total = taskIds.length;
+  return { ...model, groups, taskIds, total, emptyText: total === 0 ? FILTER_EMPTY_TEXT[filter] : model.emptyText };
 }
 
 function ViewIcon({ model, size = 15 }) {
@@ -138,7 +144,7 @@ export function MainView({ model, sidebarCollapsed }) {
       <button
         type="button"
         className="btn"
-        disabled={filteredModel.taskIds.length === 0}
+        disabled={model.taskIds.length === 0}
         title="Select every task on this page, then mark them done or delete them together"
         onClick={() => setSelecting(true, filteredModel.taskIds)}
       >
@@ -147,7 +153,7 @@ export function MainView({ model, sidebarCollapsed }) {
       <button
         type="button"
         className="btn btn-danger-ghost"
-        disabled={filteredModel.taskIds.length === 0}
+        disabled={model.taskIds.length === 0}
         title={`Delete every task on this page`}
         onClick={() => confirmDeleteTasks(filteredModel.taskIds, model.deleteScope, model.deleteNote)}
       >
