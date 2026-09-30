@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState } from 'react';
 import {
-  CalendarDays, CircleCheck, CircleHelp, Ellipsis, Eraser, Inbox, Layers, Moon, PanelLeftClose, Pencil, Plus, Search, Sun, Trash2, UserRound,
+  CalendarDays, CircleCheck, CircleHelp, Download, Ellipsis, Eraser, Inbox, Layers, Moon, PanelLeftClose, Pencil, Plus, Search, Sun, Trash2, Upload, UserRound,
 } from 'lucide-react';
 import {
-  askConfirm, closeMobileNav, confirmDeleteAll, flushSave, getSpace, deleteProject, findTask, navigate, openMenu, openNewProject, openSearch, placeProject, renameProject,
+  askConfirm, closeMobileNav, confirmDeleteAll, exportData, flushSave, getSpace, importData, deleteProject, findTask, navigate, openMenu, openNewProject, openSearch, placeProject, renameProject,
   setEditingProject, setHelp, setPref, toast, updateTask, useData, useUI,
 } from '../store';
 import { DEMO_NAME } from '../seed';
@@ -193,6 +193,22 @@ export function Sidebar({ view, isMobile = false }) {
   const effectiveTheme = useEffectiveTheme(theme);
   const today = useToday();
   const [projectDrop, setProjectDrop] = useState(null); // { id, side }
+  const importRef = useRef(null);
+
+  const onImportFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    let obj = null;
+    try { obj = JSON.parse(await file.text()); } catch {}
+    if (!obj || !Array.isArray(obj.tasks)) { toast('That file isn’t an exported data file'); return; }
+    askConfirm({
+      title: 'Import data?',
+      body: `This replaces everything in this space with the ${obj.tasks.length} task${obj.tasks.length === 1 ? '' : 's'} in the file. This cannot be undone.`,
+      confirmLabel: 'Import',
+      onConfirm: () => { importData(obj); navigate('today'); toast('Data imported'); },
+    });
+  };
 
   const sorted = useMemo(() => [...projects].sort((a, b) => a.order - b.order), [projects]);
   const counts = useMemo(() => {
@@ -322,6 +338,19 @@ export function Sidebar({ view, isMobile = false }) {
             <UserRound size={16} strokeWidth={1.8} className="nav-icon" />
             <span className="nav-label">{getSpace() === 'demo' ? 'Login' : 'Sign out'}</span>
           </button>
+        )}
+        {getSpace() === 'owner' && (
+          <>
+            <button type="button" className="nav-item muted" onClick={exportData}>
+              <Download size={16} strokeWidth={1.8} className="nav-icon" />
+              <span className="nav-label">Export data</span>
+            </button>
+            <button type="button" className="nav-item muted" onClick={() => importRef.current?.click()}>
+              <Upload size={16} strokeWidth={1.8} className="nav-icon" />
+              <span className="nav-label">Import data</span>
+            </button>
+            <input ref={importRef} type="file" accept="application/json,.json" hidden onChange={onImportFile} />
+          </>
         )}
         <button type="button" className="nav-item muted" onClick={() => setHelp(true)}>
           <CircleHelp size={16} strokeWidth={1.8} className="nav-icon" />

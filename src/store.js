@@ -79,10 +79,22 @@ function writeNow(sync) {
   }
 }
 
-/** Browser build: seeds the personal space from an exported nudge-data.json. */
-export function importOwnerData(obj) {
+/** Downloads the open space as nudge-data.json, to carry it to another browser or to the desktop app. */
+export function exportData() {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(payload(), null, 2)], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'nudge-data.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** Replaces everything in the open space with an exported nudge-data.json. */
+export function importData(obj) {
   if (!obj || !Array.isArray(obj.tasks)) return false;
-  try { localStorage.setItem(LS_KEYS.owner, JSON.stringify(obj)); return true; } catch { return false; }
+  data.set(normalize(obj));
+  writeNow(true);
+  return true;
 }
 
 /** Writes any pending change right away (used before signing out). */
