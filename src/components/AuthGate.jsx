@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { createAuth, getAuth, verifyAuth } from '../lib/auth';
 
 /**
@@ -10,11 +11,15 @@ export function AuthGate({ onEnter }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [reveal, setReveal] = useState(false);
+  const [resetting, setResetting] = useState(false); // forgot password: replace the saved login, tasks stay
 
   useEffect(() => { getAuth().then((a) => setAuth(a || null)); }, []);
   if (auth === undefined) return <div className="auth-screen" />;
 
-  const setup = auth === null;
+  const setup = auth === null || resetting;
+
+  const toggleReset = () => { setResetting((r) => !r); setError(''); setPassword(''); };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -43,7 +48,7 @@ export function AuthGate({ onEnter }) {
     <div className="auth-screen">
       <form className="auth-card" onSubmit={submit}>
         <div className="auth-head">
-          <h1 className="auth-title">{setup ? 'Create login' : 'Login'}</h1>
+          <h1 className="auth-title">{resetting ? 'New login' : setup ? 'Create login' : 'Login'}</h1>
           <button type="button" className="btn btn-primary" onClick={() => onEnter('demo')}>Back to demo</button>
         </div>
         <label className="auth-field">
@@ -52,10 +57,19 @@ export function AuthGate({ onEnter }) {
         </label>
         <label className="auth-field">
           <span>Password</span>
-          <input type="password" autoComplete={setup ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} />
+          <div className="auth-password">
+            <input type={reveal ? 'text' : 'password'} autoComplete={setup ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <button type="button" className="auth-reveal" aria-label={reveal ? 'Hide password' : 'Show password'} aria-pressed={reveal} onClick={() => setReveal((r) => !r)}>
+              {reveal ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
         </label>
+        {resetting && <p className="auth-note">Choose a new user name and password. Your tasks stay as they are.</p>}
         {error && <div className="auth-error" role="alert">{error}</div>}
         <button type="submit" className="btn btn-primary auth-submit" disabled={busy}>{setup ? 'Create login' : 'Login'}</button>
+        {auth !== null && (
+          <button type="button" className="auth-link" onClick={toggleReset}>{resetting ? 'Back to login' : 'Forgot password?'}</button>
+        )}
       </form>
     </div>
   );
