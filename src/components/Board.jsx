@@ -116,14 +116,18 @@ export function Board({ model }) {
     return <EmptyState text={model.emptyText} />;
   }
 
+  // Major headings read as full-width lanes stacked down the page, each
+  // laying its sub-tasks out side by side; status columns stay as columns.
+  const lanes = model.groups.some((g) => g.heading);
+
   return (
-    <div className="board">
+    <div className={`board${lanes ? ' board-lanes' : ''}`}>
       {model.groups.map((col) => {
         if (col.filteredEmpty) return null;
         const isTarget = target?.groupId === col.id;
         const useCardGrid = !col.heading && col.tasks.length > 1;
         return (
-          <section key={col.id} className={`column${useCardGrid ? ' column-card-grid' : ''}${isTarget ? ' drop-active' : ''}`} {...handlers(col)}>
+          <section key={col.id} className={`column${col.heading ? ' column-lane' : ''}${useCardGrid ? ' column-card-grid' : ''}${isTarget ? ' drop-active' : ''}`} {...handlers(col.heading ? { ...col, horizontal: true } : col)}>
             <header className="column-head">
               {col.statusId ? <StatusIcon status={col.statusId} size={13} /> : col.heading ? (
                 <button

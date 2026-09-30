@@ -140,9 +140,11 @@ export function SubtaskTree({ task, variant = 'row', completedOnly = false, todo
       onMouseDown={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
     >
-      {visibleItems(task.subtasks, completedOnly, todoOnly).map((st, i) => (
-        <SubtaskRow key={st.id} task={task} subtask={st} index={i} focus={focus} completedOnly={completedOnly} todoOnly={todoOnly} />
-      ))}
+      {visibleItems(task.subtasks, completedOnly, todoOnly).map((st, i) => {
+        const row = <SubtaskRow key={st.id} task={task} subtask={st} index={i} focus={focus} completedOnly={completedOnly} todoOnly={todoOnly} />;
+        // On the board each top-level item gets its own lane, its nested items stacked beneath it.
+        return variant === 'board' ? <div key={st.id} className="sub-lane">{row}</div> : row;
+      })}
     </div>
   );
 }
