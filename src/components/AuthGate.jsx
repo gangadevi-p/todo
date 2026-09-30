@@ -23,6 +23,9 @@ export function AuthGate({ onEnter }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    // Read the fields themselves: a password manager can fill them without firing onChange.
+    const username = e.currentTarget.elements.username.value;
+    const password = e.currentTarget.elements.password.value;
     setError('');
     if (!username.trim() || !password) { setError('Enter a user name and password.'); return; }
     if (setup) {
@@ -53,12 +56,12 @@ export function AuthGate({ onEnter }) {
         </div>
         <label className="auth-field">
           <span>User name</span>
-          <input autoFocus autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} />
+          <input name="username" autoFocus autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} />
         </label>
         <label className="auth-field">
           <span>Password</span>
           <div className="auth-password">
-            <input type={reveal ? 'text' : 'password'} autoComplete={setup ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input name="password" type={reveal ? 'text' : 'password'} autoComplete={setup ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} />
             <button type="button" className="auth-reveal" aria-label={reveal ? 'Hide password' : 'Show password'} aria-pressed={reveal} onClick={() => setReveal((r) => !r)}>
               {reveal ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
