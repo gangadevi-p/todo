@@ -112,7 +112,7 @@ export function Board({ model }) {
   // Genuinely empty columns still show their "add" affordance (e.g. a brand
   // new project); only a filter narrowing everything away should replace the
   // board with a plain message instead of a wall of empty columns.
-  if (statsFilter && !model.groups.some((g) => g.tasks.length > 0 || g.checklistTask)) {
+  if (statsFilter && !model.groups.some((g) => g.headingVisible || g.tasks.length > 0 || g.checklistTask)) {
     return <EmptyState text={model.emptyText} />;
   }
 
@@ -142,7 +142,7 @@ export function Board({ model }) {
                 </button>
               ) : col.color ? <ProjectDot color={col.color} /> : <Inbox size={14} strokeWidth={1.9} className="group-icon" />}
               <span className={`group-title ${textStyleProps(col.headingTask?.textStyle).className}`} style={textStyleProps(col.headingTask?.textStyle).style}>{col.title}</span>
-              <span className="group-count">{col.count ?? col.tasks.length}</span>
+              {(col.count ?? col.tasks.length) > 0 && <span className="group-count">{col.count ?? col.tasks.length}</span>}
               {col.heading && <TextStyleButton
                 className="column-style"
                 value={col.headingTask.textStyle}
@@ -176,7 +176,7 @@ export function Board({ model }) {
                   <SubtaskTree task={col.checklistTask} variant="board" completedOnly={col.checklistStatus === 'done'} todoOnly={col.checklistStatus === 'todo'} />
                 </div>
               )}
-              {col.tasks.length === 0 && !col.checklistTask && <div className="column-empty">No sub-tasks · add one</div>}
+              {col.tasks.length === 0 && !col.checklistTask && !col.heading && <div className="column-empty">No sub-tasks · add one</div>}
             </div>
           </section>
         );

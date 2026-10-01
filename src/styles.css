@@ -1624,7 +1624,10 @@ kbd {
 
 .board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  /* Major work cards pack into as many columns as comfortably fit. The
+     260px floor yields three or four cards on a desktop without ever asking
+     the page to scroll sideways. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   align-items: start;
   gap: 14px;
   padding-bottom: 12px;
@@ -1707,7 +1710,7 @@ kbd {
 /* Major headings are regular grid cards too. Their child trees remain within
    the card, so nested work makes a card taller rather than wider. */
 .board-lanes {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
 }
 .column-lane {
   width: auto;
@@ -1715,10 +1718,13 @@ kbd {
   max-width: 100%;
 }
 .column-lane .column-body {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  align-items: start;
-  gap: 10px;
+  /* A major task owns one vertical tree. Its sub-tasks belong under that
+     major card; only the major cards themselves participate in the board
+     grid above. */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   padding-bottom: 0;
   min-width: 0;
   overflow: visible;
@@ -1777,8 +1783,7 @@ kbd {
   min-width: 0;
 }
 .column-lane .column-body > .drop-line {
-  grid-column: 1 / -1;
-  align-self: auto;
+  align-self: stretch;
   width: auto;
   height: 0;
   min-height: 0;

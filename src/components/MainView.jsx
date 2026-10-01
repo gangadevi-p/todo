@@ -24,6 +24,9 @@ const FILTER_EMPTY_TEXT = {
 function applyStatsFilter(model, filter) {
   const groups = model.groups.map((g) => {
     const tasks = g.statusId && g.statusId !== filter ? [] : g.tasks.filter((t) => t.status === filter);
+    // In a major-task board, the group title is also a real task. Keep a
+    // heading-only card visible when its own status matches the active tab.
+    const headingVisible = Boolean(g.headingTask && g.headingTask.status === filter);
     const canShowChecklistParents = filter === 'done' && (!g.statusId || g.statusId === 'done');
     const parentCandidates = [
       ...(g.completedChecklistParents || []),
@@ -37,12 +40,13 @@ function applyStatsFilter(model, filter) {
       .some((item) => filter === 'done' ? item.done : !item.done)
       ? g.checklistTask
       : null;
-    const hasVisibleWork = tasks.length > 0 || completedChecklistParents.length > 0 || Boolean(checklistTask);
+    const hasVisibleWork = headingVisible || tasks.length > 0 || completedChecklistParents.length > 0 || Boolean(checklistTask);
     // A group with nothing left after filtering has no business still showing
     // an "add" drop zone or a board column's empty placeholder.
     return {
       ...g,
       tasks,
+      headingVisible,
       completedChecklistParents,
       checklistTask,
       checklistStatus: filter,
@@ -50,8 +54,11 @@ function applyStatsFilter(model, filter) {
       filteredEmpty: !hasVisibleWork,
     };
   });
-  const taskIds = groups.flatMap((g) => g.tasks.map((t) => t.id));
-  const total = groups.reduce((count, g) => count + g.tasks.length + (g.completedChecklistParents || []).length, 0);
+  const taskIds = groups.flatMap((g) => [
+    ...(g.headingVisible ? [g.headingTask.id] : []),
+    ...g.tasks.map((t) => t.id),
+  ]);
+  const total = groups.reduce((count, g) => count + (g.headingVisible ? 1 : 0) + g.tasks.length + (g.completedChecklistParents || []).length, 0);
   return { ...model, groups, taskIds, total, emptyText: total === 0 ? FILTER_EMPTY_TEXT[filter] : model.emptyText };
 }
 

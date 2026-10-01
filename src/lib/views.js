@@ -118,10 +118,15 @@ function headingBoardGroups(headings, allTasks, addDefaults) {
   });
 }
 
-/** Only a task that actually owns nested work qualifies as a board heading. */
+/**
+ * When a project has any structured major task, its Board view is organised
+ * around every top-level task. That prevents plain major tasks from
+ * disappearing just because a neighbouring task happens to own subtasks.
+ */
 function majorHeadings(headings, allTasks) {
-  return headings.filter((heading) =>
+  const hasStructuredMajor = headings.some((heading) =>
     heading.isHeading || flattenChecklist(heading.subtasks).length || allTasks.some((t) => t.parentId === heading.id));
+  return hasStructuredMajor ? headings : [];
 }
 
 /**
