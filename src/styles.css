@@ -1634,8 +1634,8 @@ kbd {
      the page to scroll sideways. */
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   align-items: start;
-  gap: 14px;
-  padding-bottom: 12px;
+  gap: 8px;
+  padding-bottom: 8px;
   min-width: 0;
   overflow: visible;
 }
@@ -1661,7 +1661,7 @@ kbd {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 34px;
+  height: 32px;
   padding: 0;
   font-size: 13px;
   font-weight: 600;
@@ -1691,8 +1691,8 @@ kbd {
 .column-body {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-height: 36px;
+  gap: 8px;
+  min-height: 40px;
 }
 .column-card-grid {
   width: auto;
@@ -1702,7 +1702,7 @@ kbd {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
-  gap: 10px;
+  gap: 8px;
 }
 .column-card-grid .card {
   min-width: 0;
@@ -1729,7 +1729,7 @@ kbd {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  gap: 8px;
   padding-bottom: 0;
   min-width: 0;
   overflow: visible;
@@ -1748,14 +1748,92 @@ kbd {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  gap: 8px;
   /* Room for the hover "+" that sits just left of each item. */
-  padding-left: 18px;
+  padding-left: 16px;
   min-width: 0;
+}
+/* A major task with several sub-tasks: full row, sub-tasks as a wrapping grid. */
+.column-lane.column-wide {
+  grid-column: 1 / -1;
+}
+.column-wide .column-body,
+.column-wide .subtasks-board {
+  display: grid;
+  /* Four major tasks per row; fewer only when the page is too narrow for 200px each. */
+  grid-template-columns: repeat(auto-fill, minmax(max(200px, calc((100% - 42px) / 4)), 1fr));
+  align-items: stretch;
+  gap: 8px;
+}
+.column-wide .column-checklist,
+.column-wide .column-body > .child-add-row,
+.column-wide .column-body > .drop-line,
+.column-wide .column-empty {
+  grid-column: 1 / -1;
+}
+.column-wide .subtasks-board {
+  padding-left: 0;
+}
+/* Major tasks keep their delete and colour controls in view instead of hover-only. */
+.column-lane .column-style,
+.column-lane .column-delete,
+.sub-lane > .sub-row:first-child .sub-del,
+.sub-lane > .sub-row:first-child .sub-style {
+  opacity: 0.7;
+}
+.column-lane .column-delete {
+  flex: none;
+  color: var(--text-3);
+}
+.column-lane .column-delete:hover,
+.sub-lane > .sub-row:first-child .sub-del:hover,
+.sub-lane > .sub-row:first-child .sub-style:hover {
+  opacity: 1;
+}
+.column-lane .column-delete:hover {
+  color: var(--danger);
+}
+/* Every major task is its own box: a compact heading, or one item inside a wide heading's grid. */
+.column-lane:not(.column-wide),
+.column-wide .sub-lane {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  box-shadow: 0 1px 2px rgba(15, 15, 15, 0.035);
+  transition: border-color 0.1s, background 0.12s, box-shadow 0.12s;
+}
+.column-wide .sub-lane {
+  padding: 8px;
+}
+.column-lane:not(.column-wide):hover,
+.column-wide .sub-lane:hover {
+  border-color: var(--border-strong);
+}
+.column-lane:not(.column-wide).drop-active {
+  background: var(--bg-selected);
+  border-color: var(--accent-soft);
+}
+/* The "+" on a sub-task sits at the start of its row, before the checkbox, inside the box. */
+.column-wide .sub-add-left {
+  position: static;
+  flex: none;
+  top: auto;
+  transform: none;
+}
+.column-wide .sub-lane > .sub-row:first-child .sub-add-left {
+  opacity: 0.7;
+}
+.column-wide .sub-lane > .sub-row:first-child .sub-add-left:hover {
+  opacity: 1;
+}
+.column-head .group-title.done {
+  color: var(--text-3);
+  text-decoration: line-through;
 }
 /* Lanes are plain text on the page: no boxes around the band, cards or checklist items. */
 .column-lane {
-  padding: 12px 0 8px;
+  padding: 8px 0;
   background: transparent;
 }
 .column-lane.drop-active {
@@ -1778,7 +1856,7 @@ kbd {
 }
 .column-lane .subtasks-board .sub-row {
   min-height: 0;
-  padding: 6px 8px;
+  padding: 8px;
   max-width: 100%;
 }
 .sub-lane {
@@ -1833,7 +1911,7 @@ kbd {
   font-size: 12.5px;
 }
 .column-heading-empty {
-  height: 54px;
+  height: 56px;
   border-color: color-mix(in srgb, var(--border-strong) 60%, transparent);
 }
 .card {

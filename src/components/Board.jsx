@@ -127,21 +127,31 @@ export function Board({ model }) {
         if (col.filteredEmpty) return null;
         const isTarget = target?.groupId === col.id;
         const useCardGrid = !col.heading && col.tasks.length > 1;
+        // Every major task takes a full row of the board and lays its
+        // sub-tasks out as a grid of boxes of their own.
+        const wide = Boolean(col.heading);
         return (
-          <section key={col.id} className={`column${col.heading ? ' column-lane' : ''}${useCardGrid ? ' column-card-grid' : ''}${isTarget ? ' drop-active' : ''}`} {...handlers(col)}>
+          <section key={col.id} className={`column${col.heading ? ' column-lane' : ''}${wide ? ' column-wide' : ''}${useCardGrid ? ' column-card-grid' : ''}${isTarget ? ' drop-active' : ''}`} {...handlers(col)}>
             <header className="column-head">
               {col.statusId ? <StatusIcon status={col.statusId} size={13} /> : col.heading ? (
                 <button
                   type="button"
                   className="icon-btn sm column-major-add"
-                  title="Add major heading"
-                  aria-label="Add major heading"
+                  title="Add another major task"
+                  aria-label="Add another major task"
                   onClick={() => openNewTask({ ...model.newTaskDefaults, isHeading: true })}
                 >
                   <Plus size={15} />
                 </button>
               ) : col.color ? <ProjectDot color={col.color} /> : <Inbox size={14} strokeWidth={1.9} className="group-icon" />}
-              <span className={`group-title ${textStyleProps(col.headingTask?.textStyle).className}`} style={textStyleProps(col.headingTask?.textStyle).style}>{col.title}</span>
+              {col.heading && (
+                <Checkbox
+                  state={col.headingTask.status}
+                  onToggle={() => toggleComplete(col.headingTask.id)}
+                  title={col.headingTask.status === 'done' ? 'Mark as not done' : 'Mark as done'}
+                />
+              )}
+              <span className={`group-title${col.heading && col.headingTask.status === 'done' ? ' done' : ''} ${textStyleProps(col.headingTask?.textStyle).className}`} style={textStyleProps(col.headingTask?.textStyle).style}>{col.title}</span>
               {(col.count ?? col.tasks.length) > 0 && <span className="group-count">{col.count ?? col.tasks.length}</span>}
               {col.heading && <TextStyleButton
                 className="column-style"
@@ -149,6 +159,17 @@ export function Board({ model }) {
                 onChange={(textStyle) => updateTask(col.headingTask.id, { textStyle })}
                 label="Style heading text"
               />}
+              {col.heading && (
+                <button
+                  type="button"
+                  className="icon-btn sm column-delete"
+                  title="Delete this major task and everything in it"
+                  aria-label="Delete major task"
+                  onClick={() => deleteTask(col.headingTask.id)}
+                >
+                  <Trash2 size={14} strokeWidth={1.9} />
+                </button>
+              )}
               {col.add && !col.heading && (
                 <button
                   type="button"

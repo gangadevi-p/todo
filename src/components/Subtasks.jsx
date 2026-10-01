@@ -51,7 +51,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         onClick={selecting ? () => toggleSelected(key) : undefined}
       >
       {!selecting && (
-        <button type="button" className="sub-add-left" title="Add subtask below" onClick={addSibling}>
+        <button type="button" className="sub-add-left" title={depth ? 'Add another nested task' : 'Add another sub-task'} onClick={addSibling}>
           <Plus size={12} strokeWidth={2.2} />
         </button>
       )}
@@ -109,7 +109,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         />
       )}
       {!selecting && (
-        <button type="button" className="icon-btn sm sub-del" title="Delete checklist item" onClick={() => removeSubtask(task.id, subtask.id)}>
+        <button type="button" className="icon-btn sm sub-del" title={subtask.subtasks?.length ? 'Delete this item and everything under it' : 'Delete checklist item'} onClick={() => removeSubtask(task.id, subtask.id)}>
           <Trash2 size={13} />
         </button>
       )}

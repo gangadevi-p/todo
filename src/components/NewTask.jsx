@@ -117,11 +117,11 @@ export function NewTaskForm({ defaults }) {
 
   return (
     <Popup
-      title="New task"
+      title={defaults.isHeading ? 'New major task' : 'New task'}
       subtitle="Only the title is required."
       dirty={dirty}
       canSubmit={Boolean(name)}
-      submitLabel="Create task"
+      submitLabel={defaults.isHeading ? 'Create major task' : 'Create task'}
       onSubmit={submit}
       focusRef={titleRef}
     >
