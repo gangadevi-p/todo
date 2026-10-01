@@ -176,7 +176,11 @@ export function Board({ model }) {
                   <SubtaskTree task={col.checklistTask} variant="board" completedOnly={col.checklistStatus === 'done'} todoOnly={col.checklistStatus === 'todo'} />
                 </div>
               )}
-              {col.tasks.length === 0 && !col.checklistTask && !col.heading && <div className="column-empty">No sub-tasks · add one</div>}
+              {col.tasks.length === 0 && !col.checklistTask && (
+                col.heading
+                  ? <div className="column-empty column-heading-empty" aria-label="No subtasks" />
+                  : <div className="column-empty">No sub-tasks · add one</div>
+              )}
             </div>
           </section>
         );

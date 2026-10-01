@@ -119,11 +119,12 @@ function headingBoardGroups(headings, allTasks, addDefaults) {
 }
 
 /**
- * When a project has any structured major task, its Board view is organised
- * around every top-level task. That prevents plain major tasks from
- * disappearing just because a neighbouring task happens to own subtasks.
+ * A project with several top-level tasks is always a major-task board. That
+ * way every major card is visible, including the ones that do not yet have
+ * a child task or checklist of their own.
  */
 function majorHeadings(headings, allTasks) {
+  if (headings.length > 1) return headings;
   const hasStructuredMajor = headings.some((heading) =>
     heading.isHeading || flattenChecklist(heading.subtasks).length || allTasks.some((t) => t.parentId === heading.id));
   return hasStructuredMajor ? headings : [];

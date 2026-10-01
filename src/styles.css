@@ -1832,6 +1832,10 @@ kbd {
   color: var(--text-3);
   font-size: 12.5px;
 }
+.column-heading-empty {
+  height: 54px;
+  border-color: color-mix(in srgb, var(--border-strong) 60%, transparent);
+}
 .card {
   position: relative;
   padding: 9px 11px 9px 10px;
