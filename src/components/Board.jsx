@@ -116,8 +116,9 @@ export function Board({ model }) {
     return <EmptyState text={model.emptyText} />;
   }
 
-  // Major headings read as full-width lanes stacked down the page, each
-  // laying its sub-tasks out side by side; status columns stay as columns.
+  // Major headings use the same responsive board grid as other groups. Their
+  // children stay inside each group, so a long tree grows downward instead
+  // of creating a horizontal lane.
   const lanes = model.groups.some((g) => g.heading);
 
   return (
@@ -127,7 +128,7 @@ export function Board({ model }) {
         const isTarget = target?.groupId === col.id;
         const useCardGrid = !col.heading && col.tasks.length > 1;
         return (
-          <section key={col.id} className={`column${col.heading ? ' column-lane' : ''}${useCardGrid ? ' column-card-grid' : ''}${isTarget ? ' drop-active' : ''}`} {...handlers(col.heading ? { ...col, horizontal: true } : col)}>
+          <section key={col.id} className={`column${col.heading ? ' column-lane' : ''}${useCardGrid ? ' column-card-grid' : ''}${isTarget ? ' drop-active' : ''}`} {...handlers(col)}>
             <header className="column-head">
               {col.statusId ? <StatusIcon status={col.statusId} size={13} /> : col.heading ? (
                 <button

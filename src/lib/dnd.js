@@ -41,14 +41,15 @@ export function endDrag() {
   ui.set((u) => (u.draggingId ? { ...u, draggingId: null } : u));
 }
 
-/** Index among the non-dragged rows inside `container` where a drop would land. */
-function dropIndex(container, e, horizontal) {
-  // A horizontal lane orders its own cards left to right; rows nested inside a card don't count.
-  const rows = [...container.querySelectorAll(horizontal ? ':scope > .column-body > [data-task-row]' : '[data-task-row]')]
+/** Index among the non-dragged top-level rows inside `container` where a drop would land. */
+function dropIndex(container, e) {
+  // Board groups can now wrap as a grid. Only direct cards belong to this
+  // group's order; nested task rows inside an individual card do not.
+  const rows = [...container.querySelectorAll(':scope > .column-body > [data-task-row], :scope > .group-body > [data-task-row]')]
     .filter((r) => r.dataset.id !== drag.id);
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i].getBoundingClientRect();
-    if (horizontal ? e.clientX < r.left + r.width / 2 : e.clientY < r.top + r.height / 2) return i;
+    if (e.clientY < r.top + r.height / 2) return i;
   }
   return rows.length;
 }
@@ -72,7 +73,7 @@ export function useTaskDrop() {
         if (drag.type !== 'task') return;
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
-        const index = group.sortable && !group.collapsed ? dropIndex(e.currentTarget, e, group.horizontal) : null;
+        const index = group.sortable && !group.collapsed ? dropIndex(e.currentTarget, e) : null;
         setTarget((t) => (t && t.groupId === group.id && t.index === index ? t : { groupId: group.id, index }));
       },
       onDragLeave(e) {

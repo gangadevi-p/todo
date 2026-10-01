@@ -1623,22 +1623,23 @@ kbd {
    ========================================================================== */
 
 .board {
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  align-items: start;
   gap: 14px;
   padding-bottom: 12px;
-  overflow-x: auto;
+  min-width: 0;
+  overflow: visible;
 }
 .column {
   display: flex;
   flex-direction: column;
-  /* Each column hugs its own content's width, between a comfortable
-     minimum for reading/editing checklist rows and a sane maximum so a
-     single long line can't stretch a card too wide. */
-  width: 420px;
-  min-width: min(420px, calc(100vw - 48px));
-  max-width: calc(100vw - 48px);
-  flex: none;
+  /* Columns share the available page width. Content is allowed to grow
+     vertically, never by pushing a new horizontal board strip. */
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  flex: 1 1 300px;
   padding: 24px;
   border-radius: 10px;
   background: var(--bg-column);
@@ -1686,7 +1687,7 @@ kbd {
   min-height: 36px;
 }
 .column-card-grid {
-  width: min(900px, calc(100vw - 48px));
+  width: auto;
   max-width: none;
 }
 .column-card-grid .column-body {
@@ -1703,11 +1704,10 @@ kbd {
     grid-template-columns: minmax(0, 1fr);
   }
 }
-/* Major-heading lanes: one full-width row per heading, sub-tasks side by side. */
+/* Major headings are regular grid cards too. Their child trees remain within
+   the card, so nested work makes a card taller rather than wider. */
 .board-lanes {
-  flex-direction: column;
-  align-items: stretch;
-  overflow-x: visible;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
 }
 .column-lane {
   width: auto;
@@ -1715,28 +1715,32 @@ kbd {
   max-width: 100%;
 }
 .column-lane .column-body {
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 12px;
-  padding-bottom: 10px;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  align-items: start;
+  gap: 10px;
+  padding-bottom: 0;
+  min-width: 0;
+  overflow: visible;
 }
 .column-lane .column-body > .card,
 .column-lane .sub-lane,
 .column-lane .column-body > .child-add-row,
 .column-lane .column-empty {
-  flex: none;
-  width: 280px;
+  width: auto;
+  min-width: 0;
 }
 .column-lane .column-checklist {
-  flex: none;
+  min-width: 0;
 }
 .column-lane .subtasks-board {
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   /* Room for the hover "+" that sits just left of each item. */
   padding-left: 18px;
+  min-width: 0;
 }
 /* Lanes are plain text on the page: no boxes around the band, cards or checklist items. */
 .column-lane {
@@ -1764,6 +1768,7 @@ kbd {
 .column-lane .subtasks-board .sub-row {
   min-height: 0;
   padding: 6px 8px;
+  max-width: 100%;
 }
 .sub-lane {
   display: flex;
@@ -1772,29 +1777,33 @@ kbd {
   min-width: 0;
 }
 .column-lane .column-body > .drop-line {
-  flex: none;
-  align-self: stretch;
-  width: 0;
-  height: auto;
-  min-height: 40px;
+  grid-column: 1 / -1;
+  align-self: auto;
+  width: auto;
+  height: 0;
+  min-height: 0;
 }
 .column-lane .column-body > .drop-line::before {
-  top: 0;
-  bottom: 0;
-  left: -7px;
-  right: auto;
-  width: 2px;
-  height: auto;
+  top: -4px;
+  bottom: auto;
+  left: 6px;
+  right: 4px;
+  width: auto;
+  height: 2px;
 }
 .column-lane .column-body > .drop-line::after {
-  top: -4px;
-  left: -10px;
+  top: -7px;
+  left: 0;
 }
 @media (max-width: 720px) {
-  .column-lane .column-body,
+  .board,
+  .board-lanes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .column-lane .column-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .column-lane .subtasks-board {
-    flex-direction: column;
-    align-items: stretch;
     padding-left: 0;
   }
   .column-lane .column-body > .card,
