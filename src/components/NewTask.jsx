@@ -210,7 +210,7 @@ export function NewTaskForm({ defaults }) {
               <button
                 type="button"
                 className="icon-btn sm"
-                title="Remove"
+                aria-label="Remove"
                 onClick={() => setSubtasks((list) => list.filter((x) => x.id !== st.id))}
               >
                 <X size={13} />
@@ -258,7 +258,7 @@ export function NewTaskForm({ defaults }) {
             {customDate ? dueLabelLong(dueDate) : 'Pick a date'}
           </button>
           {dueDate && (
-            <button type="button" className="icon-btn sm" title="Clear date" onClick={() => setDueDate(null)}>
+            <button type="button" className="icon-btn sm" aria-label="Clear date" onClick={() => setDueDate(null)}>
               <X size={13} />
             </button>
           )}

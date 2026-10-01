@@ -66,7 +66,6 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
             <button
               type="button"
               className="icon-btn sm card-delete"
-              title="Delete task"
               aria-label="Delete task"
               onClick={(e) => {
                 e.stopPropagation();
@@ -137,7 +136,6 @@ export function Board({ model }) {
                 <button
                   type="button"
                   className="icon-btn sm column-major-add"
-                  title="Add another major task"
                   aria-label="Add another major task"
                   onClick={() => openNewTask({ ...model.newTaskDefaults, isHeading: true })}
                 >
@@ -148,7 +146,6 @@ export function Board({ model }) {
                 <Checkbox
                   state={col.headingTask.status}
                   onToggle={() => toggleComplete(col.headingTask.id)}
-                  title={col.headingTask.status === 'done' ? 'Mark as not done' : 'Mark as done'}
                 />
               )}
               <span className={`group-title${col.heading && col.headingTask.status === 'done' ? ' done' : ''} ${textStyleProps(col.headingTask?.textStyle).className}`} style={textStyleProps(col.headingTask?.textStyle).style}>{col.title}</span>
@@ -163,7 +160,6 @@ export function Board({ model }) {
                 <button
                   type="button"
                   className="icon-btn sm column-delete"
-                  title="Delete this major task and everything in it"
                   aria-label="Delete major task"
                   onClick={() => deleteTask(col.headingTask.id)}
                 >
@@ -174,7 +170,7 @@ export function Board({ model }) {
                 <button
                   type="button"
                   className="icon-btn sm column-add"
-                  title={col.heading ? `New sub-task in ${col.title}` : `New ${col.title.toLowerCase()} task`}
+                  aria-label={col.heading ? `New sub-task in ${col.title}` : `New ${col.title.toLowerCase()} task`}
                   onClick={() => openNewTask(col.add.defaults)}
                 >
                   <Plus size={15} />

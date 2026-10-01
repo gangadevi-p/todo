@@ -2,14 +2,13 @@ import { Check } from 'lucide-react';
 import { modKey } from '../lib/util';
 
 /** Rounded-square checkbox. `state` is todo | done. */
-export function Checkbox({ state = 'todo', onToggle, size = 'md', title }) {
+export function Checkbox({ state = 'todo', onToggle, size = 'md' }) {
   return (
     <button
       type="button"
       className={`check check-${size}`}
       data-state={state}
       aria-label={state === 'done' ? 'Mark as incomplete' : 'Mark as complete'}
-      title={title}
       onClick={(e) => {
         e.stopPropagation();
         onToggle?.();

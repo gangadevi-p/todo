@@ -64,7 +64,6 @@ export function TaskList({ model }) {
                   <button
                     type="button"
                     className="icon-btn sm group-add"
-                    title={`New task in ${g.title}`}
                     aria-label={`New task in ${g.title}`}
                     onClick={(e) => {
                       e.stopPropagation();

@@ -14,7 +14,6 @@ export function ChildAddButton({ task, className = '' }) {
     <button
       type="button"
       className={`child-add-button ${className}`.trim()}
-      title="Add nested task"
       aria-label="Add nested task"
       onClick={(e) => {
         e.stopPropagation();

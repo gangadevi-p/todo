@@ -51,10 +51,9 @@ export function SectionStats({ stats }) {
       {deadline && (
         <div
           className={`stats-deadline${deadline.days < 0 ? ' overdue' : ''}`}
-          title={`Nearest open task due ${deadline.date}`}
         >
           {deadline.priority && (
-            <span className="stats-deadline-priority" title={`Average ${deadline.priority} priority across tasks`}>
+            <span className="stats-deadline-priority">
               <PriorityIcon level={deadline.priority} size={14} />
             </span>
           )}

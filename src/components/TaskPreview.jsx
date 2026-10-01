@@ -94,7 +94,6 @@ function PreviewCard({ task, pinned }) {
         <button
           type="button"
           className="preview-edit"
-          title="Edit task"
           aria-label="Edit task"
           onClick={() => selectTask(task.id, true)}
         >

@@ -6,7 +6,7 @@ import { rectOf } from './MenuLayer';
 
 function Toggle({ active, label, icon: Icon, onClick }) {
   return (
-    <button type="button" className={`text-style-toggle${active ? ' on' : ''}`} aria-pressed={active} title={label} onClick={onClick}>
+    <button type="button" className={`text-style-toggle${active ? ' on' : ''}`} aria-pressed={active} aria-label={label} onClick={onClick}>
       <Icon size={15} strokeWidth={2} />
     </button>
   );
@@ -30,7 +30,6 @@ export function TextStylePopover({ value, onChange, initialPanel = null, showAll
             <button
               type="button"
               className={`text-style-color none${!style.color ? ' on' : ''}`}
-              title="Default color"
               aria-label="Default color"
               onClick={() => set({ color: null })}
             >A</button>
@@ -45,7 +44,7 @@ export function TextStylePopover({ value, onChange, initialPanel = null, showAll
                 onClick={() => set({ color })}
               />
             ))}
-            <label className="text-style-custom" title="Choose any color">
+            <label className="text-style-custom">
               <Palette size={13} strokeWidth={2} />
               <input type="color" value={style.color || '#64748b'} onChange={(e) => set({ color: e.target.value })} />
             </label>
@@ -82,7 +81,6 @@ export function TextStyleButton({ value, onChange, label = 'Text style', classNa
     <button
       type="button"
       className={`icon-btn sm text-style-button ${className}`.trim()}
-      title={label}
       aria-label={label}
       onClick={(e) => {
         e.stopPropagation();
@@ -103,7 +101,7 @@ function TextStyleAllButton({ value, onChange }) {
     <button
       type="button"
       className="text-style-all-button"
-      title="All text style controls"
+      aria-label="All text style controls"
       onClick={(e) => {
         e.stopPropagation();
         openMenu({
@@ -124,9 +122,9 @@ export function TextStyleControls({ value, onChange, activePanel, onPanel }) {
   if (onPanel) {
     return (
       <div className="text-style-toolbar">
-        <button type="button" className={`text-style-tool${activePanel === 'color' ? ' on' : ''}`} title="Text color" aria-label="Text color" onClick={() => onPanel(activePanel === 'color' ? null : 'color')}><Palette size={15} strokeWidth={1.9} /></button>
-        <button type="button" className={`text-style-tool${activePanel === 'style' ? ' on' : ''}`} title="Text style" aria-label="Text style" onClick={() => onPanel(activePanel === 'style' ? null : 'style')}><Bold size={15} strokeWidth={2} /></button>
-        <button type="button" className={`text-style-tool${activePanel === 'size' ? ' on' : ''}`} title="Text size" aria-label="Text size" onClick={() => onPanel(activePanel === 'size' ? null : 'size')}><span className="text-style-size-glyph">A+</span></button>
+        <button type="button" className={`text-style-tool${activePanel === 'color' ? ' on' : ''}`} aria-label="Text color" onClick={() => onPanel(activePanel === 'color' ? null : 'color')}><Palette size={15} strokeWidth={1.9} /></button>
+        <button type="button" className={`text-style-tool${activePanel === 'style' ? ' on' : ''}`} aria-label="Text style" onClick={() => onPanel(activePanel === 'style' ? null : 'style')}><Bold size={15} strokeWidth={2} /></button>
+        <button type="button" className={`text-style-tool${activePanel === 'size' ? ' on' : ''}`} aria-label="Text size" onClick={() => onPanel(activePanel === 'size' ? null : 'size')}><span className="text-style-size-glyph">A+</span></button>
         <CapsuleToggle style={style} onChange={onChange} />
       </div>
     );
@@ -150,7 +148,6 @@ function CapsuleToggle({ style, onChange }) {
       role="switch"
       aria-checked={style.filled}
       aria-label="Capsule fill"
-      title="Capsule fill"
       onClick={() => onChange({ ...style, filled: !style.filled })}
     ><span /></button>
   );

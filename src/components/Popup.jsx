@@ -103,14 +103,13 @@ export function Popup({ title, subtitle, dirty, canSubmit, submitLabel, onSubmit
             <button
               type="button"
               className="icon-btn"
-              title={wide ? 'Shrink' : 'Expand'}
               aria-label={wide ? 'Shrink popup' : 'Expand popup'}
               aria-pressed={wide}
               onClick={() => setPref('popupWide', !wide)}
             >
               {wide ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
             </button>
-            <button type="button" className="icon-btn" title="Close" onClick={closePopup}>
+            <button type="button" className="icon-btn" aria-label="Close" onClick={closePopup}>
               <X size={16} />
             </button>
           </div>

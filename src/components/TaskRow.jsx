@@ -2,7 +2,6 @@ import { memo } from 'react';
 import { CalendarDays, GripVertical, Trash2 } from 'lucide-react';
 import { activateTask, deleteTask, focusTaskTitle, hoverTask, leaveTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
 import { dueLabel, formatTimestamp } from '../lib/dates';
-import { priorityLabel } from '../lib/util';
 import { endDrag, startTaskDrag } from '../lib/dnd';
 import { Checkbox, PriorityIcon } from './bits';
 import { ChildAddButton, ChildTaskList, useShowChildAdd } from './ChildTasks';
@@ -22,12 +21,12 @@ export function TaskProgress({ task, kids = [] }) {
   return (
     <span className="task-progress">
       {checklist.length > 0 && (
-        <span className={`task-progress-item${doneSubs === checklist.length ? ' all' : ''}`} title="Checklist">
+        <span className={`task-progress-item${doneSubs === checklist.length ? ' all' : ''}`}>
           {doneSubs}/{checklist.length}
         </span>
       )}
       {kids.length > 0 && (
-        <span className={`task-progress-item children${doneKids === kids.length ? ' all' : ''}`} title="Sub-tasks">
+        <span className={`task-progress-item children${doneKids === kids.length ? ' all' : ''}`}>
           {doneKids}/{kids.length}
         </span>
       )}
@@ -42,7 +41,7 @@ export function TaskMeta({ task, show, today, hidePriority = false }) {
   return (
     <>
       {!hidePriority && task.priority && (
-        <span className="meta" title={`${priorityLabel(task.priority)} priority`}><PriorityIcon level={task.priority} /></span>
+        <span className="meta"><PriorityIcon level={task.priority} /></span>
       )}
       {due && (
         <span className={`meta meta-due due-${open ? due.tone : 'normal'}`}>
@@ -51,7 +50,7 @@ export function TaskMeta({ task, show, today, hidePriority = false }) {
         </span>
       )}
       {show.completed && task.completedAt && (
-        <span className="meta meta-completed" title={`Completed ${formatTimestamp(task.completedAt, true)}`}>
+        <span className="meta meta-completed">
           <CalendarDays size={12} strokeWidth={1.9} />
           {formatTimestamp(task.completedAt, true)}
         </span>
@@ -64,7 +63,7 @@ export function TaskMeta({ task, show, today, hidePriority = false }) {
 export function TaskPriority({ task }) {
   if (!task.priority) return null;
   return (
-    <span className="meta card-priority" title={`${priorityLabel(task.priority)} priority`}>
+    <span className="meta card-priority">
       <PriorityIcon level={task.priority} />
     </span>
   );
@@ -114,7 +113,6 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
         {draggable && !selecting && !nested && (
           <span
             className="row-handle"
-            title="Drag to move · Click for options"
             onClick={(e) => {
               e.stopPropagation();
               openTaskMenu(task, { rect: rectOf(e.currentTarget) });
@@ -149,7 +147,6 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
           <button
             type="button"
             className="icon-btn sm row-delete"
-            title="Delete task"
             aria-label="Delete task"
             onClick={(e) => {
               e.stopPropagation();

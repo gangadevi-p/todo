@@ -162,7 +162,7 @@ function ProjectItem({ project, active, count, progress, editing, onReorderTarge
           dropProps.onDrop?.(e);
         }}
       >
-        <span className="nav-icon project-icon" title={`${Math.round(progress * 100)}% done`}>
+        <span className="nav-icon project-icon">
           <ProjectRing color={project.color} progress={progress} />
         </span>
         <span className="nav-label">{project.name}</span>
@@ -170,7 +170,7 @@ function ProjectItem({ project, active, count, progress, editing, onReorderTarge
         <span
           className="nav-more"
           role="button"
-          title="Project options"
+          aria-label="Project options"
           onClick={(e) => {
             e.stopPropagation();
             openMenu({ kind: 'menu', rect: rectOf(e.currentTarget), items: menuItems });
@@ -261,12 +261,12 @@ export function Sidebar({ view, isMobile = false }) {
           <button
             type="button"
             className="icon-btn no-drag"
-            title={effectiveTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            aria-label={effectiveTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
             onClick={() => setPref('theme', effectiveTheme === 'dark' ? 'light' : 'dark')}
           >
             {effectiveTheme === 'dark' ? <Moon size={16} strokeWidth={1.8} /> : <Sun size={16} strokeWidth={1.8} />}
           </button>
-          <button type="button" className="icon-btn no-drag sidebar-collapse" title="Hide sidebar" onClick={() => (isMobile ? closeMobileNav() : setPref('sidebarCollapsed', true))}>
+          <button type="button" className="icon-btn no-drag sidebar-collapse" aria-label="Hide sidebar" onClick={() => (isMobile ? closeMobileNav() : setPref('sidebarCollapsed', true))}>
             <PanelLeftClose size={16} strokeWidth={1.8} />
           </button>
         </div>
@@ -292,7 +292,7 @@ export function Sidebar({ view, isMobile = false }) {
 
         <div className="nav-section">
           <span>Projects</span>
-          <button type="button" className="icon-btn sm" title="New project" onClick={openNewProject}>
+          <button type="button" className="icon-btn sm" aria-label="New project" onClick={openNewProject}>
             <Plus size={15} />
           </button>
         </div>

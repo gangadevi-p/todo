@@ -62,7 +62,6 @@ export function TrashView() {
                 <button
                   type="button"
                   className="icon-btn trash-delete"
-                  title="Delete permanently"
                   aria-label="Delete permanently"
                   onClick={() => confirmPermanentlyDeleteTrashBatch(batch.id, batch.root.title)}
                 >

@@ -53,7 +53,7 @@ function PanelHeader({ task, project }) {
         <button
           type="button"
           className={`icon-btn${planned ? ' on-today' : ''}`}
-          title={planned ? 'Remove from Today' : inToday(task, today) ? 'Due today · pin to Today' : 'Add to Today'}
+          aria-label={planned ? 'Remove from Today' : inToday(task, today) ? 'Due today · pin to Today' : 'Add to Today'}
           onClick={() => updateTask(task.id, { addedToToday: !planned })}
         >
           <Sun size={16} strokeWidth={1.9} />
@@ -61,7 +61,7 @@ function PanelHeader({ task, project }) {
         <button
           type="button"
           className="icon-btn"
-          title="More"
+          aria-label="More"
           onClick={(e) =>
             openMenu({
               kind: 'menu',
@@ -76,7 +76,7 @@ function PanelHeader({ task, project }) {
         >
           <Ellipsis size={16} />
         </button>
-        <button type="button" className="icon-btn" title="Close" onClick={closePanel}>
+        <button type="button" className="icon-btn" aria-label="Close" onClick={closePanel}>
           <X size={16} />
         </button>
       </div>
@@ -187,7 +187,7 @@ function PanelBody({ task, project }) {
             {task.dueDate ? dueLabelLong(task.dueDate, today) : 'No date'}
           </button>
           {task.dueDate && (
-            <button type="button" className="icon-btn sm prop-clear" title="Remove due date" onClick={() => updateTask(task.id, { dueDate: null })}>
+            <button type="button" className="icon-btn sm prop-clear" aria-label="Remove due date" onClick={() => updateTask(task.id, { dueDate: null })}>
               <X size={13} />
             </button>
           )}

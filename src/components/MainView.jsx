@@ -74,7 +74,7 @@ function ProjectTitle({ project }) {
   useEffect(() => setValue(project.name), [project.name]);
   if (!editing) {
     return (
-      <h1 className={`page-title editable ${textStyleProps(project.textStyle).className}`} style={textStyleProps(project.textStyle).style} title="Click to rename" onClick={() => setEditing(true)}>
+      <h1 className={`page-title editable ${textStyleProps(project.textStyle).className}`} style={textStyleProps(project.textStyle).style} onClick={() => setEditing(true)}>
         {project.name}
       </h1>
     );
@@ -175,7 +175,6 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
         type="button"
         className="btn"
         disabled={model.taskIds.length === 0}
-        title="Select every task on this page, then mark them done or delete them together"
         onClick={() => setSelecting(true, filteredModel.taskIds)}
       >
         <CheckSquare size={14} strokeWidth={1.9} /> Select all
@@ -184,7 +183,6 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
         type="button"
         className="btn btn-danger-ghost"
         disabled={model.taskIds.length === 0}
-        title={`Delete every task on this page`}
         onClick={() => confirmDeleteTasks(filteredModel.taskIds, model.deleteScope, model.deleteNote)}
       >
         <Trash2 size={14} strokeWidth={1.9} /> Delete all
@@ -196,7 +194,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
     <main className="main">
       <div className={`topbar drag-region${scrolled ? ' scrolled' : ''}`}>
         {sidebarCollapsed && (
-          <button type="button" className="icon-btn no-drag" title="Show sidebar" onClick={() => (isMobile ? openMobileNav() : setPref('sidebarCollapsed', false))}>
+          <button type="button" className="icon-btn no-drag" aria-label="Show sidebar" onClick={() => (isMobile ? openMobileNav() : setPref('sidebarCollapsed', false))}>
             <PanelLeftOpen size={16} strokeWidth={1.8} />
           </button>
         )}
@@ -217,7 +215,6 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
                 type="button"
                 className="icon-btn page-add"
                 onClick={newTask}
-                title="New task"
                 aria-label="New task"
               >
                 <Plus size={17} strokeWidth={2.2} />
