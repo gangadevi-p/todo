@@ -1,5 +1,5 @@
 import {
-  ArrowRight, CalendarArrowUp, CalendarDays, CalendarX, Copy, Inbox, ListChecks, ListTree, Minus, PanelRightOpen, RotateCcw, Check, Sun, SunDim, Sunrise, Trash2, CircleDashed,
+  ArrowRight, CalendarArrowUp, CalendarDays, CalendarX, Copy, Inbox, ListChecks, ListTree, Minus, Pencil, RotateCcw, Check, Sun, SunDim, Sunrise, Trash2, CircleDashed,
 } from 'lucide-react';
 import {
   addSubtask, data, deleteTask, duplicateTask, openMenu, selectTask, setChildTasksOpen, toggleComplete, toggleToday, updateTask,
@@ -67,7 +67,7 @@ function dueItems(task) {
 export function taskMenuItems(task) {
   const done = task.status === 'done';
   return [
-    { label: 'Edit', icon: PanelRightOpen, shortcut: 'Enter', onSelect: () => selectTask(task.id, true) },
+    { label: 'Edit', icon: Pencil, shortcut: 'Enter', onSelect: () => selectTask(task.id, true) },
     { label: done ? 'Mark as incomplete' : 'Mark as complete', icon: done ? RotateCcw : Check, shortcut: 'Space', onSelect: () => toggleComplete(task.id) },
     { label: task.addedToToday ? 'Remove from Today' : 'Add to Today', icon: task.addedToToday ? SunDim : Sun, shortcut: 'T', onSelect: () => toggleToday(task.id) },
     { divider: true },

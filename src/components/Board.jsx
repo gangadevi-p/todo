@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Inbox, Plus, Trash2 } from 'lucide-react';
-import { activateTask, deleteTask, focusTaskTitle, hoverTask, leaveTask, openNewTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
+import { deleteTask, hoverTask, leaveTask, openNewTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
 import { endDrag, startTaskDrag, useTaskDrop } from '../lib/dnd';
 import { useToday } from '../lib/useToday';
 import { Checkbox, ProjectDot, StatusIcon } from './bits';
@@ -28,6 +28,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
   const cls = [
     'card', selected && 'selected', picked && 'picked', task.status === 'done' && 'done', task.struck && 'struck', completing && 'completing', dragging && 'dragging',
   ].filter(Boolean).join(' ');
+  // Clicking a task does nothing: hovering its text opens the popup. Bulk-select still picks cards.
   return (
     <div
       className={cls}
@@ -36,8 +37,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
       draggable={!selecting}
       onDragStart={(e) => startTaskDrag(e, task)}
       onDragEnd={endDrag}
-      onClick={() => (selecting ? toggleSelected(key) : activateTask(task.id))}
-      onDoubleClick={() => !selecting && focusTaskTitle(task.id)}
+      onClick={selecting ? () => toggleSelected(key) : undefined}
       onContextMenu={(e) => {
         e.preventDefault();
         if (!selecting) openTaskMenu(task, { x: e.clientX, y: e.clientY });
@@ -164,7 +164,7 @@ export function Board({ model }) {
               <span
                 className={`group-title${col.heading && col.headingTask.status === 'done' ? ' done' : ''}${col.heading && col.headingTask.struck ? ' struck' : ''} ${textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).className}`}
                 style={textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).style}
-                {...(col.heading ? { onClick: () => activateTask(col.headingTask.id), onDoubleClick: () => focusTaskTitle(col.headingTask.id), onMouseEnter: () => hoverTask(col.headingTask.id), onMouseLeave: leaveTask } : {})}
+                {...(col.heading ? { onMouseEnter: () => hoverTask(col.headingTask.id), onMouseLeave: leaveTask } : {})}
               >{col.title}</span>
               {(col.count ?? col.tasks.length) > 0 && <span className="group-count">{col.count ?? col.tasks.length}</span>}
               {col.heading && (col.headingTask.dueDate

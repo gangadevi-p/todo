@@ -9,9 +9,14 @@ import { useToday } from '../lib/useToday';
 import { DueButton, DueChip } from './DueButton';
 import { StrikeButton } from './StrikeButton';
 
-/** Focuses a subtask's title field once it's in the DOM — used right after creating one. */
+/**
+ * Focuses a subtask's title field once it's in the DOM — used right after creating one.
+ * The same item can be on the page and in the task popup at once: stay in the popup when typing there.
+ */
 export const focusSubtask = (id) => {
-  requestAnimationFrame(() => document.querySelector(`[data-subtask-input="${id}"]`)?.focus());
+  const scope = document.activeElement?.closest?.('.preview') || document;
+  const selector = `[data-subtask-input="${id}"]`;
+  requestAnimationFrame(() => (scope.querySelector(selector) || document.querySelector(selector))?.focus());
 };
 
 function hasCompletedItem(item) {
@@ -28,7 +33,7 @@ function visibleItems(items, completedOnly, todoOnly) {
   return items;
 }
 
-function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = false, todoOnly = false }) {
+function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = false, todoOnly = false, inPopup = false }) {
   const selecting = useUI((u) => u.selecting);
   const today = useToday();
   const key = subtaskKey(task.id, subtask.id);
@@ -47,13 +52,16 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
     requestAnimationFrame(() => requestAnimationFrame(() => { suppressEmptyDelete.current = false; }));
   };
 
+  // Inside the popup a row is being edited there, so it neither anchors nor opens another popup.
+  const anchorProps = inPopup ? {} : { 'data-sub-row': '', 'data-sub-id': subtask.id };
+  const hoverProps = inPopup ? {} : { onMouseEnter: () => hoverTask(task.id, subtask.id), onMouseLeave: leaveTask };
+
   return (
     <>
       <div
         className={`sub-row${subtask.done ? ' done' : ''}${subtask.struck ? ' struck' : ''}${picked ? ' picked' : ''}`}
         style={depth ? { '--sub-depth': depth } : undefined}
-        data-sub-row
-        data-sub-id={subtask.id}
+        {...anchorProps}
         onClick={selecting ? () => toggleSelected(key) : undefined}
       >
       {!selecting && (
@@ -80,8 +88,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         spellCheck
         readOnly={selecting}
         placeholder="Subtask"
-        onMouseEnter={() => hoverTask(task.id, subtask.id)}
-        onMouseLeave={leaveTask}
+        {...hoverProps}
         onChange={(e) => updateSubtask(task.id, subtask.id, { title: e.target.value })}
         onKeyDown={(e) => {
           if (e.nativeEvent.isComposing) return;
@@ -129,7 +136,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
       )}
       </div>
       {visibleItems(subtask.subtasks || [], completedOnly, todoOnly).map((child, childIndex) => (
-        <SubtaskRow key={child.id} task={task} subtask={child} index={childIndex} focus={focus} depth={depth + 1} completedOnly={completedOnly} todoOnly={todoOnly} />
+        <SubtaskRow key={child.id} task={task} subtask={child} index={childIndex} focus={focus} depth={depth + 1} completedOnly={completedOnly} todoOnly={todoOnly} inPopup={inPopup} />
       ))}
     </>
   );
@@ -140,10 +147,10 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
  * Clicks inside are kept from reaching the row/card, whose own click opens
  * the task — otherwise checking an item or typing would activate it instead.
  */
-export function SubtaskTree({ task, variant = 'row', completedOnly = false, todoOnly = false }) {
+export function SubtaskTree({ task, items = task.subtasks, variant = 'row', completedOnly = false, todoOnly = false, inPopup = false }) {
   const ref = useRef(null);
   const focus = (i) => {
-    const st = task.subtasks[i];
+    const st = items[i];
     if (st) ref.current?.querySelector(`[data-subtask-input="${st.id}"]`)?.focus();
   };
   return (
@@ -154,8 +161,8 @@ export function SubtaskTree({ task, variant = 'row', completedOnly = false, todo
       onMouseDown={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
     >
-      {visibleItems(task.subtasks, completedOnly, todoOnly).map((st, i) => {
-        const row = <SubtaskRow key={st.id} task={task} subtask={st} index={i} focus={focus} completedOnly={completedOnly} todoOnly={todoOnly} />;
+      {visibleItems(items, completedOnly, todoOnly).map((st, i) => {
+        const row = <SubtaskRow key={st.id} task={task} subtask={st} index={i} focus={focus} completedOnly={completedOnly} todoOnly={todoOnly} inPopup={inPopup} />;
         // On the board each top-level item gets its own lane, its nested items stacked beneath it.
         return variant === 'board' ? <div key={st.id} className="sub-lane">{row}</div> : row;
       })}

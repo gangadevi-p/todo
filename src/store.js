@@ -29,7 +29,6 @@ export const ui = createStore({
   platform: 'web',
   view: 'today',
   selectedId: null,
-  panelOpen: false,
   lingering: {}, // taskId -> status before completion (keeps just-checked rows visible briefly)
   search: false,
   help: false,
@@ -38,8 +37,8 @@ export const ui = createStore({
   toasts: [],
   editingProjectId: null,
   draggingId: null,
-  focusTitle: null, // { id, at } asks the detail panel to focus its title
-  preview: null, // { id, subId?, pinned } overview popup shown beside a task, or beside one of its checklist items (subId)
+  focusTitle: null, // { id, subId?, at } asks the task popup to focus its title
+  preview: null, // { id, subId? } the task popup (the editor) for a task, or for one of its checklist items (subId)
   popup: null, // { kind: 'task' | 'project' | 'subtask', nonce, ... } while a create popup is open
   selecting: false, // bulk-select mode: rows/subtasks pick instead of opening or toggling
   selected: new Set(), // keys from taskKey()/subtaskKey() picked while selecting
@@ -662,7 +661,7 @@ function moveTasksToTrash(ids) {
     trash: [...(s.trash || []), ...removed.map((t) => ({ ...t, deletedAt, trashBatchId: batchId }))],
   }));
   const u = ui.get();
-  if (removed.some((t) => t.id === u.selectedId)) patchUI({ selectedId: null, panelOpen: false });
+  if (removed.some((t) => t.id === u.selectedId)) patchUI({ selectedId: null });
   return { removed, batchId };
 }
 
@@ -814,7 +813,7 @@ export function toggleCollapsed(key) {
 export function navigate(view) {
   clearPreviewTimers();
   patchUI({
-    view, selectedId: null, panelOpen: false, menu: null, preview: null,
+    view, selectedId: null, menu: null, preview: null,
     statsFilter: view === 'completed' ? 'done' : 'todo', mobileNavOpen: false,
   });
   setPref('view', view);
@@ -829,14 +828,17 @@ export function setStatsFilter(kind) {
   ui.set((u) => ({ ...u, statsFilter: kind }));
 }
 
+/** Select a task (the keyboard highlight); `open` also opens its popup to edit it. */
 export function selectTask(id, open = true) {
-  if (open) clearPreviewTimers();
-  patchUI({ selectedId: id, panelOpen: open ? true : ui.get().panelOpen, ...(open ? { preview: null } : {}) });
+  patchUI({ selectedId: id });
+  if (open && id) openEditor(id);
 }
 
-// Task overview popup ---------------------------------------------------------
-// Hovering a task shows a read-only overview beside it; clicking pins it open.
-// The popup's Edit button opens the full editor (the side panel).
+// Task popup ------------------------------------------------------------------
+// Hovering a task's text opens its popup, which is the editor for that task
+// (or for one checklist item). Clicking a task does nothing. The popup stays
+// while the pointer is over it, while focus is inside it (you're typing), or
+// while one of its menus is open, and closes shortly after none of those hold.
 
 let showTimer = null;
 let hideTimer = null;
@@ -848,29 +850,47 @@ export function clearPreviewTimers() {
   hideTimer = null;
 }
 
-const previewBlocked = (u) => u.panelOpen || u.draggingId || u.menu || u.search || u.help || u.confirm || u.popup;
+const previewBlocked = (u) => u.draggingId || u.menu || u.search || u.help || u.confirm || u.popup;
 
-/** Hovering a task shows its overview; hovering one of its checklist items (subId) shows that item's own. */
+/** The pointer is over the popup, or focus is inside it. */
+function popupInUse() {
+  if (typeof document === 'undefined') return false;
+  const el = document.querySelector('.preview');
+  return Boolean(el && (el.matches(':hover') || el.contains(document.activeElement)));
+}
+
+/** The popup is being used: pointed at, typed in, or one of its menus is open. */
+export const previewEngaged = () => Boolean(ui.get().menu) || popupInUse();
+
+/** Hovering a task's text shows its popup; hovering one of its checklist items (subId) shows that item's own. */
 export function hoverTask(id, subId = null) {
   clearTimeout(hideTimer);
   const u = ui.get();
-  if (previewBlocked(u) || u.preview?.pinned || (u.preview?.id === id && (u.preview.subId ?? null) === subId)) return;
+  if (previewBlocked(u) || popupInUse() || (u.preview?.id === id && (u.preview.subId ?? null) === subId)) return;
   clearTimeout(showTimer);
-  // Once one preview is showing, moving to the next task feels instant.
+  // Once one popup is showing, moving to the next task feels instant.
   showTimer = setTimeout(() => {
-    if (!previewBlocked(ui.get()) && !ui.get().preview?.pinned) patchUI({ preview: { id, subId, pinned: false } });
+    if (!previewBlocked(ui.get()) && !popupInUse()) patchUI({ preview: { id, subId } });
   }, u.preview ? 120 : 380);
 }
 
+/** Leaving a task's text or the popup: close soon, unless the popup is being used by then. */
 export function leaveTask() {
   clearTimeout(showTimer);
+  scheduleHide();
+}
+
+function scheduleHide() {
   clearTimeout(hideTimer);
-  if (!ui.get().preview || ui.get().preview.pinned) return;
-  hideTimer = setTimeout(hidePreview, 200);
+  if (!ui.get().preview) return;
+  hideTimer = setTimeout(() => {
+    if (!previewEngaged()) hidePreview();
+  }, 200);
 }
 
 export function keepPreview() {
   clearTimeout(hideTimer);
+  clearTimeout(showTimer);
 }
 
 export function hidePreview() {
@@ -878,22 +898,11 @@ export function hidePreview() {
   ui.set((u) => (u.preview ? { ...u, preview: null } : u));
 }
 
-export function pinPreview(id) {
+/** Open a task's popup (or a checklist item's) and put the cursor in its title: Enter, the task menu's Edit, search. */
+export function openEditor(id, subId = null) {
   clearPreviewTimers();
-  patchUI({ selectedId: id, preview: { id, pinned: true } });
+  patchUI({ preview: { id, subId }, focusTitle: { id, subId, at: Date.now() } });
 }
-
-/** Clicking a task: switch the editor if it's open, otherwise pin the overview. */
-export function activateTask(id) {
-  if (ui.get().panelOpen) selectTask(id, true);
-  else pinPreview(id);
-}
-
-export const closePanel = () => patchUI({ panelOpen: false });
-export const focusTaskTitle = (id) => {
-  clearPreviewTimers();
-  patchUI({ selectedId: id, panelOpen: true, preview: null, focusTitle: { id, at: Date.now() } });
-};
 
 // Every kind of creation (task, project, subtask) happens in one popup.
 function openPopup(popup) {
@@ -904,15 +913,20 @@ export const openNewTask = (defaults = {}) => openPopup({ kind: 'task', defaults
 export const openNewProject = () => openPopup({ kind: 'project' });
 export const closePopup = () => patchUI({ popup: null });
 
-export const openSearch = () => patchUI({ search: true, popup: null, help: false, menu: null });
+export const openSearch = () => patchUI({ search: true, popup: null, help: false, menu: null, preview: null });
 export const closeSearch = () => patchUI({ search: false });
 export const setHelp = (help) => patchUI({ help, menu: null });
 
 export const openMenu = (menu) => {
+  // A menu opened from inside the popup (its date, style or priority pickers) keeps the popup open.
+  const keep = popupInUse();
   clearPreviewTimers();
-  patchUI({ menu: { key: Date.now(), ...menu }, preview: null });
+  patchUI({ menu: { key: Date.now(), ...menu }, ...(keep ? {} : { preview: null }) });
 };
-export const closeMenu = () => patchUI({ menu: null });
+export const closeMenu = () => {
+  patchUI({ menu: null });
+  scheduleHide();
+};
 
 export const askConfirm = (confirm) => patchUI({ confirm });
 export const closeConfirm = () => patchUI({ confirm: null });
@@ -929,7 +943,8 @@ export function revealTask(id) {
     if (task.status === 'done' && data.get().prefs.collapsed[key]) toggleCollapsed(key);
   }
   navigate(view);
-  patchUI({ selectedId: id, panelOpen: true });
+  patchUI({ selectedId: id });
+  openEditor(id);
 }
 
 // Toasts ---------------------------------------------------------------------

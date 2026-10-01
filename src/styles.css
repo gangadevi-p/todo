@@ -513,13 +513,6 @@ kbd {
     z-index: 55;
     background: var(--scrim);
   }
-  .app.is-mobile .panel {
-    position: fixed;
-    inset: 0;
-    z-index: 60;
-    width: 100%;
-    border-left: 0;
-  }
 }
 @keyframes sidebar-slide-in {
   from {
@@ -719,8 +712,8 @@ kbd {
 .topbar.scrolled {
   border-bottom-color: var(--border);
 }
-.platform-win32:not(.panel-open) .topbar,
-.platform-linux:not(.panel-open) .topbar {
+.platform-win32 .topbar,
+.platform-linux .topbar {
   padding-right: 150px;
 }
 .platform-darwin.sidebar-collapsed .topbar {
@@ -2020,65 +2013,12 @@ kbd {
 }
 
 /* ==========================================================================
-   Detail panel
+   Task editor fields (used inside the task popup)
    ========================================================================== */
 
-.panel {
-  display: flex;
-  flex-direction: column;
-  flex: none;
-  width: clamp(340px, 34vw, 440px);
-  min-height: 0;
-  border-left: 1px solid var(--border);
-  background: var(--bg);
-  animation: panel-in 0.18s ease-out;
-}
-@keyframes panel-in {
-  from {
-    opacity: 0;
-    transform: translateX(10px);
-  }
-}
-.panel-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 44px;
-  flex: none;
-  padding: 0 10px 0 24px;
-}
-.platform-win32 .panel-head,
-.platform-linux .panel-head {
-  padding-right: 148px;
-}
-.panel-crumb {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  color: var(--text-2);
-  font-size: 13px;
-}
-.panel-crumb span {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.panel-actions {
-  display: flex;
-  gap: 2px;
-}
 .icon-btn.on-today,
 .icon-btn.on-today:hover {
   color: var(--amber);
-}
-.panel-scroll {
-  flex: 1;
-  overflow-y: auto;
-}
-.panel-body {
-  padding: 10px 28px 40px 24px;
 }
 .panel-title-row {
   display: flex;
@@ -2495,165 +2435,78 @@ kbd {
   font-weight: 500;
 }
 
-/* Task overview popup ---------------------------------------------------- */
+/* Task popup -----------------------------------------------------------------
+   Opened by hovering a task's text: the editor for that task (or one checklist
+   item), with every sub-task and nested task under it. As big as its content
+   needs, up to the window; it scrolls inside beyond that. */
 
 .preview {
   position: fixed;
   z-index: 60;
-  max-height: min(70vh, 520px);
-  padding: 12px 16px 14px;
+  width: min(600px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
   overflow-y: auto;
   /* Scrolling a long popup must not scroll the page behind it. */
   overscroll-behavior: contain;
-  border-radius: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
   background: var(--bg-elevated);
   box-shadow: var(--shadow-pop);
   animation: pop-in 0.14s ease-out;
 }
 .preview-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
-  margin-bottom: 10px;
+  padding: 10px 10px 8px 24px;
+  background: var(--bg-elevated);
 }
 .preview-crumb {
   display: flex;
+  flex: 1;
   align-items: center;
   gap: 7px;
   min-width: 0;
   color: var(--text-2);
   font-size: 12.5px;
 }
-.preview-crumb span:last-child {
+.preview-crumb span {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.preview-edit {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
+.preview-crumb-parent {
+  color: var(--text-3);
+}
+.preview-actions {
+  display: flex;
   flex: none;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  background: var(--bg);
-  color: var(--text-2);
-  transition: background 0.1s;
+  gap: 2px;
 }
-.preview-edit:hover {
-  background: var(--bg-hover);
-}
-.preview-title-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-.preview-title-row .check {
-  margin-top: 2px;
-}
-.preview-title {
-  display: -webkit-box;
-  min-width: 0;
-  overflow: hidden;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.4;
-  word-break: break-word;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-}
-.preview-title.done {
-  color: var(--text-3);
-  text-decoration: line-through;
-}
-.preview-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 12px 0 2px 26px;
-}
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 22px;
-  padding: 0 8px;
-  border-radius: 6px;
-  background: var(--bg-fill);
-  box-shadow: inset 0 0 0 1px var(--border);
-  color: var(--text-2);
-  font-size: 12px;
-  white-space: nowrap;
-}
-.chip-overdue {
-  color: var(--danger);
-}
-.chip-today {
-  color: var(--due-today);
-}
-.preview-section {
-  margin-top: 16px;
-}
-.preview-notes {
-  margin: 0;
-  display: -webkit-box;
-  overflow: hidden;
-  color: var(--text);
-  font-size: 13px;
-  line-height: 1.55;
-  white-space: pre-wrap;
-  word-break: break-word;
-  -webkit-line-clamp: 7;
-  -webkit-box-orient: vertical;
-}
-.preview-sub {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 26px;
-  font-size: 13px;
-}
-.preview-sub.done .preview-sub-title {
-  color: var(--text-3);
-  text-decoration: line-through;
-}
-.preview-sub.struck .preview-sub-title {
-  opacity: 0.55;
-  text-decoration: line-through;
-}
-.preview-sub-title {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.preview-sub-due {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 4px;
-  color: var(--text-3);
-  font-size: 11.5px;
+.preview-body {
+  padding: 4px 28px 24px 24px;
 }
 .preview-count {
   margin-left: auto;
   color: var(--text-3);
   font-weight: 500;
 }
-.preview-more {
-  padding: 2px 0 0 23px;
-  color: var(--text-3);
-  font-size: 12px;
+/* Nested tasks in the popup indent like nested checklist items. */
+.preview .nested-task-row[style*="--sub-depth"] {
+  margin-left: calc(var(--sub-depth) * 20px - 8px);
 }
-.preview-empty {
-  margin: 14px 0 0 26px;
+.preview .nested-checklist {
+  margin-left: calc(var(--nest) * 20px);
+}
+/* "Add sub-task": a quiet row at the end of each list; Enter adds and stays ready for the next. */
+.add-line {
   color: var(--text-3);
-  font-size: 12.5px;
+}
+.switch-accent.on {
+  background: var(--accent);
 }
 .datepicker {
   width: 252px;

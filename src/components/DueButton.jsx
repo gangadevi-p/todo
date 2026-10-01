@@ -50,8 +50,11 @@ function pickerProps(value, onChange) {
     onMouseEnter: (e) => {
       const el = e.currentTarget;
       clearTimeout(closeTimer);
-      clearPreviewTimers();
-      hidePreview();
+      // On the page the calendar replaces the task popup; inside the popup it opens over it.
+      if (!el.closest('.preview')) {
+        clearPreviewTimers();
+        hidePreview();
+      }
       if (isOpen()) return;
       clearTimeout(hoverTimer);
       hoverTimer = setTimeout(() => openPicker(el, value, onChange, false), 120);

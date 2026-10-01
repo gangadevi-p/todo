@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import {
-  closeMobileNav, closePanel, data, deleteTask, duplicateTask, hidePreview, navigate, openNewTask, openSearch, pinPreview, selectTask,
+  closeMobileNav, data, deleteTask, duplicateTask, hidePreview, navigate, openNewTask, openSearch, selectTask,
   setHelp, setPref, setSelecting, toggleComplete, toggleToday, ui, undoLast, updateTask, useData, useUI,
 } from './store';
 import { buildView, NAV_VIEWS } from './lib/views';
@@ -9,7 +9,6 @@ import { TodayContext, useTodayClock } from './lib/useToday';
 import { useIsMobile } from './lib/useViewport';
 import { Sidebar } from './components/Sidebar';
 import { MainView } from './components/MainView';
-import { DetailPanel } from './components/DetailPanel';
 import { MenuLayer } from './components/MenuLayer';
 import { ConfirmDialog, SearchPalette, ShortcutsHelp, Toasts } from './components/Overlays';
 import { TaskPreview } from './components/TaskPreview';
@@ -49,7 +48,6 @@ function handleKey(e, model) {
     if (typing) { e.target.blur(); return; }
     if (u.selecting) { setSelecting(false); return; }
     if (u.preview) hidePreview();
-    else if (u.panelOpen) closePanel();
     else if (u.selectedId) selectTask(null, false);
     return;
   }
@@ -65,15 +63,14 @@ function handleKey(e, model) {
   const move = (delta) => {
     if (!list.length) return;
     const next = idx < 0 ? (delta > 0 ? 0 : list.length - 1) : Math.max(0, Math.min(list.length - 1, idx + delta));
-    if (u.preview?.pinned) pinPreview(list[next].id);
-    else selectTask(list[next].id, false);
+    selectTask(list[next].id, false);
     scrollSelectedIntoView(list[next].id);
   };
 
   const removeSelected = () => {
     const neighbour = list[idx + 1] || list[idx - 1];
     deleteTask(selected.id);
-    if (neighbour) selectTask(neighbour.id, u.panelOpen);
+    if (neighbour) selectTask(neighbour.id, false);
   };
 
   if (mod) {
@@ -135,7 +132,6 @@ export default function App() {
   const view = useUI((u) => u.view);
   const lingering = useUI((u) => u.lingering);
   const selectedId = useUI((u) => u.selectedId);
-  const panelOpen = useUI((u) => u.panelOpen);
   const platform = useUI((u) => u.platform);
 
   const model = useMemo(
@@ -168,7 +164,7 @@ export default function App() {
     const clearOutsideTask = (e) => {
       // Use capture so nested sections cannot stop this from clearing the
       // active row when the person clicks their empty space.
-      const staysActive = e.target.closest?.('[data-task-row], .panel, .floating, .modal, [role="dialog"], .task-preview');
+      const staysActive = e.target.closest?.('[data-task-row], [data-sub-row], .preview, .floating, .modal, [role="dialog"]');
       if (!staysActive && ui.get().selectedId) {
         hidePreview();
         selectTask(null, false);
@@ -190,19 +186,17 @@ export default function App() {
   }, []);
 
   const collapsed = Boolean(prefs.sidebarCollapsed);
-  const showPanel = panelOpen && selectedId && selectedExists;
   const isMobile = useIsMobile();
   const mobileNavOpen = useUI((u) => u.mobileNavOpen);
   const sidebarVisible = isMobile ? mobileNavOpen : !collapsed;
 
   return (
     <TodayContext.Provider value={today}>
-      <div className={`app platform-${platform}${collapsed ? ' sidebar-collapsed' : ''}${showPanel ? ' panel-open' : ''}${isMobile ? ' is-mobile' : ''}`}>
+      <div className={`app platform-${platform}${collapsed ? ' sidebar-collapsed' : ''}${isMobile ? ' is-mobile' : ''}`}>
         {sidebarVisible && <Sidebar view={model.id} isMobile={isMobile} />}
         {isMobile && mobileNavOpen && <div className="sidebar-scrim" onClick={closeMobileNav} />}
         <div className="workspace">
           <MainView model={model} sidebarCollapsed={isMobile ? !mobileNavOpen : collapsed} isMobile={isMobile} />
-          {showPanel && <DetailPanel taskId={selectedId} />}
         </div>
         <PopupHost />
         <SearchPalette />

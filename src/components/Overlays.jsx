@@ -147,14 +147,14 @@ const SHORTCUTS = [
   ['Tasks', [
     ['N', 'New task in this view (popup)'],
     ['↑ / ↓', 'Move selection'],
-    ['Enter', 'Open details'],
+    ['Enter', 'Open the task popup'],
     ['Space', 'Complete / reopen'],
     ['T', 'Add to / remove from Today'],
     ['1 / 2 / 3 / 0', 'Priority low / medium / high / none'],
     ['mod+D', 'Duplicate'],
     ['Del', 'Delete'],
     ['mod+Z', 'Undo delete'],
-    ['Esc', 'Close panel / clear selection'],
+    ['Esc', 'Close the popup / clear selection'],
   ]],
 ];
 
