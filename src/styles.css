@@ -753,8 +753,13 @@ kbd {
   padding: 26px clamp(24px, 6cqw, 64px) 160px;
 }
 .page-board {
-  width: fit-content;
-  max-width: 100%;
+  /* The board must be sized by the available page width, not by the widest
+     set of cards. This lets its auto-fit grid wrap instead of producing a
+     horizontal scroll strip. */
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  box-sizing: border-box;
   padding: 26px clamp(20px, 4cqw, 40px) 40px;
 }
 .page-head {
