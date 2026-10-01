@@ -7,7 +7,7 @@ import {
   setEditingProject, setHelp, setPref, toast, updateTask, useData, useUI,
 } from '../store';
 import { DEMO_NAME } from '../seed';
-import { authEnabled, publicWeb } from '../lib/auth';
+import { authEnabled, leaveSpace, publicWeb } from '../lib/auth';
 import { inToday, taskProgress } from '../lib/views';
 import { drag, endDrag, startProjectDrag } from '../lib/dnd';
 import { useToday } from '../lib/useToday';
@@ -331,6 +331,7 @@ export function Sidebar({ view, isMobile = false }) {
             className="nav-item muted"
             onClick={() => {
               flushSave();
+              leaveSpace(getSpace());
               if (publicWeb) location.hash = getSpace() === 'demo' ? '#owner' : '';
               window.location.reload();
             }}

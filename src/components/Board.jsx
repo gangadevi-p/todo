@@ -11,6 +11,8 @@ import { EmptyState, useProjectsById, withDropLine } from './TaskList';
 import { openTaskMenu } from './taskMenu';
 import { textStyleProps } from '../lib/textStyle';
 import { TextStyleButton } from './TextStyle';
+import { DueButton, DueChip } from './DueButton';
+import { StrikeButton } from './StrikeButton';
 
 const Card = memo(function Card({ task, show, today, projectsById, checklistStatus }) {
   const dragging = useUI((u) => u.draggingId === task.id);
@@ -21,9 +23,10 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
   const picked = useUI((u) => u.selected.has(key));
   const kids = useChildTasks(task.id);
   const showChildAdd = useShowChildAdd(task.id);
-  const hasMeta = Boolean(show.due && task.dueDate);
+  const hasMeta = Boolean(show.completed && task.completedAt);
+  const showDue = Boolean(show.due && task.dueDate);
   const cls = [
-    'card', selected && 'selected', picked && 'picked', task.status === 'done' && 'done', completing && 'completing', dragging && 'dragging',
+    'card', selected && 'selected', picked && 'picked', task.status === 'done' && 'done', task.struck && 'struck', completing && 'completing', dragging && 'dragging',
   ].filter(Boolean).join(' ');
   return (
     <div
@@ -34,8 +37,6 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
       onDragStart={(e) => startTaskDrag(e, task)}
       onDragEnd={endDrag}
       onClick={() => (selecting ? toggleSelected(key) : activateTask(task.id))}
-      onMouseEnter={() => hoverTask(task.id)}
-      onMouseLeave={leaveTask}
       onDoubleClick={() => !selecting && focusTaskTitle(task.id)}
       onContextMenu={(e) => {
         e.preventDefault();
@@ -50,13 +51,22 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
         />
         <span className="card-title-line">
           <span className="card-title">
-            <span className={`task-title-text ${textStyleProps(task.textStyle).className}`} style={textStyleProps(task.textStyle).style}>{task.title || 'Untitled'}</span>
+            <span
+              className={`task-title-text ${textStyleProps(task.textStyle, task.struck).className}`}
+              style={textStyleProps(task.textStyle, task.struck).style}
+              onMouseEnter={() => hoverTask(task.id)}
+              onMouseLeave={leaveTask}
+            >{task.title || 'Untitled'}</span>
           </span>
           <TaskProgress task={task} kids={kids} />
           <TaskPriority task={task} />
         </span>
         {!selecting && (
           <span className="card-actions">
+            {showDue
+              ? <DueChip value={task.dueDate} today={today} done={task.status === 'done'} onChange={(dueDate) => updateTask(task.id, { dueDate })} />
+              : <DueButton value={task.dueDate} onChange={(dueDate) => updateTask(task.id, { dueDate })} />}
+            <StrikeButton on={task.struck} onToggle={() => updateTask(task.id, { struck: !task.struck })} />
             <TextStyleButton
               className="card-style"
               value={task.textStyle}
@@ -79,7 +89,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
       </div>
       {hasMeta ? (
         <div className="card-meta">
-          <TaskMeta task={task} show={show} today={today} hidePriority />
+          <TaskMeta task={task} show={show} today={today} hidePriority hideDue />
         </div>
       ) : null}
       <ChildTaskList
@@ -131,7 +141,10 @@ export function Board({ model }) {
         const wide = Boolean(col.heading);
         return (
           <section key={col.id} className={`column${col.heading ? ' column-lane' : ''}${wide ? ' column-wide' : ''}${useCardGrid ? ' column-card-grid' : ''}${isTarget ? ' drop-active' : ''}`} {...handlers(col)}>
-            <header className="column-head">
+            <header
+              className="column-head"
+              {...(col.heading ? { 'data-task-row': '', 'data-id': col.headingTask.id } : {})}
+            >
               {col.statusId ? <StatusIcon status={col.statusId} size={13} /> : col.heading ? (
                 <button
                   type="button"
@@ -148,8 +161,16 @@ export function Board({ model }) {
                   onToggle={() => toggleComplete(col.headingTask.id)}
                 />
               )}
-              <span className={`group-title${col.heading && col.headingTask.status === 'done' ? ' done' : ''} ${textStyleProps(col.headingTask?.textStyle).className}`} style={textStyleProps(col.headingTask?.textStyle).style}>{col.title}</span>
+              <span
+                className={`group-title${col.heading && col.headingTask.status === 'done' ? ' done' : ''}${col.heading && col.headingTask.struck ? ' struck' : ''} ${textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).className}`}
+                style={textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).style}
+                {...(col.heading ? { onClick: () => activateTask(col.headingTask.id), onDoubleClick: () => focusTaskTitle(col.headingTask.id), onMouseEnter: () => hoverTask(col.headingTask.id), onMouseLeave: leaveTask } : {})}
+              >{col.title}</span>
               {(col.count ?? col.tasks.length) > 0 && <span className="group-count">{col.count ?? col.tasks.length}</span>}
+              {col.heading && (col.headingTask.dueDate
+                ? <DueChip value={col.headingTask.dueDate} today={today} done={col.headingTask.status === 'done'} onChange={(dueDate) => updateTask(col.headingTask.id, { dueDate })} />
+                : <DueButton value={null} onChange={(dueDate) => updateTask(col.headingTask.id, { dueDate })} />)}
+              {col.heading && <StrikeButton on={col.headingTask.struck} onToggle={() => updateTask(col.headingTask.id, { struck: !col.headingTask.struck })} />}
               {col.heading && <TextStyleButton
                 className="column-style"
                 value={col.headingTask.textStyle}

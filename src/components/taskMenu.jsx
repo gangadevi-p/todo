@@ -60,7 +60,7 @@ function dueItems(task) {
     { label: 'Tomorrow', icon: Sunrise, checked: task.dueDate === addDays(today, 1), onSelect: set(addDays(today, 1)) },
     { label: 'Next week', icon: CalendarArrowUp, checked: task.dueDate === nextWeekday(today, 1), onSelect: set(nextWeekday(today, 1)) },
     { label: 'Pick a date…', icon: CalendarDays, onSelect: (origin) => openDatePicker(task, origin) },
-    ...(task.dueDate ? [{ divider: true }, { label: 'Remove due date', icon: CalendarX, onSelect: set(null) }] : []),
+    ...(task.dueDate ? [{ divider: true }, { label: 'Remove last day', icon: CalendarX, onSelect: set(null) }] : []),
   ];
 }
 
@@ -73,7 +73,7 @@ export function taskMenuItems(task) {
     { divider: true },
     { label: 'Status', icon: CircleDashed, submenu: statusItems(task) },
     { label: 'Priority', icon: <PriorityIcon level="neutral" />, submenu: priorityItems(task) },
-    { label: 'Due date', icon: CalendarDays, submenu: dueItems(task) },
+    { label: 'Last day', icon: CalendarDays, submenu: dueItems(task) },
     { label: 'Move to', icon: ArrowRight, submenu: projectItems(task) },
     { divider: true },
     { label: 'Add checklist item', icon: ListChecks, onSelect: () => focusSubtask(addSubtask(task.id, '')) },

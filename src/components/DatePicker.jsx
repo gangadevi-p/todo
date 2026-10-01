@@ -77,7 +77,7 @@ export function DatePicker({ value, onChange, onClose }) {
           <div className="menu-sep" />
           <button type="button" className="menu-item" onClick={() => pick(null)}>
             <span className="menu-icon"><X size={15} strokeWidth={1.8} /></span>
-            <span className="menu-label">Remove due date</span>
+            <span className="menu-label">Remove last day</span>
           </button>
         </>
       )}

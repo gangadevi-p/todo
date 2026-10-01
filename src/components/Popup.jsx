@@ -16,7 +16,7 @@ export const F = {
   status: { icon: CircleDashed, tint: '#8a5cf0', label: 'Status' },
   priority: { icon: Flag, tint: '#d9498f', label: 'Priority' },
   project: { icon: FolderClosed, tint: '#4f7fd9', label: 'Project' },
-  due: { icon: CalendarDays, tint: '#e07a2b', label: 'Due date' },
+  due: { icon: CalendarDays, tint: '#e07a2b', label: 'Last day' },
   today: { icon: Sun, tint: '#d99a06', label: 'Today' },
   subtasks: { icon: ListChecks, tint: '#1f9aa8', label: 'Subtasks' },
   color: { icon: Palette, tint: '#c9508b', label: 'Color' },

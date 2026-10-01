@@ -41,3 +41,39 @@ export async function verifyAuth(auth, username, password) {
   const hash = await derive(password, auth.salt, auth.iterations || ITERATIONS);
   return clean(username) === clean(auth.username) && same(hash, auth.hash);
 }
+
+// "Keep me signed in": after a successful login the device remembers it for a
+// while, so a refresh or relaunch opens the personal space without asking for
+// the password again. The saved login itself is unchanged. Signing out forgets it.
+const SESSION_KEY = 'nudge:session:v1';
+const SPACE_KEY = 'nudge:space:v1'; // per tab: lets a refresh stay in the demo
+const SESSION_MS = 30 * 24 * 60 * 60 * 1000;
+
+export function rememberSession() {
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify({ until: Date.now() + SESSION_MS })); } catch {}
+}
+
+export function hasSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SESSION_KEY));
+    return Boolean(s) && s.until > Date.now();
+  } catch { return false; }
+}
+
+export function endSession() {
+  try { localStorage.removeItem(SESSION_KEY); } catch {}
+}
+
+export function setOpenSpace(space) {
+  try { sessionStorage.setItem(SPACE_KEY, space); } catch {}
+}
+
+export function openSpace() {
+  try { return sessionStorage.getItem(SPACE_KEY); } catch { return null; }
+}
+
+/** Called by the sidebar button: signing out forgets the remembered login, leaving the demo just reopens the entry screen. */
+export function leaveSpace(space) {
+  if (space === 'owner') endSession();
+  try { sessionStorage.removeItem(SPACE_KEY); } catch {}
+}

@@ -10,6 +10,8 @@ import { rectOf } from './MenuLayer';
 import { SubtaskTree } from './Subtasks';
 import { textStyleProps } from '../lib/textStyle';
 import { TextStyleButton } from './TextStyle';
+import { DueButton, DueChip } from './DueButton';
+import { StrikeButton } from './StrikeButton';
 import { flattenChecklist } from '../lib/checklist';
 
 /** Checklist and child-task progress, kept beside the task title rather than right-aligned with other metadata. */
@@ -35,20 +37,16 @@ export function TaskProgress({ task, kids = [] }) {
 }
 
 /** Small, quiet metadata shown to the right of a row or under a card title. */
-export function TaskMeta({ task, show, today, hidePriority = false }) {
-  const due = show.due && task.dueDate ? dueLabel(task.dueDate, today) : null;
+export function TaskMeta({ task, show, today, hidePriority = false, hideDue = false }) {
+  const selecting = useUI((u) => u.selecting);
+  const due = show.due && task.dueDate && !hideDue ? dueLabel(task.dueDate, today) : null;
   const open = task.status !== 'done';
   return (
     <>
       {!hidePriority && task.priority && (
         <span className="meta"><PriorityIcon level={task.priority} /></span>
       )}
-      {due && (
-        <span className={`meta meta-due due-${open ? due.tone : 'normal'}`}>
-          <CalendarDays size={12} strokeWidth={1.9} />
-          {due.text}
-        </span>
-      )}
+      {due && <DueChip value={task.dueDate} today={today} done={!open} onChange={selecting ? undefined : (dueDate) => updateTask(task.id, { dueDate })} />}
       {show.completed && task.completedAt && (
         <span className="meta meta-completed">
           <CalendarDays size={12} strokeWidth={1.9} />
@@ -86,6 +84,7 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
     selected && 'selected',
     picked && 'picked',
     task.status === 'done' && 'done',
+    task.struck && 'struck',
     completing && 'completing',
     dragging && 'dragging',
     fresh && 'fresh',
@@ -102,8 +101,6 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
         onDragStart={(e) => startTaskDrag(e, task)}
         onDragEnd={endDrag}
         onClick={() => (selecting ? toggleSelected(key) : activateTask(task.id))}
-        onMouseEnter={() => hoverTask(task.id)}
-        onMouseLeave={leaveTask}
         onDoubleClick={() => !selecting && focusTaskTitle(task.id)}
         onContextMenu={(e) => {
           e.preventDefault();
@@ -128,13 +125,24 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
         />
         <span className="row-title-line">
           <span className="row-title">
-            <span className={`task-title-text ${textStyleProps(task.textStyle).className}`} style={textStyleProps(task.textStyle).style}>{task.title || 'Untitled'}</span>
+            <span
+              className={`task-title-text ${textStyleProps(task.textStyle, task.struck).className}`}
+              style={textStyleProps(task.textStyle, task.struck).style}
+              onMouseEnter={() => hoverTask(task.id)}
+              onMouseLeave={leaveTask}
+            >{task.title || 'Untitled'}</span>
           </span>
           <TaskProgress task={task} kids={kids} />
         </span>
         <span className="row-meta">
           <TaskMeta task={task} show={show} today={today} />
         </span>
+        {!selecting && !(task.dueDate && show.due) && (
+          <DueButton value={task.dueDate} onChange={(dueDate) => updateTask(task.id, { dueDate })} />
+        )}
+        {!selecting && (
+          <StrikeButton on={task.struck} onToggle={() => updateTask(task.id, { struck: !task.struck })} />
+        )}
         {!selecting && (
           <TextStyleButton
             className="row-style"

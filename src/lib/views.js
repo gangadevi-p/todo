@@ -78,9 +78,9 @@ function progressStats(scope, statusOf, today) {
   const days = nearestDue ? diffDays(nearestDue.dueDate, today) : null;
   const label = days == null ? null
     : days < 0 ? `${Math.abs(days)} ${Math.abs(days) === 1 ? 'day' : 'days'} overdue`
-      : days === 0 ? 'Due today'
-        : days === 1 ? 'Due tomorrow'
-          : `Due in ${days} days`;
+      : days === 0 ? 'Last day today'
+        : days === 1 ? 'Last day tomorrow'
+          : `Last day in ${days} days`;
   return {
     kind: 'progress',
     todo: scope.filter((t) => statusOf(t) === 'todo').length + checklist.filter((st) => !st.done).length,
@@ -229,9 +229,9 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       const scope = tasks.filter((t) => t.dueDate && t.dueDate > today);
       const list = scope.filter(isOpen);
       model.title = 'Upcoming';
-      model.subtitle = list.length ? plural(list.length, 'scheduled task') : 'Tasks with a future due date';
+      model.subtitle = list.length ? plural(list.length, 'scheduled task') : 'Tasks with a future last day';
       model.show.due = false;
-      model.emptyText = 'Nothing scheduled. Give a task a due date and it will show up here, grouped by day.';
+      model.emptyText = 'Nothing scheduled. Give a task a last day and it will show up here, grouped by day.';
       model.newTaskDefaults = { dueDate: addDays(today, 1) };
       model.deleteScope = 'Upcoming';
       model.mode = sectionMode;

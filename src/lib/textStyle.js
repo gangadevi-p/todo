@@ -16,14 +16,14 @@ export function normalizeTextStyle(value) {
 }
 
 /** Props shared by every rendered title, whether it is a project or task. */
-export function textStyleProps(value) {
+export function textStyleProps(value, struck = false) {
   const style = normalizeTextStyle(value);
   const css = {};
   if (style.color) css.color = style.color;
   if (style.size) css.fontSize = `${style.size}px`;
   if (style.bold) css.fontWeight = 700;
   if (style.italic) css.fontStyle = 'italic';
-  if (style.underline) css.textDecoration = 'underline';
+  if (style.underline || struck) css.textDecoration = [style.underline && 'underline', struck && 'line-through'].filter(Boolean).join(' ');
   if (style.color) css['--title-style-color'] = style.color;
   return {
     className: style.filled ? 'text-capsule' : '',

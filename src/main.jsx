@@ -1,22 +1,34 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import '@fontsource-variable/inter';
 import './styles.css';
 import App from './App';
 import { AuthGate } from './components/AuthGate';
-import { publicWeb } from './lib/auth';
+import { getAuth, hasSession, openSpace, publicWeb, rememberSession, setOpenSpace } from './lib/auth';
 import { data, loadData, ui } from './store';
 
 if (import.meta.env.DEV) window.__nudge = { data, ui };
 
 function Root() {
   const [ready, setReady] = useState(false);
-  const enter = async (space) => {
+  // A refresh stays in the demo if that's where this tab was; otherwise a
+  // remembered login goes straight to the personal space.
+  const [resuming, setResuming] = useState(() => openSpace() === 'demo' || hasSession());
+  const enter = async (space, { remember = false } = {}) => {
     if (publicWeb && space === 'demo') history.replaceState(null, '', location.pathname + location.search);
+    if (space === 'owner' && remember) rememberSession();
+    setOpenSpace(space);
     await loadData(space);
     setReady(true);
   };
+  useEffect(() => {
+    if (!resuming) return;
+    if (openSpace() === 'demo') { enter('demo'); return; }
+    // Only skip the screen while a login still exists to skip.
+    getAuth().then((auth) => (auth ? enter('owner', { remember: true }) : setResuming(false)));
+  }, []);
   if (ready) return <App />;
+  if (resuming) return <div className="auth-screen" />;
   return <AuthGate onEnter={enter} />;
 }
 

@@ -1,10 +1,13 @@
 import { useRef } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { addNestedSubtask, addSubtaskAfter, removeSubtask, subtaskKey, toggleSelected, updateSubtask, useUI } from '../store';
+import { addNestedSubtask, addSubtaskAfter, hoverTask, leaveTask, removeSubtask, subtaskKey, toggleSelected, updateSubtask, useUI } from '../store';
 import { Checkbox } from './bits';
 import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
 import { formatTimestamp } from '../lib/dates';
+import { useToday } from '../lib/useToday';
+import { DueButton, DueChip } from './DueButton';
+import { StrikeButton } from './StrikeButton';
 
 /** Focuses a subtask's title field once it's in the DOM — used right after creating one. */
 export const focusSubtask = (id) => {
@@ -27,6 +30,7 @@ function visibleItems(items, completedOnly, todoOnly) {
 
 function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = false, todoOnly = false }) {
   const selecting = useUI((u) => u.selecting);
+  const today = useToday();
   const key = subtaskKey(task.id, subtask.id);
   const picked = useUI((u) => u.selected.has(key));
   const suppressEmptyDelete = useRef(false);
@@ -46,8 +50,10 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
   return (
     <>
       <div
-        className={`sub-row${subtask.done ? ' done' : ''}${picked ? ' picked' : ''}`}
+        className={`sub-row${subtask.done ? ' done' : ''}${subtask.struck ? ' struck' : ''}${picked ? ' picked' : ''}`}
         style={depth ? { '--sub-depth': depth } : undefined}
+        data-sub-row
+        data-sub-id={subtask.id}
         onClick={selecting ? () => toggleSelected(key) : undefined}
       >
       {!selecting && (
@@ -68,12 +74,14 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
       )}
       <input
         data-subtask-input={subtask.id}
-        className={textStyleProps(subtask.textStyle).className}
-        style={textStyleProps(subtask.textStyle).style}
+        className={textStyleProps(subtask.textStyle, subtask.struck).className}
+        style={textStyleProps(subtask.textStyle, subtask.struck).style}
         value={subtask.title}
         spellCheck
         readOnly={selecting}
         placeholder="Subtask"
+        onMouseEnter={() => hoverTask(task.id, subtask.id)}
+        onMouseLeave={leaveTask}
         onChange={(e) => updateSubtask(task.id, subtask.id, { title: e.target.value })}
         onKeyDown={(e) => {
           if (e.nativeEvent.isComposing) return;
@@ -100,6 +108,12 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
           if (!subtask.title.trim() && !suppressEmptyDelete.current) removeSubtask(task.id, subtask.id);
         }}
       />
+      {subtask.dueDate
+        ? <DueChip value={subtask.dueDate} today={today} done={subtask.done} onChange={selecting ? undefined : (dueDate) => updateSubtask(task.id, subtask.id, { dueDate })} />
+        : !selecting && <DueButton value={null} onChange={(dueDate) => updateSubtask(task.id, subtask.id, { dueDate })} />}
+      {!selecting && (
+        <StrikeButton on={subtask.struck} onToggle={() => updateSubtask(task.id, subtask.id, { struck: !subtask.struck })} />
+      )}
       {!selecting && (
         <TextStyleButton
           className="sub-style"

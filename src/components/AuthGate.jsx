@@ -12,6 +12,7 @@ export function AuthGate({ onEnter }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [reveal, setReveal] = useState(false);
+  const [keep, setKeep] = useState(true); // stay signed in on this device
   const [resetting, setResetting] = useState(false); // forgot password: replace the saved login, tasks stay
 
   useEffect(() => { getAuth().then((a) => setAuth(a || null)); }, []);
@@ -35,9 +36,9 @@ export function AuthGate({ onEnter }) {
     try {
       if (setup) {
         if (!(await createAuth(username, password))) { setError('Couldn’t save your sign-in. Try again.'); return; }
-        onEnter('owner');
+        onEnter('owner', { remember: keep });
       } else if (await verifyAuth(auth, username, password)) {
-        onEnter('owner');
+        onEnter('owner', { remember: keep });
       } else {
         setError('Wrong user name or password.');
         setPassword('');
@@ -66,6 +67,10 @@ export function AuthGate({ onEnter }) {
               {reveal ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
+        </label>
+        <label className="auth-keep">
+          <input type="checkbox" checked={keep} onChange={(e) => setKeep(e.target.checked)} />
+          <span>Keep me signed in on this device</span>
         </label>
         {resetting && <p className="auth-note">Choose a new user name and password. Your tasks stay as they are.</p>}
         {error && <div className="auth-error" role="alert">{error}</div>}

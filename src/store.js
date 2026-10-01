@@ -39,7 +39,7 @@ export const ui = createStore({
   editingProjectId: null,
   draggingId: null,
   focusTitle: null, // { id, at } asks the detail panel to focus its title
-  preview: null, // { id, pinned } overview popup shown beside a task
+  preview: null, // { id, subId?, pinned } overview popup shown beside a task, or beside one of its checklist items (subId)
   popup: null, // { kind: 'task' | 'project' | 'subtask', nonce, ... } while a create popup is open
   selecting: false, // bulk-select mode: rows/subtasks pick instead of opening or toggling
   selected: new Set(), // keys from taskKey()/subtaskKey() picked while selecting
@@ -117,6 +117,8 @@ function normalizeChecklistItem(item = {}) {
     title: item.title || '',
     done: Boolean(item.done),
     completedAt: item.completedAt || null,
+    dueDate: item.dueDate || null,
+    struck: Boolean(item.struck),
     textStyle: normalizeTextStyle(item.textStyle),
     subtasks: Array.isArray(item.subtasks) ? item.subtasks.map(normalizeChecklistItem) : [],
   };
@@ -133,6 +135,7 @@ function normalizeTask(t, i) {
     parentId: t.parentId || null,
     isHeading: Boolean(t.isHeading),
     dueDate: t.dueDate || null,
+    struck: Boolean(t.struck),
     addedToToday: Boolean(t.addedToToday),
     createdAt: t.createdAt || Date.now(),
     completedAt: t.completedAt || null,
@@ -271,6 +274,7 @@ export function createTask(fields = {}) {
       parentId: null,
       isHeading: false,
       dueDate: null,
+      struck: false,
       addedToToday: false,
       completedAt: null,
       subtasks: [],
@@ -846,14 +850,15 @@ export function clearPreviewTimers() {
 
 const previewBlocked = (u) => u.panelOpen || u.draggingId || u.menu || u.search || u.help || u.confirm || u.popup;
 
-export function hoverTask(id) {
+/** Hovering a task shows its overview; hovering one of its checklist items (subId) shows that item's own. */
+export function hoverTask(id, subId = null) {
   clearTimeout(hideTimer);
   const u = ui.get();
-  if (previewBlocked(u) || u.preview?.pinned || u.preview?.id === id) return;
+  if (previewBlocked(u) || u.preview?.pinned || (u.preview?.id === id && (u.preview.subId ?? null) === subId)) return;
   clearTimeout(showTimer);
   // Once one preview is showing, moving to the next task feels instant.
   showTimer = setTimeout(() => {
-    if (!previewBlocked(ui.get()) && !ui.get().preview?.pinned) patchUI({ preview: { id, pinned: false } });
+    if (!previewBlocked(ui.get()) && !ui.get().preview?.pinned) patchUI({ preview: { id, subId, pinned: false } });
   }, u.preview ? 120 : 380);
 }
 

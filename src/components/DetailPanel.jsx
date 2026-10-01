@@ -53,7 +53,7 @@ function PanelHeader({ task, project }) {
         <button
           type="button"
           className={`icon-btn${planned ? ' on-today' : ''}`}
-          aria-label={planned ? 'Remove from Today' : inToday(task, today) ? 'Due today · pin to Today' : 'Add to Today'}
+          aria-label={planned ? 'Remove from Today' : inToday(task, today) ? 'Last day today · pin to Today' : 'Add to Today'}
           onClick={() => updateTask(task.id, { addedToToday: !planned })}
         >
           <Sun size={16} strokeWidth={1.9} />
@@ -178,7 +178,7 @@ function PanelBody({ task, project }) {
             {task.priority ? priorityLabel(task.priority) : 'None'}
           </button>
         </PropRow>
-        <PropRow icon={CalendarDays} label="Due date">
+        <PropRow icon={CalendarDays} label="Last day">
           <button
             type="button"
             className={`prop-btn${task.dueDate ? ` due-${task.status === 'done' ? 'normal' : due.tone}` : ' empty'}`}
@@ -187,7 +187,7 @@ function PanelBody({ task, project }) {
             {task.dueDate ? dueLabelLong(task.dueDate, today) : 'No date'}
           </button>
           {task.dueDate && (
-            <button type="button" className="icon-btn sm prop-clear" aria-label="Remove due date" onClick={() => updateTask(task.id, { dueDate: null })}>
+            <button type="button" className="icon-btn sm prop-clear" aria-label="Remove last day" onClick={() => updateTask(task.id, { dueDate: null })}>
               <X size={13} />
             </button>
           )}

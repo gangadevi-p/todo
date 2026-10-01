@@ -170,6 +170,7 @@ export function MenuLayer() {
         y={menu.y}
         rect={menu.rect}
         className="popover"
+        autoFocus={menu.autoFocus !== false}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
             e.stopPropagation();

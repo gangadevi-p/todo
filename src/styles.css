@@ -1760,8 +1760,8 @@ kbd {
 .column-wide .column-body,
 .column-wide .subtasks-board {
   display: grid;
-  /* Four major tasks per row; fewer only when the page is too narrow for 200px each. */
-  grid-template-columns: repeat(auto-fill, minmax(max(200px, calc((100% - 42px) / 4)), 1fr));
+  /* Four major tasks per row; fewer only when the page is too narrow for 260px each, the least a title plus its date, colour and delete controls need. */
+  grid-template-columns: repeat(auto-fill, minmax(max(260px, calc((100% - 42px) / 4)), 1fr));
   align-items: stretch;
   gap: 8px;
 }
@@ -2503,6 +2503,8 @@ kbd {
   max-height: min(70vh, 520px);
   padding: 12px 16px 14px;
   overflow-y: auto;
+  /* Scrolling a long popup must not scroll the page behind it. */
+  overscroll-behavior: contain;
   border-radius: 12px;
   background: var(--bg-elevated);
   box-shadow: var(--shadow-pop);
@@ -2615,9 +2617,33 @@ kbd {
   min-height: 26px;
   font-size: 13px;
 }
-.preview-sub.done span {
+.preview-sub.done .preview-sub-title {
   color: var(--text-3);
   text-decoration: line-through;
+}
+.preview-sub.struck .preview-sub-title {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+.preview-sub-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.preview-sub-due {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-3);
+  font-size: 11.5px;
+}
+.preview-count {
+  margin-left: auto;
+  color: var(--text-3);
+  font-weight: 500;
 }
 .preview-more {
   padding: 2px 0 0 23px;
@@ -3443,4 +3469,218 @@ mark {
 }
 @media (max-width: 600px) {
   .demo-banner strong { font-size: 21px; }
+}
+
+/* ============================================================================
+   Task item header: one layout for every level
+   (major task, sub-task card, nested row, checklist item)
+
+   1. One line. The header never wraps and controls never drop to a second row.
+   2. Order, left to right:  [+] [checkbox] title ......... [date] [colour] [delete]
+   3. The title is the only part that flexes. A capsule hugs its text and is
+      never stretched; when space runs out the title is clipped, not the controls.
+   4. The trailing group is [date] [done] [colour] [delete]: it never shrinks,
+      sits at the right end, and its members are 2px apart. The first member
+      takes the free space (margin-left: auto) so it works whether or not the
+      title grows.
+   5. Date member: no date -> a calendar icon; date set -> the date chip
+      (calendar icon + text), always visible. In a narrow card or box the chip
+      keeps its icon and drops its text.
+   6. Done, colour and delete wait for hover (always visible, slightly dimmed, in
+      the Board lanes); the date chip is always visible. "Done" only strikes the
+      text through. Moving a task to the Done tab is the checkbox's job alone.
+   7. Board spacing: 20px under a major task's heading, 16px between its boxes,
+      16px inside a box, 12px between a box's rows.
+   ========================================================================= */
+
+/* Date: calendar icon (no date) and chip (date set). */
+.due-button {
+  flex: none;
+  color: var(--text-3);
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.due-button:hover {
+  color: var(--text);
+}
+.strike-button {
+  flex: none;
+  color: var(--text-3);
+  opacity: 0;
+  transition: opacity 0.12s, color 0.12s;
+}
+.strike-button:hover {
+  color: var(--text);
+}
+.strike-button.on {
+  color: var(--accent);
+  opacity: 1;
+}
+.due-chip {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.due-chip:hover {
+  text-decoration: underline;
+}
+.due-chip.meta-due {
+  gap: 4px;
+}
+
+/* Rule 6: reveal on hover, or keep in view in the lanes. */
+.row:hover :is(.due-button, .strike-button),
+.row:focus-within :is(.due-button, .strike-button),
+.card:hover .card-actions :is(.due-button, .strike-button),
+.card:focus-within .card-actions :is(.due-button, .strike-button),
+.column-head:hover :is(.due-button, .strike-button),
+.column-head:focus-within :is(.due-button, .strike-button),
+.sub-row:hover :is(.due-button, .strike-button),
+.sub-row:focus-within :is(.due-button, .strike-button),
+.due-button:focus-visible,
+.strike-button:focus-visible {
+  opacity: 1;
+}
+.column-lane .column-head :is(.due-button, .strike-button),
+.sub-lane > .sub-row:first-child :is(.due-button, .strike-button) {
+  opacity: 0.7;
+}
+.column-lane .column-head :is(.due-button, .strike-button):hover,
+.column-lane .column-head .strike-button.on,
+.sub-lane > .sub-row:first-child :is(.due-button, .strike-button):hover,
+.sub-lane > .sub-row:first-child .strike-button.on {
+  opacity: 1;
+}
+.card-actions {
+  gap: 2px;
+  opacity: 1;
+}
+.card-actions .card-style,
+.card-actions .card-delete {
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.card:hover .card-actions .card-style,
+.card:hover .card-actions .card-delete,
+.card:focus-within .card-actions .card-style,
+.card:focus-within .card-actions .card-delete {
+  opacity: 1;
+}
+
+/* Rules 2 and 4: the trailing group sits at the right, 2px between members. */
+.row-meta,
+.row .due-button,
+.row .strike-button,
+.row .row-style {
+  margin-right: -9px;
+}
+.sub-row .due-button,
+.sub-row .due-chip,
+.sub-row .strike-button,
+.sub-row .sub-style {
+  margin-right: -8px;
+}
+.column-head .due-button,
+.column-head .due-chip,
+.column-head .strike-button,
+.column-head .column-style {
+  margin-right: -6px;
+}
+.column-head .due-button,
+.column-head .due-chip,
+.sub-row .due-button,
+.sub-row .due-chip {
+  margin-left: auto;
+}
+.column-head .column-style,
+.sub-row .sub-style,
+.column-lane .column-head .group-count {
+  margin-left: 0;
+}
+
+/* Rule 3: a title hugs its text, wherever it is, capsule or plain. That also keeps the
+   overview popup to the text itself: empty space around a title never triggers it. */
+.column-lane .column-head .group-title {
+  flex: 0 1 auto;
+}
+.subtasks-row .sub-row input,
+.subtasks-card .sub-row input,
+.subtasks-board .sub-row input {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 4ch;
+  max-width: 100%;
+  field-sizing: content;
+}
+
+/* Rule 5: below 352px inside a card or box (room for the title plus the longest date, "Tomorrow", and four controls), the chip keeps its icon and drops the date text. */
+.card,
+.sub-lane,
+.column-lane {
+  container-type: inline-size;
+}
+@container (max-width: 352px) {
+  .due-chip .due-text {
+    display: none;
+  }
+}
+
+.auth-keep { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-2); cursor: pointer; }
+.auth-keep input { margin: 0; accent-color: var(--accent, currentColor); cursor: pointer; }
+
+/* Today / Tomorrow / Next week sit side by side in one row. */
+.dp-quick {
+  display: flex;
+  gap: 4px;
+  padding: 2px;
+}
+.dp-quick .menu-item {
+  flex: 1 1 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  height: auto;
+  padding: 7px 4px;
+  text-align: center;
+}
+.dp-quick .menu-label {
+  flex: none;
+  max-width: 100%;
+  font-size: 12.5px;
+}
+.dp-quick .menu-hint {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+}
+
+/* Struck-off text: a line through it and a softer tone. The task itself stays where it is. */
+.row.struck .row-title,
+.card.struck > .card-main .card-title,
+.sub-row.struck input,
+.column-head .group-title.struck {
+  opacity: 0.55;
+}
+
+/* Board spacing (rule 7). */
+.column-wide .column-head {
+  margin-bottom: 20px;
+}
+.column-wide .column-body,
+.column-wide .subtasks-board {
+  gap: 16px;
+}
+.column-wide .sub-lane {
+  padding: 16px;
+  gap: 12px;
+}
+.board-lanes {
+  row-gap: 16px;
 }
