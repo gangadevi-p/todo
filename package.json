@@ -31,6 +31,7 @@
     "appId": "app.nudge.tasks",
     "productName": "Gani's Work",
     "copyright": "Personal use",
+    "electronDist": "node_modules/electron/dist",
     "files": [
       "dist/**",
       "electron/**",
