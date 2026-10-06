@@ -1,42 +1,29 @@
 # Gani's Work
 
-A calm, keyboard-first desktop to-do list for designers. It's built for one thing: quickly capturing, organising and finishing design tasks.
+A calm, keyboard-first to-do list for designers. It's built for one thing: quickly capturing, organising and finishing design tasks.
 
-It uses Electron, React and Vite. All data stays on your machine: there's no account, no cloud and no backend.
+It's a website built with React and Vite, published with GitHub Pages:
 
-## Run it
+- **Your space:** https://gangadevi-p.github.io/todo/#owner (sign in with your user name and password)
+- **Demo space:** https://gangadevi-p.github.io/todo/ (made-up sample tasks, no sign-in)
+
+## Publishing
+
+Every push to `main` on `gangadevi-p/todo` builds the site and publishes it (`.github/workflows/deploy-pages.yml`). It's live about a minute later. An open tab keeps the old version until you reload it with `Ctrl+Shift+R`.
+
+## Working on it locally
 
 ```bash
 npm install
-npm start          # build the UI and open the desktop app
-npm run dev        # desktop app with hot reload while editing (F12 opens DevTools)
-npm run dist       # build a Windows installer into release/
+npm run dev        # http://localhost:5183, opens straight into your space
+npm run build      # the production site, into dist/
 ```
-
-`npm run dist` creates `release/Gani's Work Setup 1.0.0.exe`, plus a ready-to-run `release/win-unpacked/Gani's Work.exe`. The app isn't code-signed (`scripts/no-sign.cjs` skips signing), so Windows SmartScreen may warn you the first time you run it.
 
 ## Where your data lives
 
-Everything is stored in one JSON file (the folder is still named `Nudge`, the app's original internal name, so existing installs keep their data):
+Your tasks are saved in the browser you use (localStorage), so each browser has its own copy. To move them to another browser, use **Export data** in the sidebar, then **Import data** in the other browser.
 
-- Windows: `%APPDATA%\Nudge\nudge-data.json`
-- macOS: `~/Library/Application Support/Nudge/nudge-data.json`
-
-The app copies it to `nudge-data.backup.json` each time it starts. If the file ever gets corrupted, the app sets it aside and falls back to that backup instead of overwriting it.
-
-## Sign-in and spaces
-
-The desktop app opens on a sign-in screen. The first time, you create a user name and password; after that you sign in with them. Your existing tasks are not touched and are what opens when you sign in (`nudge-data.json`).
-
-**Open the demo space** on the same screen opens a separate workspace with sample tasks (`nudge-demo-data.json`). Nothing you do there affects your own space, and it never shows your tasks. Use the logout icon in the sidebar to sign out or leave the demo.
-
-Only a salted hash of the password is stored (`nudge-auth.json`). This is a local screen lock, not encryption: the data files are still plain JSON on disk. If you forget the password, delete `nudge-auth.json` from the data folder and you can create a new one; your tasks stay.
-
-## Demo for your portfolio
-
-`npm run build:demo` writes a static, browser-only copy of the app to `demo/`. Upload that folder to any static host (or embed it in an iframe) and it opens straight into the made-up sample workspace (Maple Café Website, Trailhead App, Studio Rebrand, Non-Negotiable), with no sign-in screen.
-
-It is completely separate from your own space: the desktop app keeps using `%APPDATA%\Nudge\nudge-data.json`, while the demo keeps each visitor's edits in their own browser (localStorage) and never sees your real tasks.
+The sign-in is a screen lock for that browser, not an online account: only a salted hash of the password is stored, next to the tasks.
 
 ## Keyboard
 
@@ -46,48 +33,34 @@ It is completely separate from your own space: the desktop app keeps using `%APP
 | `Ctrl/⌘ K` | Search |
 | `Ctrl/⌘ 1–5` | Inbox · Today · Upcoming · All Tasks · Completed |
 | `Ctrl/⌘ \` | Toggle sidebar |
-| `N` | New task popup for the current view |
+| `N` | New task for the current view (a sub-task of the selected major task in a project) |
 | `↑ ↓` or `J K` | Move the selection |
-| `Enter` | Open the task's details |
+| `Enter` | Open the task's editor |
 | `Space` | Complete or reopen |
 | `T` | Add to or remove from Today |
 | `1 2 3 0` | Priority: low, medium, high, none |
 | `Ctrl/⌘ D` | Duplicate |
 | `Del` or `Ctrl/⌘ Backspace` | Delete (you can undo) |
 | `Ctrl/⌘ Z` | Undo delete |
-| `Esc` | Close the panel or clear the selection |
+| `Esc` | Close the editor or clear the selection |
 | `?` | Show all shortcuts |
 
-## How views work
+## Major tasks and sub-tasks
 
-- **Inbox**: tasks without a project. Quick add always puts tasks here.
-- **Today**: tasks you added to Today, plus anything due today or overdue.
-- **Upcoming**: tasks with a future due date, grouped by day.
-- **All Tasks**: every open task, grouped by project.
-- **Completed**: finished tasks, grouped by the day you completed them.
-- **Projects**: Todo, In Progress and Done, shown as a list or a board.
+In a project with two or more major tasks, chips under the overview pick which major task is shown. The **+** at the end of the chips adds a new major task.
 
-Right-click any task for every action. You can drag tasks to reorder them, drop them on a board column or group, or drop them on Inbox, Today, Completed or a project in the sidebar.
+On the Board:
 
-## Creating things
+- The **+** beside a major task's title adds a new box under it.
+- **Enter** or the **+** on a box's first row adds a sub-task inside that box.
+- **Enter** on any other item adds the next one at the same level; **Tab** nests it under the item above.
 
-Every kind of creation opens the same popup: **New task**, **New project** (the + beside Projects) and **New subtask** (Add a checklist item in the detail panel). The + beside a group's count, the New Task button and Ctrl/⌘ N all open it, pre-filled for where you are.
-
-- Only the title (or name) is required. Type it and press Enter.
-- The popup shows every detail: title, notes, status, priority, project, due date, add to Today and subtasks, plus the generated ID, created and completed times, project ID and order.
-- The expand button at the top right makes it wide, with the details in a second column. Gani's Work remembers your choice.
-- It warns about a task with the same name in the same project, and won't let you create two projects with the same name.
-
-## Delete all
-
-Every page (Inbox, Today, Upcoming, All Tasks, Completed and each project) has a **Delete all** button. It asks "Are you sure?" and then deletes every task listed on that page, and you can undo for a few seconds afterwards. The project itself is never deleted by it.
+Nothing opens on hover. Right-click a task (or use its ⋯ grip) and choose **Edit** to open its editor.
 
 ## Project layout
 
 ```
-electron/        main process (window, JSON persistence) and preload bridge
-src/store.js     data + UI state, all task/project actions, persistence
-src/lib/views.js turns tasks into the groups each view renders
-src/components/  sidebar, list, board, detail panel, menus, overlays
-scripts/         dev launcher, icon renderer, Electron smoke test
+src/store.js      data + UI state, all task/project actions, saving
+src/lib/views.js  turns tasks into the groups each view renders
+src/components/   sidebar, list, board, editor, menus, overlays
 ```
