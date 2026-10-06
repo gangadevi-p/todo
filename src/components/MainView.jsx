@@ -253,8 +253,8 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
           </header>
           {view === 'today' && getSpace() === 'demo' && (
             <div className="demo-banner" role="note">
-              <strong>This is demo data, not original.</strong>
-              <span>Created to show how this space works.</span>
+              <strong>This is a demo workspace, not the original.</strong>
+              <span>It starts empty. Anything added here stays only in this browser.</span>
             </div>
           )}
           <SectionStats stats={model.stats} />

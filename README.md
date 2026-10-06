@@ -5,7 +5,7 @@ A calm, keyboard-first to-do list for designers. It's built for one thing: quick
 It's a website built with React and Vite, published with GitHub Pages:
 
 - **Your space:** https://gangadevi-p.github.io/todo/#owner (sign in with your user name and password)
-- **Demo space:** https://gangadevi-p.github.io/todo/ (made-up sample tasks, no sign-in)
+- **Demo space:** https://gangadevi-p.github.io/todo/ (starts empty, no sign-in)
 
 ## Publishing
 
