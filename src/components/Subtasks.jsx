@@ -1,6 +1,8 @@
 import { useRef } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { addNestedSubtask, addSubtaskAfter, removeSubtask, subtaskKey, toggleSelected, updateSubtask, useUI } from '../store';
+import {
+  addNestedSubtask, addSubtask, addSubtaskAfter, removeSubtask, setStatsFilter, subtaskKey, toggleSelected, ui, updateSubtask, useUI,
+} from '../store';
 import { Checkbox } from './bits';
 import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
@@ -18,6 +20,16 @@ export const focusSubtask = (id) => {
   const selector = `[data-subtask-input="${id}"]`;
   requestAnimationFrame(() => (scope.querySelector(selector) || document.querySelector(selector))?.focus());
 };
+
+/**
+ * Adds an empty sub-task at the end of a task's list and puts the cursor in it:
+ * the major task's "+", the page "+" and the N key all add here. A new sub-task
+ * is open work, so the page switches to the Todo tab if Done was showing.
+ */
+export function addSubtaskTo(taskId) {
+  if (ui.get().statsFilter === 'done') setStatsFilter('todo');
+  focusSubtask(addSubtask(taskId));
+}
 
 function hasCompletedItem(item) {
   return item.done || (item.subtasks || []).some(hasCompletedItem);

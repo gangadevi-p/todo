@@ -13,7 +13,8 @@ import { TrashView } from './TrashView';
 import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
 import { flattenChecklist } from '../lib/checklist';
-import { activeMajorId, pageNewTaskDefaults } from '../lib/views';
+import { activeMajorId } from '../lib/views';
+import { addSubtaskTo } from './Subtasks';
 
 const VIEW_ICONS = { inbox: Inbox, today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck, trash: Trash2 };
 
@@ -139,8 +140,8 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
     [model, statsFilter, activeMajor],
   );
 
-  // With a major task showing, "+" adds a sub-task under it, not another major task.
-  const newTask = () => openNewTask(pageNewTaskDefaults(model, majorFilter));
+  // With a major task showing, "+" adds a sub-task row to its box, not another major task.
+  const newTask = () => (activeMajor ? addSubtaskTo(activeMajor) : openNewTask(model.newTaskDefaults));
   const isBoard = model.mode === 'board';
   const isTrash = model.kind === 'trash';
   const setMode = (mode) => (model.project ? setProjectMode(model.project.id, mode) : setSectionMode(model.id, mode));

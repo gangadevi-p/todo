@@ -1,11 +1,11 @@
 import { memo } from 'react';
 import { Inbox, Plus, Trash2 } from 'lucide-react';
-import { addSubtask, deleteTask, openNewTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
+import { deleteTask, openNewTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
 import { endDrag, startTaskDrag, useTaskDrop } from '../lib/dnd';
 import { useToday } from '../lib/useToday';
 import { Checkbox, ProjectDot, StatusIcon } from './bits';
 import { AddChildTask, ChildAddButton, ChildTaskList, useShowChildAdd } from './ChildTasks';
-import { focusSubtask, SubtaskTree } from './Subtasks';
+import { addSubtaskTo, SubtaskTree } from './Subtasks';
 import { TaskMeta, TaskPriority, TaskProgress } from './TaskRow';
 import { EmptyState, useProjectsById, withDropLine } from './TaskList';
 import { openTaskMenu } from './taskMenu';
@@ -148,7 +148,7 @@ export function Board({ model }) {
                   type="button"
                   className="icon-btn sm column-major-add"
                   aria-label={`Add sub-task to ${col.title}`}
-                  onClick={() => focusSubtask(addSubtask(col.headingTask.id))}
+                  onClick={() => addSubtaskTo(col.headingTask.id)}
                 >
                   <Plus size={15} />
                 </button>
