@@ -1,11 +1,11 @@
 import { memo } from 'react';
 import { Inbox, Plus, Trash2 } from 'lucide-react';
-import { deleteTask, openNewTask, setChildTasksOpen, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
+import { addSubtask, deleteTask, openNewTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
 import { endDrag, startTaskDrag, useTaskDrop } from '../lib/dnd';
 import { useToday } from '../lib/useToday';
 import { Checkbox, ProjectDot, StatusIcon } from './bits';
 import { AddChildTask, ChildAddButton, ChildTaskList, useShowChildAdd } from './ChildTasks';
-import { SubtaskTree } from './Subtasks';
+import { focusSubtask, SubtaskTree } from './Subtasks';
 import { TaskMeta, TaskPriority, TaskProgress } from './TaskRow';
 import { EmptyState, useProjectsById, withDropLine } from './TaskList';
 import { openTaskMenu } from './taskMenu';
@@ -106,7 +106,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
 
 function HeadingAddField({ task }) {
   const open = useShowChildAdd(task.id);
-  return <AddChildTask parent={task} open={open} placeholder="Sub-task · Tab to nest" />;
+  return <AddChildTask parent={task} open={open} />;
 }
 
 export function Board({ model }) {
@@ -148,7 +148,7 @@ export function Board({ model }) {
                   type="button"
                   className="icon-btn sm column-major-add"
                   aria-label={`Add sub-task to ${col.title}`}
-                  onClick={() => setChildTasksOpen(col.headingTask.id, true)}
+                  onClick={() => focusSubtask(addSubtask(col.headingTask.id))}
                 >
                   <Plus size={15} />
                 </button>
