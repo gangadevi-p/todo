@@ -52,8 +52,8 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
     requestAnimationFrame(() => requestAnimationFrame(() => { suppressEmptyDelete.current = false; }));
   };
 
-  // On the board, the "+" of a box's first row adds to that box; new boxes come from the major task's "+".
-  const addFromIcon = laneHead ? addNested : addSibling;
+  // On the board, a box's first row adds into that box ("+" or Enter); new boxes come from the major task's "+".
+  const addNext = laneHead ? addNested : addSibling;
 
   // Inside the popup a row is being edited there, so it doesn't anchor a popup of its own.
   const anchorProps = inPopup ? {} : { 'data-sub-row': '', 'data-sub-id': subtask.id };
@@ -67,7 +67,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         onClick={selecting ? () => toggleSelected(key) : undefined}
       >
       {!selecting && (
-        <button type="button" className="sub-add-left" aria-label={laneHead ? 'Add a sub-task in this box' : depth ? 'Add another nested task' : 'Add another sub-task'} onClick={addFromIcon}>
+        <button type="button" className="sub-add-left" aria-label={laneHead ? 'Add a sub-task in this box' : depth ? 'Add another nested task' : 'Add another sub-task'} onClick={addNext}>
           <Plus size={12} strokeWidth={2.2} />
         </button>
       )}
@@ -95,7 +95,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
           if (e.nativeEvent.isComposing) return;
           if (e.key === 'Enter') {
             e.preventDefault();
-            if (subtask.title.trim()) addSibling();
+            if (subtask.title.trim()) addNext();
             else e.currentTarget.blur();
           } else if (e.key === 'Tab' && !e.shiftKey) {
             e.preventDefault();
