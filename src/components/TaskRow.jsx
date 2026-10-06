@@ -67,7 +67,7 @@ export function TaskPriority({ task }) {
   );
 }
 
-export const TaskRow = memo(function TaskRow({ task, show, today, draggable, depth = 0, projectsById, completedChecklistOnly = false, todoChecklistOnly = false }) {
+export const TaskRow = memo(function TaskRow({ task, show, today, draggable, depth = 0, projectsById, completedChecklistOnly = false, todoChecklistOnly = false, addTo }) {
   const dragging = useUI((u) => u.draggingId === task.id);
   const selecting = useUI((u) => u.selecting);
   const selected = useUI((u) => u.selectedId === task.id);
@@ -118,7 +118,7 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
             <GripVertical size={14} strokeWidth={1.8} />
           </span>
         )}
-        {!selecting && <ChildAddButton task={task} />}
+        {!selecting && <ChildAddButton task={task} addTo={addTo} />}
         <Checkbox
           state={selecting ? (picked ? 'done' : 'todo') : task.status}
           onToggle={() => (selecting ? toggleSelected(key) : toggleComplete(task.id))}
@@ -171,6 +171,7 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
         today={today}
         projectsById={projectsById}
         autoFocus={showChildAdd}
+        addTo={addTo}
       />
       {task.subtasks.length > 0 && <SubtaskTree task={task} variant="row" completedOnly={completedChecklistOnly} todoOnly={todoChecklistOnly} />}
     </>

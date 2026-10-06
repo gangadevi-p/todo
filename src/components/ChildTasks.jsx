@@ -8,16 +8,20 @@ export function useShowChildAdd(taskId) {
   return useData((s) => Boolean(s.prefs.childTasksOpen?.[taskId]));
 }
 
-/** Hover-only control shown in a task's left gutter. */
-export function ChildAddButton({ task, className = '' }) {
+/**
+ * Control in a task's left gutter. It always adds a sub-task, never a nested
+ * one: into `addTo` (the card or task this row is a sub-task of), else into
+ * this task. Only Tab in the field nests.
+ */
+export function ChildAddButton({ task, addTo = task.id, className = '' }) {
   return (
     <button
       type="button"
       className={`child-add-button ${className}`.trim()}
-      aria-label="Add nested task"
+      aria-label="Add sub-task"
       onClick={(e) => {
         e.stopPropagation();
-        setChildTasksOpen(task.id, true);
+        setChildTasksOpen(addTo, true);
       }}
     >
       <Plus size={15} strokeWidth={2.1} />
@@ -59,7 +63,7 @@ export function AddChildTask({ parent, open = false }) {
       <Plus size={13} strokeWidth={2} className="sub-add-icon" />
       <input
         ref={inputRef}
-        placeholder="Nested task"
+        placeholder="Sub-task · Tab to nest"
         value={value}
         onClick={(e) => e.stopPropagation()}
         onChange={(e) => setValue(e.target.value)}
@@ -84,7 +88,7 @@ export function AddChildTask({ parent, open = false }) {
 }
 
 /** Recursively renders a task's sub-tasks (full tasks of their own, which can have further sub-tasks), indented one level deeper each time. */
-export function ChildTaskList({ task, kids, depth, show, today, projectsById, autoFocus = false }) {
+export function ChildTaskList({ task, kids, depth, show, today, projectsById, autoFocus = false, addTo }) {
   return (
     <div className="child-tasks" style={{ '--depth': depth }} onClick={(e) => e.stopPropagation()}>
       <AddChildTask parent={task} open={autoFocus} />
@@ -98,6 +102,7 @@ export function ChildTaskList({ task, kids, depth, show, today, projectsById, au
           draggable={false}
           depth={depth}
           projectsById={projectsById}
+          addTo={addTo ?? task.id}
         />
       ))}
     </div>

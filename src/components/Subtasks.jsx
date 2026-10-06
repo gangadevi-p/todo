@@ -33,7 +33,11 @@ function visibleItems(items, completedOnly, todoOnly) {
   return items;
 }
 
-function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = false, todoOnly = false, inPopup = false, laneHead = false }) {
+/**
+ * `levelId` is this row's ancestor at the sub-task level (the row itself when
+ * it is a sub-task). A board box's first row (`laneHead`) is the box itself.
+ */
+function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = false, todoOnly = false, inPopup = false, laneHead = false, levelId = subtask.id }) {
   const selecting = useUI((u) => u.selecting);
   const today = useToday();
   const key = subtaskKey(task.id, subtask.id);
@@ -54,6 +58,12 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
 
   // On the board, a box's first row adds into that box ("+" or Enter); new boxes come from the major task's "+".
   const addNext = laneHead ? addNested : addSibling;
+  // "+" only ever adds a sub-task, never a nested one: right after this row's sub-task. Only Tab nests.
+  const addSubtaskHere = () => {
+    if (laneHead) return addNested();
+    const id = addSubtaskAfter(task.id, levelId);
+    if (id) focusSubtask(id);
+  };
 
   // Inside the popup a row is being edited there, so it doesn't anchor a popup of its own.
   const anchorProps = inPopup ? {} : { 'data-sub-row': '', 'data-sub-id': subtask.id };
@@ -67,7 +77,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         onClick={selecting ? () => toggleSelected(key) : undefined}
       >
       {!selecting && (
-        <button type="button" className="sub-add-left" aria-label={laneHead ? 'Add a sub-task in this box' : depth ? 'Add another nested task' : 'Add another sub-task'} onClick={addNext}>
+        <button type="button" className="sub-add-left" aria-label={laneHead ? 'Add a sub-task in this box' : 'Add a sub-task'} onClick={addSubtaskHere}>
           <Plus size={12} strokeWidth={2.2} />
         </button>
       )}
@@ -137,7 +147,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
       )}
       </div>
       {visibleItems(subtask.subtasks || [], completedOnly, todoOnly).map((child, childIndex) => (
-        <SubtaskRow key={child.id} task={task} subtask={child} index={childIndex} focus={focus} depth={depth + 1} completedOnly={completedOnly} todoOnly={todoOnly} inPopup={inPopup} />
+        <SubtaskRow key={child.id} task={task} subtask={child} index={childIndex} focus={focus} depth={depth + 1} completedOnly={completedOnly} todoOnly={todoOnly} inPopup={inPopup} levelId={laneHead ? child.id : levelId} />
       ))}
     </>
   );
