@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { hidePreview, keepPreview, leaveTask, previewEngaged, useData, useUI } from '../store';
+import { hidePreview, useData, useUI } from '../store';
 import { ItemEditor, TaskEditor } from './TaskEditor';
 
 const GAP = 10;
 const CONTROLS = 150; // width reserved for a row's date / done / colour / delete icons
 
-// Where the pointer last was, so the popup opens beside what's being hovered.
+// Where the pointer last was, so a popup opened from a right-click menu lands beside it.
 const pointer = { x: -1, y: -1 };
 if (typeof window !== 'undefined') {
   window.addEventListener('mousemove', (e) => { pointer.x = e.clientX; pointer.y = e.clientY; }, { passive: true, capture: true });
@@ -21,10 +21,10 @@ function findItem(list = [], id) {
 }
 
 /**
- * The task popup. Hovering a task's text opens it beside the cursor as the
- * editor for that task: details, notes and every sub-task and nested task,
- * all editable in place. Hovering a checklist item's text opens the same for
- * that one item. It grows as big as its content needs, up to the window.
+ * The task popup: the editor for a task (details, notes and every sub-task
+ * and nested task, all editable in place), or for one checklist item. It
+ * never opens on hover, only from Enter, the task menu's Edit or search, and
+ * grows as big as its content needs, up to the window.
  */
 export function TaskPreview() {
   const preview = useUI((u) => u.preview);
@@ -52,8 +52,7 @@ function Popup({ anchor, children }) {
   const grab = useRef(null); // pointer offset inside the anchor when the popup opened
   const tries = useRef(0);
 
-  // Beside the cursor, level with the hovered text, so the mouse can slide
-  // straight in: to the right when that leaves the row's icons uncovered,
+  // Beside the cursor, level with the task's text: to the right when that leaves the row's icons uncovered,
   // otherwise to the left; below the row when it fits on neither side.
   const place = useCallback(() => {
     const el = ref.current;
@@ -110,8 +109,7 @@ function Popup({ anchor, children }) {
     const onScroll = (e) => {
       // Scrolling the popup itself (a long list of sub-tasks) must not move or close it.
       if (e.target instanceof Node && el.contains(e.target)) return;
-      if (previewEngaged()) place();
-      else hidePreview();
+      place();
     };
     window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', place);
@@ -129,12 +127,6 @@ function Popup({ anchor, children }) {
       role="dialog"
       aria-label="Task"
       style={pos ? { left: pos.left, top: pos.top } : { left: -9999, top: -9999, opacity: 0, pointerEvents: 'none' }}
-      onMouseEnter={keepPreview}
-      onMouseLeave={leaveTask}
-      onBlur={(e) => {
-        // Focus leaving the popup (you finished typing): close once the pointer is away too.
-        if (!e.currentTarget.contains(e.relatedTarget)) leaveTask();
-      }}
     >
       {children}
     </div>

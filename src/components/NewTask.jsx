@@ -1,7 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CalendarDays, ChevronDown, Inbox, Minus, Plus, TriangleAlert, X } from 'lucide-react';
 import {
-  closePopup, createTask, openMenu, revealTask, selectTask, toast, useData,
+  closePopup, createTask, openMenu, revealTask, selectTask, setMajorFilter, toast, useData,
 } from '../store';
 import { addDays, dueLabelLong, nextWeekday, todayKey } from '../lib/dates';
 import { PRIORITIES, STATUSES, uid } from '../lib/util';
@@ -20,8 +20,11 @@ export function NewTaskForm({ defaults }) {
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState(defaults.status || 'todo');
   const [priority, setPriority] = useState(defaults.priority || null);
-  const [projectId, setProjectId] = useState(defaults.projectId || null);
   const parentId = defaults.parentId || null;
+  // A sub-task lives in its parent's project, so that can't be picked here.
+  const parent = parentId ? tasks.find((t) => t.id === parentId) || null : null;
+  const [pickedProjectId, setProjectId] = useState(defaults.projectId || null);
+  const projectId = parent ? parent.projectId : pickedProjectId;
   const [dueDate, setDueDate] = useState(defaults.dueDate || null);
   const addedToToday = Boolean(defaults.addedToToday);
   const [subtasks, setSubtasks] = useState([]);
@@ -73,6 +76,8 @@ export function NewTaskForm({ defaults }) {
       subtasks: steps,
     });
     closePopup();
+    // A new major task becomes the one shown, or the major filter would hide it.
+    if (defaults.isHeading) setMajorFilter(id);
     selectTask(id, false);
     toast(`Added to ${project ? project.name : 'Inbox'}`, { label: 'View', run: () => revealTask(id) });
   };
@@ -117,8 +122,8 @@ export function NewTaskForm({ defaults }) {
 
   return (
     <Popup
-      title={defaults.isHeading ? 'New major task' : 'New task'}
-      subtitle="Only the title is required."
+      title={defaults.isHeading ? 'New major task' : parent ? 'New sub-task' : 'New task'}
+      subtitle={parent ? `Goes under “${parent.title}”. Only the title is required.` : 'Only the title is required.'}
       dirty={dirty}
       canSubmit={Boolean(name)}
       submitLabel={defaults.isHeading ? 'Create major task' : 'Create task'}
@@ -265,13 +270,15 @@ export function NewTaskForm({ defaults }) {
         </div>
       </Field>
 
-      <Field f={F.project}>
-        <button type="button" className="pill pill-select" onClick={pickProject}>
-          {project ? <ProjectDot color={project.color} /> : <Inbox size={13} strokeWidth={1.9} />}
-          {project ? project.name : 'Inbox'}
-          <ChevronDown size={13} className="pill-chev" />
-        </button>
-      </Field>
+      {!parent && (
+        <Field f={F.project}>
+          <button type="button" className="pill pill-select" onClick={pickProject}>
+            {project ? <ProjectDot color={project.color} /> : <Inbox size={13} strokeWidth={1.9} />}
+            {project ? project.name : 'Inbox'}
+            <ChevronDown size={13} className="pill-chev" />
+          </button>
+        </Field>
+      )}
     </Popup>
   );
 }

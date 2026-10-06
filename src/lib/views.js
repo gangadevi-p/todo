@@ -130,6 +130,18 @@ function majorHeadings(headings, allTasks) {
   return hasStructuredMajor ? headings : [];
 }
 
+/** The major task a project page is showing: the picked chip, else the first one (null when the page has no chips). */
+export function activeMajorId(model, picked) {
+  const majors = model.majorTasks || [];
+  return majors.some((t) => t.id === picked) ? picked : majors[0]?.id ?? null;
+}
+
+/** Where a new task from the page's "+" or the N key goes: as a sub-task of the major task being shown, if any. */
+export function pageNewTaskDefaults(model, picked) {
+  const major = activeMajorId(model, picked);
+  return major ? { ...model.newTaskDefaults, parentId: major } : model.newTaskDefaults;
+}
+
 /**
  * Turns the raw task list into what a view renders: titled groups of tasks,
  * each knowing how a dropped task should change and where new tasks go.

@@ -26,7 +26,7 @@ export function ChildAddButton({ task, className = '' }) {
 }
 
 /** The inline text field revealed by a task's left-gutter add control. */
-export function AddChildTask({ parent, open = false }) {
+export function AddChildTask({ parent, open = false, placeholder = 'Nested task' }) {
   const [value, setValue] = useState('');
   // Which task new entries nest under right now: starts at `parent`, and
   // Tab drops it one level deeper onto the last task this field created.
@@ -59,7 +59,7 @@ export function AddChildTask({ parent, open = false }) {
       <Plus size={13} strokeWidth={2} className="sub-add-icon" />
       <input
         ref={inputRef}
-        placeholder="Nested task"
+        placeholder={placeholder}
         value={value}
         onClick={(e) => e.stopPropagation()}
         onChange={(e) => setValue(e.target.value)}

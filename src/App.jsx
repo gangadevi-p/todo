@@ -3,7 +3,7 @@ import {
   closeMobileNav, data, deleteTask, duplicateTask, hidePreview, navigate, openNewTask, openSearch, selectTask,
   setHelp, setPref, setSelecting, toggleComplete, toggleToday, ui, undoLast, updateTask, useData, useUI,
 } from './store';
-import { buildView, NAV_VIEWS } from './lib/views';
+import { buildView, NAV_VIEWS, pageNewTaskDefaults } from './lib/views';
 import { isTypingTarget } from './lib/util';
 import { TodayContext, useTodayClock } from './lib/useToday';
 import { useIsMobile } from './lib/useViewport';
@@ -45,6 +45,7 @@ function handleKey(e, model) {
 
   const typing = isTypingTarget(e.target);
   if (key === 'Escape') {
+    if (u.preview && e.target.closest?.('.preview')) { hidePreview(); return; }
     if (typing) { e.target.blur(); return; }
     if (u.selecting) { setSelecting(false); return; }
     if (u.preview) hidePreview();
@@ -113,7 +114,7 @@ function handleKey(e, model) {
       break;
     case 'n':
       e.preventDefault();
-      openNewTask(model.newTaskDefaults);
+      openNewTask(pageNewTaskDefaults(model, u.majorFilter));
       break;
     case '?':
       e.preventDefault();
@@ -164,11 +165,10 @@ export default function App() {
     const clearOutsideTask = (e) => {
       // Use capture so nested sections cannot stop this from clearing the
       // active row when the person clicks their empty space.
-      const staysActive = e.target.closest?.('[data-task-row], [data-sub-row], .preview, .floating, .modal, [role="dialog"]');
-      if (!staysActive && ui.get().selectedId) {
-        hidePreview();
-        selectTask(null, false);
-      }
+      const inPopup = e.target.closest?.('.preview, .floating, .modal, [role="dialog"]');
+      // The task popup only closes on purpose: a click anywhere outside it (or its menus).
+      if (!inPopup && ui.get().preview) hidePreview();
+      if (!inPopup && !e.target.closest?.('[data-task-row], [data-sub-row]') && ui.get().selectedId) selectTask(null, false);
     };
     // Mouse clicks shouldn't leave focus parked on buttons, or Enter/Space
     // would re-trigger them instead of acting on the selected task.

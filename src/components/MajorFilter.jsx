@@ -1,8 +1,9 @@
+import { Plus } from 'lucide-react';
 import { setMajorFilter } from '../store';
 import { textStyleProps } from '../lib/textStyle';
 
 /** One chip per major task of a project, right under the overview; only the picked one (the first by default) is shown below. */
-export function MajorFilter({ majors, active }) {
+export function MajorFilter({ majors, active, onAdd }) {
   if (!majors || majors.length < 2) return null;
   return (
     <div className="major-filter" role="tablist" aria-label="Filter by major task">
@@ -23,6 +24,11 @@ export function MajorFilter({ majors, active }) {
           </button>
         );
       })}
+      {onAdd && (
+        <button type="button" className="major-chip major-chip-add" aria-label="Add major task" onClick={onAdd}>
+          <Plus size={14} strokeWidth={2} />
+        </button>
+      )}
     </div>
   );
 }

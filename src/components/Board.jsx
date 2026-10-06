@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Inbox, Plus, Trash2 } from 'lucide-react';
-import { deleteTask, hoverTask, leaveTask, openNewTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
+import { deleteTask, openNewTask, setChildTasksOpen, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
 import { endDrag, startTaskDrag, useTaskDrop } from '../lib/dnd';
 import { useToday } from '../lib/useToday';
 import { Checkbox, ProjectDot, StatusIcon } from './bits';
@@ -28,7 +28,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
   const cls = [
     'card', selected && 'selected', picked && 'picked', task.status === 'done' && 'done', task.struck && 'struck', completing && 'completing', dragging && 'dragging',
   ].filter(Boolean).join(' ');
-  // Clicking a task does nothing: hovering its text opens the popup. Bulk-select still picks cards.
+  // Clicking a task does nothing; its popup opens from the task menu's Edit or Enter. Bulk-select still picks cards.
   return (
     <div
       className={cls}
@@ -54,8 +54,6 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
             <span
               className={`task-title-text ${textStyleProps(task.textStyle, task.struck).className}`}
               style={textStyleProps(task.textStyle, task.struck).style}
-              onMouseEnter={() => hoverTask(task.id)}
-              onMouseLeave={leaveTask}
             >{task.title || 'Untitled'}</span>
           </span>
           <TaskProgress task={task} kids={kids} />
@@ -108,7 +106,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
 
 function HeadingAddField({ task }) {
   const open = useShowChildAdd(task.id);
-  return <AddChildTask parent={task} open={open} />;
+  return <AddChildTask parent={task} open={open} placeholder="Sub-task · Tab to nest" />;
 }
 
 export function Board({ model }) {
@@ -149,8 +147,8 @@ export function Board({ model }) {
                 <button
                   type="button"
                   className="icon-btn sm column-major-add"
-                  aria-label="Add another major task"
-                  onClick={() => openNewTask({ ...model.newTaskDefaults, isHeading: true })}
+                  aria-label={`Add sub-task to ${col.title}`}
+                  onClick={() => setChildTasksOpen(col.headingTask.id, true)}
                 >
                   <Plus size={15} />
                 </button>
@@ -164,7 +162,6 @@ export function Board({ model }) {
               <span
                 className={`group-title${col.heading && col.headingTask.status === 'done' ? ' done' : ''}${col.heading && col.headingTask.struck ? ' struck' : ''} ${textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).className}`}
                 style={textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).style}
-                {...(col.heading ? { onMouseEnter: () => hoverTask(col.headingTask.id), onMouseLeave: leaveTask } : {})}
               >{col.title}</span>
               {(col.count ?? col.tasks.length) > 0 && <span className="group-count">{col.count ?? col.tasks.length}</span>}
               {col.heading && (col.headingTask.dueDate

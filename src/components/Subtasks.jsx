@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { addNestedSubtask, addSubtaskAfter, hoverTask, leaveTask, removeSubtask, subtaskKey, toggleSelected, updateSubtask, useUI } from '../store';
+import { addNestedSubtask, addSubtaskAfter, removeSubtask, subtaskKey, toggleSelected, updateSubtask, useUI } from '../store';
 import { Checkbox } from './bits';
 import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
@@ -52,9 +52,8 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
     requestAnimationFrame(() => requestAnimationFrame(() => { suppressEmptyDelete.current = false; }));
   };
 
-  // Inside the popup a row is being edited there, so it neither anchors nor opens another popup.
+  // Inside the popup a row is being edited there, so it doesn't anchor a popup of its own.
   const anchorProps = inPopup ? {} : { 'data-sub-row': '', 'data-sub-id': subtask.id };
-  const hoverProps = inPopup ? {} : { onMouseEnter: () => hoverTask(task.id, subtask.id), onMouseLeave: leaveTask };
 
   return (
     <>
@@ -88,7 +87,6 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         spellCheck
         readOnly={selecting}
         placeholder="Subtask"
-        {...hoverProps}
         onChange={(e) => updateSubtask(task.id, subtask.id, { title: e.target.value })}
         onKeyDown={(e) => {
           if (e.nativeEvent.isComposing) return;

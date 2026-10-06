@@ -1,67 +1,19 @@
 import { CalendarDays } from 'lucide-react';
-import { clearPreviewTimers, closeMenu, hidePreview, openMenu, ui } from '../store';
+import { openMenu } from '../store';
 import { dueLabel } from '../lib/dates';
 import { DatePicker } from './DatePicker';
 import { rectOf } from './MenuLayer';
 
-// Hovering the calendar (or a date) opens just the calendar, never the task
-// overview. Clicking it keeps the calendar open until you click elsewhere.
-let hoverTimer = null;
-let closeTimer = null;
-let openKey = null;
-let pinned = false;
-
-const isOpen = () => openKey !== null && ui.get().menu?.key === openKey;
-
-function scheduleClose() {
-  clearTimeout(closeTimer);
-  closeTimer = setTimeout(() => {
-    if (pinned || !isOpen()) return;
-    closeMenu();
-  }, 250);
-}
-
-function openPicker(el, value, onChange, pin) {
-  clearTimeout(closeTimer);
-  const key = `due-${Date.now()}`;
-  openKey = key;
-  pinned = pin;
-  openMenu({
-    key,
-    kind: 'popover',
-    rect: rectOf(el),
-    autoFocus: pin,
-    render: (close) => (
-      <div onMouseEnter={() => clearTimeout(closeTimer)} onMouseLeave={scheduleClose}>
-        <DatePicker value={value} onChange={onChange} onClose={close} />
-      </div>
-    ),
-  });
-}
-
+// Clicking the calendar (or a date) opens the calendar; it stays until you pick or click elsewhere.
 function pickerProps(value, onChange) {
   return {
     onClick: (e) => {
       e.stopPropagation();
-      clearTimeout(hoverTimer);
-      if (isOpen()) pinned = true;
-      else openPicker(e.currentTarget, value, onChange, true);
-    },
-    onMouseEnter: (e) => {
-      const el = e.currentTarget;
-      clearTimeout(closeTimer);
-      // On the page the calendar replaces the task popup; inside the popup it opens over it.
-      if (!el.closest('.preview')) {
-        clearPreviewTimers();
-        hidePreview();
-      }
-      if (isOpen()) return;
-      clearTimeout(hoverTimer);
-      hoverTimer = setTimeout(() => openPicker(el, value, onChange, false), 120);
-    },
-    onMouseLeave: () => {
-      clearTimeout(hoverTimer);
-      scheduleClose();
+      openMenu({
+        kind: 'popover',
+        rect: rectOf(e.currentTarget),
+        render: (close) => <DatePicker value={value} onChange={onChange} onClose={close} />,
+      });
     },
   };
 }

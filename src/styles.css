@@ -1283,6 +1283,14 @@ kbd {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* The "+" ending the row: a new major task, since the page's "+" adds sub-tasks. */
+.major-chip-add {
+  width: 28px;
+  padding: 0;
+  justify-content: center;
+  background: transparent;
+  box-shadow: 0 0 0 1px var(--border) inset;
+}
 /* ==========================================================================
    Task list
    ========================================================================== */

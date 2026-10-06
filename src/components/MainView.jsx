@@ -13,6 +13,7 @@ import { TrashView } from './TrashView';
 import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
 import { flattenChecklist } from '../lib/checklist';
+import { activeMajorId, pageNewTaskDefaults } from '../lib/views';
 
 const VIEW_ICONS = { inbox: Inbox, today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck, trash: Trash2 };
 
@@ -131,14 +132,15 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
   const majorFilter = useUI((u) => u.majorFilter);
   // A project with major tasks always shows exactly one of them: the picked
   // chip, or the first major task when nothing (or a deleted one) is picked.
-  const activeMajor = model.majorTasks.some((t) => t.id === majorFilter) ? majorFilter : model.majorTasks[0]?.id ?? null;
+  const activeMajor = activeMajorId(model, majorFilter);
 
   const filteredModel = useMemo(
     () => applyStatsFilter(activeMajor ? applyMajorFilter(model, activeMajor) : model, statsFilter),
     [model, statsFilter, activeMajor],
   );
 
-  const newTask = () => openNewTask(model.newTaskDefaults);
+  // With a major task showing, "+" adds a sub-task under it, not another major task.
+  const newTask = () => openNewTask(pageNewTaskDefaults(model, majorFilter));
   const isBoard = model.mode === 'board';
   const isTrash = model.kind === 'trash';
   const setMode = (mode) => (model.project ? setProjectMode(model.project.id, mode) : setSectionMode(model.id, mode));
@@ -234,7 +236,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
                 type="button"
                 className="icon-btn page-add"
                 onClick={newTask}
-                aria-label="New task"
+                aria-label={activeMajor ? 'New sub-task' : 'New task'}
               >
                 <Plus size={17} strokeWidth={2.2} />
               </button>}
@@ -256,7 +258,13 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
             </div>
           )}
           <SectionStats stats={model.stats} />
-          {!isTrash && <MajorFilter majors={model.majorTasks} active={activeMajor} />}
+          {!isTrash && (
+            <MajorFilter
+              majors={model.majorTasks}
+              active={activeMajor}
+              onAdd={() => openNewTask({ ...model.newTaskDefaults, isHeading: true })}
+            />
+          )}
           {isTrash ? <TrashView /> : isBoard ? <Board model={filteredModel} /> : <TaskList model={filteredModel} />}
         </div>
       </div>

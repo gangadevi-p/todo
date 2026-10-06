@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { CalendarDays, GripVertical, Trash2 } from 'lucide-react';
-import { deleteTask, hoverTask, leaveTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
+import { deleteTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
 import { dueLabel, formatTimestamp } from '../lib/dates';
 import { endDrag, startTaskDrag } from '../lib/dnd';
 import { Checkbox, PriorityIcon } from './bits';
@@ -90,7 +90,7 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
     fresh && 'fresh',
   ].filter(Boolean).join(' ');
 
-  // Clicking a task does nothing: hovering its text opens the popup. Bulk-select still picks rows.
+  // Clicking a task does nothing; its popup opens from the task menu's Edit or Enter. Bulk-select still picks rows.
   return (
     <>
       <div
@@ -128,8 +128,6 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
             <span
               className={`task-title-text ${textStyleProps(task.textStyle, task.struck).className}`}
               style={textStyleProps(task.textStyle, task.struck).style}
-              onMouseEnter={() => hoverTask(task.id)}
-              onMouseLeave={leaveTask}
             >{task.title || 'Untitled'}</span>
           </span>
           <TaskProgress task={task} kids={kids} />
