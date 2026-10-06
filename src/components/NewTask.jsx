@@ -1,7 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CalendarDays, ChevronDown, Inbox, Minus, Plus, TriangleAlert, X } from 'lucide-react';
 import {
-  closePopup, createTask, openMenu, revealTask, selectTask, setMajorFilter, toast, useData,
+  closePopup, createTask, openMenu, selectTask, setMajorFilter, useData,
 } from '../store';
 import { addDays, dueLabelLong, nextWeekday, todayKey } from '../lib/dates';
 import { PRIORITIES, STATUSES, uid } from '../lib/util';
@@ -79,7 +79,6 @@ export function NewTaskForm({ defaults }) {
     // A new major task becomes the one shown, or the major filter would hide it.
     if (defaults.isHeading) setMajorFilter(id);
     selectTask(id, false);
-    toast(`Added to ${project ? project.name : 'Inbox'}`, { label: 'View', run: () => revealTask(id) });
   };
 
   const pickProject = (e) =>

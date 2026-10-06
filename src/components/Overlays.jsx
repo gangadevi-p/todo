@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronRight, CornerDownLeft, Inbox, Search } from 'lucide-react';
 import {
-  closeConfirm, closeSearch, dismissToast, revealTask, runToastAction, setHelp,
+  closeConfirm, closeSearch, revealTask, setHelp,
   useData, useUI,
 } from '../store';
 import { Kbd, ProjectDot, StatusIcon } from './bits';
@@ -228,28 +228,5 @@ export function ConfirmDialog() {
         </div>
       </div>
     </Modal>
-  );
-}
-
-// Toasts ---------------------------------------------------------------------------------
-
-export function Toasts() {
-  const toasts = useUI((u) => u.toasts);
-  return (
-    <div className="toasts" aria-live="polite">
-      {toasts.map((t) => (
-        <div key={t.id} className="toast">
-          <span className="toast-msg">{t.message}</span>
-          {t.action && (
-            <button type="button" className="toast-action" onClick={() => runToastAction(t)}>
-              {t.action.label}
-            </button>
-          )}
-          <button type="button" className="toast-close" aria-label="Dismiss" onClick={() => dismissToast(t.id)}>
-            ×
-          </button>
-        </div>
-      ))}
-    </div>
   );
 }

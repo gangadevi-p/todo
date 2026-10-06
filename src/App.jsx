@@ -10,7 +10,7 @@ import { useIsMobile } from './lib/useViewport';
 import { Sidebar } from './components/Sidebar';
 import { MainView } from './components/MainView';
 import { MenuLayer } from './components/MenuLayer';
-import { ConfirmDialog, SearchPalette, ShortcutsHelp, Toasts } from './components/Overlays';
+import { ConfirmDialog, SearchPalette, ShortcutsHelp } from './components/Overlays';
 import { TaskPreview } from './components/TaskPreview';
 import { PopupHost } from './components/Popups';
 
@@ -204,7 +204,6 @@ export default function App() {
         <ConfirmDialog />
         <TaskPreview />
         <MenuLayer />
-        <Toasts />
       </div>
     </TodayContext.Provider>
   );

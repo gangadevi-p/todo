@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import { seedData, defaultPrefs, DEMO_VERSION, DEMO_NAME } from './seed';
-import { plural, uid, PROJECT_COLORS } from './lib/util';
+import { uid, PROJECT_COLORS } from './lib/util';
 import { normalizeTextStyle } from './lib/textStyle';
 
 // ---------------------------------------------------------------------------
@@ -34,7 +34,6 @@ export const ui = createStore({
   help: false,
   menu: null, // { kind: 'menu' | 'popover', x, y, items | render }
   confirm: null,
-  toasts: [],
   editingProjectId: null,
   draggingId: null,
   focusTitle: null, // { id, subId?, at } asks the task popup to focus its title
@@ -331,14 +330,9 @@ export function toggleToday(id) {
 }
 
 export function deleteTask(id) {
-  const task = findTask(id);
-  if (!task) return;
-  const { removed, batchId } = moveTasksToTrash([id]);
-  const extra = removed.length - 1;
-  toast(`Moved “${truncate(task.title, 32)}”${extra ? ` and ${plural(extra, 'sub-task')}` : ''} to Trash`, {
-    label: 'Undo · Ctrl+Z',
-    run: () => restoreTrashBatch(batchId),
-  }, 8000);
+  if (!findTask(id)) return;
+  const { batchId } = moveTasksToTrash([id]);
+  rememberUndo(() => restoreTrashBatch(batchId));
 }
 
 export function duplicateTask(id) {
@@ -522,9 +516,7 @@ export function removeSubtask(taskId, subId) {
   if (!found) return;
   const { item: removed, index, parentId } = found;
   patchSubtasks(taskId, (list) => removeChecklistItem(list, subId).list);
-  toast(`Deleted checklist item “${truncate(removed.title || 'Untitled', 28)}”`, {
-    label: 'Undo · Ctrl+Z', run: () => patchSubtasks(taskId, (list) => restoreChecklistItem(list, parentId, removed, index)),
-  }, 8000);
+  rememberUndo(() => patchSubtasks(taskId, (list) => restoreChecklistItem(list, parentId, removed, index)));
 }
 
 // ---------------------------------------------------------------------------
@@ -679,7 +671,6 @@ export function restoreTrashBatch(batchId) {
       trash: s.trash.filter((t) => t.trashBatchId !== batchId),
     };
   });
-  toast('Restored from Trash');
 }
 
 export function permanentlyDeleteTrashBatch(batchId) {
@@ -710,20 +701,13 @@ export function confirmEmptyTrash() {
 export function deleteTasks(ids) {
   const { removed, batchId } = moveTasksToTrash(ids);
   if (!removed.length) return;
-  toast(
-    `Moved ${removed.length} task${removed.length === 1 ? '' : 's'} to Trash`,
-    { label: 'Undo · Ctrl+Z', run: () => restoreTrashBatch(batchId) },
-    8000,
-  );
+  rememberUndo(() => restoreTrashBatch(batchId));
 }
 
 /** Asks "Are you sure?" before clearing a page, since it removes many tasks in one go. */
 export function confirmDeleteTasks(ids, scope, note = '') {
   const n = ids.length;
-  if (!n) {
-    toast(`There are no tasks in ${scope} to delete`);
-    return;
-  }
+  if (!n) return;
   askConfirm({
     title: 'Are you sure?',
     body: `This will delete all ${n} task${n === 1 ? '' : 's'} in ${scope}.${note} You can undo with Ctrl+Z or from Trash.`,
@@ -749,17 +733,11 @@ export function deleteProject(id) {
     tasks: s.tasks.map((t) => (t.projectId === id ? { ...t, projectId: null } : t)),
   }));
   if (ui.get().view === `project:${id}`) navigate('inbox');
-  toast(`Deleted project “${truncate(project.name, 32)}”`, {
-    label: 'Undo · Ctrl+Z',
-    run: () => {
-      commit((s) => ({
-        ...s,
-        projects: s.projects.some((p) => p.id === project.id) ? s.projects : [...s.projects, project],
-        tasks: s.tasks.map((t) => (taskIds.has(t.id) ? { ...t, projectId: project.id } : t)),
-      }));
-      toast(`Restored project “${truncate(project.name, 32)}”`);
-    },
-  }, 8000);
+  rememberUndo(() => commit((s) => ({
+    ...s,
+    projects: s.projects.some((p) => p.id === project.id) ? s.projects : [...s.projects, project],
+    tasks: s.tasks.map((t) => (taskIds.has(t.id) ? { ...t, projectId: project.id } : t)),
+  })));
 }
 
 export function placeProject(id, prevId, nextId) {
@@ -898,33 +876,21 @@ export function revealTask(id) {
   openEditor(id);
 }
 
-// Toasts ---------------------------------------------------------------------
+// Undo -----------------------------------------------------------------------
+// The last delete can be undone with Ctrl/⌘ Z. Nothing pops up to announce
+// adding, deleting or restoring: the change itself shows on the page.
 
 let lastUndo = null;
 
-export function toast(message, action, ms = 4500) {
-  const id = uid();
-  ui.set((u) => ({ ...u, toasts: [...u.toasts.slice(-2), { id, message, action }] }));
-  if (action?.label?.startsWith('Undo')) lastUndo = { id, run: action.run };
-  setTimeout(() => dismissToast(id), ms);
-}
-
-export function dismissToast(id) {
-  ui.set((u) => ({ ...u, toasts: u.toasts.filter((t) => t.id !== id) }));
-}
-
-export function runToastAction(t) {
-  t.action?.run();
-  if (lastUndo?.id === t.id) lastUndo = null;
-  ui.set((u) => ({ ...u, toasts: u.toasts.filter((x) => x.id !== t.id) }));
+function rememberUndo(run) {
+  lastUndo = run;
 }
 
 export function undoLast() {
   if (!lastUndo) return false;
-  const { id, run } = lastUndo;
+  const run = lastUndo;
   lastUndo = null;
   run();
-  ui.set((u) => ({ ...u, toasts: u.toasts.filter((x) => x.id !== id) }));
   return true;
 }
 

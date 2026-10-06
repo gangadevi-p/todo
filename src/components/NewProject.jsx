@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Check, TriangleAlert } from 'lucide-react';
-import { closePopup, createProject, navigate, nextProjectColor, nextProjectOrder, toast, useData } from '../store';
+import { closePopup, createProject, navigate, nextProjectColor, nextProjectOrder, useData } from '../store';
 import { PROJECT_COLORS, uid } from '../lib/util';
 import { ProjectDot } from './bits';
 import { F, Field, Popup, ReadOnly } from './Popup';
@@ -31,7 +31,6 @@ export function NewProjectForm() {
     createProject({ id, name: clean, color, order: order.trim() !== '' && Number.isFinite(position) ? position : undefined });
     closePopup();
     navigate(`project:${id}`);
-    toast(`Created project “${clean}”`);
   };
 
   const side = (

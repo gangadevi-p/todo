@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import {
   askConfirm, closeMobileNav, confirmDeleteAll, exportData, flushSave, getSpace, importData, deleteProject, findTask, navigate, openMenu, openNewProject, openSearch, placeProject, renameProject,
-  setEditingProject, setHelp, setPref, toast, updateTask, useData, useUI,
+  setEditingProject, setHelp, setPref, updateTask, useData, useUI,
 } from '../store';
 import { DEMO_NAME } from '../seed';
 import { authEnabled, leaveSpace, publicWeb } from '../lib/auth';
@@ -17,11 +17,11 @@ import { Kbd, ProjectDot, ProjectRing } from './bits';
 import { rectOf } from './MenuLayer';
 
 const NAV = [
-  { id: 'inbox', label: 'Inbox', icon: Inbox, drop: (t) => ({ projectId: null }), dropMsg: 'Moved to Inbox' },
-  { id: 'today', label: 'Today', icon: Sun, drop: () => ({ addedToToday: true }), dropMsg: 'Added to Today' },
+  { id: 'inbox', label: 'Inbox', icon: Inbox, drop: (t) => ({ projectId: null }) },
+  { id: 'today', label: 'Today', icon: Sun, drop: () => ({ addedToToday: true }) },
   { id: 'upcoming', label: 'Upcoming', icon: CalendarDays },
   { id: 'all', label: 'All Tasks', icon: Layers },
-  { id: 'completed', label: 'Completed', icon: CircleCheck, drop: () => ({ status: 'done' }), dropMsg: 'Marked complete' },
+  { id: 'completed', label: 'Completed', icon: CircleCheck, drop: () => ({ status: 'done' }) },
   { id: 'trash', label: 'Trash', icon: Trash2 },
 ];
 
@@ -55,7 +55,7 @@ function NameInput({ initial = '', placeholder, onSubmit, onCancel }) {
 }
 
 /** Makes a sidebar item accept dropped tasks. */
-function useTaskTarget(patchFor, message) {
+function useTaskTarget(patchFor) {
   const [over, setOver] = useState(false);
   if (!patchFor) return [false, {}];
   return [
@@ -75,10 +75,7 @@ function useTaskTarget(patchFor, message) {
         if (drag.type !== 'task') return;
         e.preventDefault();
         const task = findTask(drag.id);
-        if (task) {
-          updateTask(task.id, patchFor(task));
-          if (message) toast(message);
-        }
+        if (task) updateTask(task.id, patchFor(task));
         endDrag();
       },
     },
@@ -86,7 +83,7 @@ function useTaskTarget(patchFor, message) {
 }
 
 function NavItem({ item, active, count }) {
-  const [over, dropProps] = useTaskTarget(item.drop, item.dropMsg);
+  const [over, dropProps] = useTaskTarget(item.drop);
   return (
     <button
       type="button"
@@ -201,12 +198,15 @@ export function Sidebar({ view, isMobile = false }) {
     if (!file) return;
     let obj = null;
     try { obj = JSON.parse(await file.text()); } catch {}
-    if (!obj || !Array.isArray(obj.tasks)) { toast('That file isn’t an exported data file'); return; }
+    if (!obj || !Array.isArray(obj.tasks)) {
+      askConfirm({ title: 'Can’t import this file', body: 'That file isn’t an exported data file.', confirmLabel: 'OK', onConfirm: () => {} });
+      return;
+    }
     askConfirm({
       title: 'Import data?',
       body: `This replaces everything in this space with the ${obj.tasks.length} task${obj.tasks.length === 1 ? '' : 's'} in the file. This cannot be undone.`,
       confirmLabel: 'Import',
-      onConfirm: () => { importData(obj); navigate('today'); toast('Data imported'); },
+      onConfirm: () => { importData(obj); navigate('today'); },
     });
   };
 
