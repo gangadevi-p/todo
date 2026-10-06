@@ -366,10 +366,14 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       } else {
         model.groups = statusGroups;
       }
-      // Only real major tasks (marked as one, or holding child tasks) become
-      // filters under the overview — not every plain task or checklist item.
+      // Only real major tasks become filters under the overview — not every
+      // plain task: one marked as major, holding child tasks, or broken down
+      // into several checklist items / a checklist with items of its own.
       const majorTasks = own
-        .filter((t) => t.isHeading || allTasks.some((c) => c.parentId === t.id))
+        .filter((t) => t.isHeading
+          || allTasks.some((c) => c.parentId === t.id)
+          || t.subtasks.length > 1
+          || t.subtasks.some((s) => s.subtasks?.length))
         .sort(byOrder);
       model.majorTasks = majorTasks.length > 1 ? majorTasks : [];
       model.total = own.length;
