@@ -33,7 +33,7 @@ function visibleItems(items, completedOnly, todoOnly) {
   return items;
 }
 
-function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = false, todoOnly = false, inPopup = false }) {
+function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = false, todoOnly = false, inPopup = false, laneHead = false }) {
   const selecting = useUI((u) => u.selecting);
   const today = useToday();
   const key = subtaskKey(task.id, subtask.id);
@@ -52,6 +52,9 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
     requestAnimationFrame(() => requestAnimationFrame(() => { suppressEmptyDelete.current = false; }));
   };
 
+  // On the board, the "+" of a box's first row adds to that box; new boxes come from the major task's "+".
+  const addFromIcon = laneHead ? addNested : addSibling;
+
   // Inside the popup a row is being edited there, so it doesn't anchor a popup of its own.
   const anchorProps = inPopup ? {} : { 'data-sub-row': '', 'data-sub-id': subtask.id };
 
@@ -64,7 +67,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         onClick={selecting ? () => toggleSelected(key) : undefined}
       >
       {!selecting && (
-        <button type="button" className="sub-add-left" aria-label={depth ? 'Add another nested task' : 'Add another sub-task'} onClick={addSibling}>
+        <button type="button" className="sub-add-left" aria-label={laneHead ? 'Add a sub-task in this box' : depth ? 'Add another nested task' : 'Add another sub-task'} onClick={addFromIcon}>
           <Plus size={12} strokeWidth={2.2} />
         </button>
       )}
@@ -160,7 +163,7 @@ export function SubtaskTree({ task, items = task.subtasks, variant = 'row', comp
       onDoubleClick={(e) => e.stopPropagation()}
     >
       {visibleItems(items, completedOnly, todoOnly).map((st, i) => {
-        const row = <SubtaskRow key={st.id} task={task} subtask={st} index={i} focus={focus} completedOnly={completedOnly} todoOnly={todoOnly} inPopup={inPopup} />;
+        const row = <SubtaskRow key={st.id} task={task} subtask={st} index={i} focus={focus} completedOnly={completedOnly} todoOnly={todoOnly} inPopup={inPopup} laneHead={variant === 'board'} />;
         // On the board each top-level item gets its own lane, its nested items stacked beneath it.
         return variant === 'board' ? <div key={st.id} className="sub-lane">{row}</div> : row;
       })}
