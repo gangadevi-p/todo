@@ -161,6 +161,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
     emptyText: '',
     total: 0,
     stats: null,
+    majorTasks: [],
     taskIdsOverride: null,
   };
 
@@ -365,6 +366,12 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       } else {
         model.groups = statusGroups;
       }
+      // Only real major tasks (marked as one, or holding child tasks) become
+      // filters under the overview — not every plain task or checklist item.
+      const majorTasks = own
+        .filter((t) => t.isHeading || allTasks.some((c) => c.parentId === t.id))
+        .sort(byOrder);
+      model.majorTasks = majorTasks.length > 1 ? majorTasks : [];
       model.total = own.length;
       break;
     }

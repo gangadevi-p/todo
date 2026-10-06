@@ -6,6 +6,7 @@ import {
 } from '../store';
 import { Board } from './Board';
 import { Kbd, ProjectDot } from './bits';
+import { MajorFilter } from './MajorFilter';
 import { SectionStats } from './SectionStats';
 import { TaskList } from './TaskList';
 import { TrashView } from './TrashView';
@@ -60,6 +61,16 @@ function applyStatsFilter(model, filter) {
   ]);
   const total = groups.reduce((count, g) => count + (g.headingVisible ? 1 : 0) + g.tasks.length + (g.completedChecklistParents || []).length, 0);
   return { ...model, groups, taskIds, total, emptyText: total === 0 ? FILTER_EMPTY_TEXT[filter] : model.emptyText };
+}
+
+/** Narrows a project's groups down to a single major task (and everything nested under it). */
+function applyMajorFilter(model, majorId) {
+  const groups = model.groups.map((g) => ({
+    ...g,
+    tasks: g.heading ? g.tasks : g.tasks.filter((t) => t.id === majorId),
+    completedChecklistParents: (g.completedChecklistParents || []).filter((t) => t.id === majorId),
+  })).filter((g) => !g.heading || g.headingTask.id === majorId);
+  return { ...model, groups };
 }
 
 function ViewIcon({ model, size = 15 }) {
@@ -117,7 +128,15 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
     setScrolled(false);
   }, [view]);
 
-  const filteredModel = useMemo(() => applyStatsFilter(model, statsFilter), [model, statsFilter]);
+  const majorFilter = useUI((u) => u.majorFilter);
+  // A project with major tasks always shows exactly one of them: the picked
+  // chip, or the first major task when nothing (or a deleted one) is picked.
+  const activeMajor = model.majorTasks.some((t) => t.id === majorFilter) ? majorFilter : model.majorTasks[0]?.id ?? null;
+
+  const filteredModel = useMemo(
+    () => applyStatsFilter(activeMajor ? applyMajorFilter(model, activeMajor) : model, statsFilter),
+    [model, statsFilter, activeMajor],
+  );
 
   const newTask = () => openNewTask(model.newTaskDefaults);
   const isBoard = model.mode === 'board';
@@ -237,6 +256,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
             </div>
           )}
           <SectionStats stats={model.stats} />
+          {!isTrash && <MajorFilter majors={model.majorTasks} active={activeMajor} />}
           {isTrash ? <TrashView /> : isBoard ? <Board model={filteredModel} /> : <TaskList model={filteredModel} />}
         </div>
       </div>

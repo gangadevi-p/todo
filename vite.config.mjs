@@ -16,6 +16,6 @@ const csp = {
 export default defineConfig({
   base: './',
   plugins: [react(), csp],
-  server: { port: 5183, strictPort: true },
+  server: { host: '127.0.0.1', port: 5183, strictPort: true },
   build: { outDir: 'dist', emptyOutDir: true, chunkSizeWarningLimit: 1500 },
 });

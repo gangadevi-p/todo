@@ -43,6 +43,7 @@ export const ui = createStore({
   selecting: false, // bulk-select mode: rows/subtasks pick instead of opening or toggling
   selected: new Set(), // keys from taskKey()/subtaskKey() picked while selecting
   statsFilter: 'todo', // 'todo' | 'done' — the active status tab for the current section
+  majorFilter: null, // id of the major task a project page shows; null means its first major task
   mobileNavOpen: false, // sidebar-as-drawer visibility on narrow screens; unrelated to prefs.sidebarCollapsed
 });
 
@@ -814,9 +815,14 @@ export function navigate(view) {
   clearPreviewTimers();
   patchUI({
     view, selectedId: null, menu: null, preview: null,
-    statsFilter: view === 'completed' ? 'done' : 'todo', mobileNavOpen: false,
+    statsFilter: view === 'completed' ? 'done' : 'todo', majorFilter: null, mobileNavOpen: false,
   });
   setPref('view', view);
+}
+
+/** Picks which major task a project page shows (`null` falls back to its first). */
+export function setMajorFilter(id) {
+  ui.set((u) => ({ ...u, majorFilter: id }));
 }
 
 /** The sidebar-as-drawer shown on narrow screens, independent of the desktop sidebarCollapsed pref. */
