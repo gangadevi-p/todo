@@ -35,9 +35,9 @@ function visibleItems(items, completedOnly, todoOnly) {
 
 /**
  * `levelId` is this row's ancestor at the sub-task level (the row itself when
- * it is a sub-task). A board box's first row (`laneHead`) is the box itself.
+ * it is a sub-task). Every sub-task sits at the same level; only Tab nests.
  */
-function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = false, todoOnly = false, inPopup = false, laneHead = false, levelId = subtask.id }) {
+function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = false, todoOnly = false, inPopup = false, levelId = subtask.id }) {
   const selecting = useUI((u) => u.selecting);
   const today = useToday();
   const key = subtaskKey(task.id, subtask.id);
@@ -56,11 +56,8 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
     requestAnimationFrame(() => requestAnimationFrame(() => { suppressEmptyDelete.current = false; }));
   };
 
-  // On the board, a box's first row adds into that box ("+" or Enter); new boxes come from the major task's "+".
-  const addNext = laneHead ? addNested : addSibling;
   // "+" only ever adds a sub-task, never a nested one: right after this row's sub-task. Only Tab nests.
   const addSubtaskHere = () => {
-    if (laneHead) return addNested();
     const id = addSubtaskAfter(task.id, levelId);
     if (id) focusSubtask(id);
   };
@@ -77,7 +74,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         onClick={selecting ? () => toggleSelected(key) : undefined}
       >
       {!selecting && (
-        <button type="button" className="sub-add-left" aria-label={laneHead ? 'Add a sub-task in this box' : 'Add a sub-task'} onClick={addSubtaskHere}>
+        <button type="button" className="sub-add-left" aria-label="Add a sub-task" onClick={addSubtaskHere}>
           <Plus size={12} strokeWidth={2.2} />
         </button>
       )}
@@ -105,7 +102,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
           if (e.nativeEvent.isComposing) return;
           if (e.key === 'Enter') {
             e.preventDefault();
-            if (subtask.title.trim()) addNext();
+            if (subtask.title.trim()) addSibling();
             else e.currentTarget.blur();
           } else if (e.key === 'Tab' && !e.shiftKey) {
             e.preventDefault();
@@ -147,7 +144,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
       )}
       </div>
       {visibleItems(subtask.subtasks || [], completedOnly, todoOnly).map((child, childIndex) => (
-        <SubtaskRow key={child.id} task={task} subtask={child} index={childIndex} focus={focus} depth={depth + 1} completedOnly={completedOnly} todoOnly={todoOnly} inPopup={inPopup} levelId={laneHead ? child.id : levelId} />
+        <SubtaskRow key={child.id} task={task} subtask={child} index={childIndex} focus={focus} depth={depth + 1} completedOnly={completedOnly} todoOnly={todoOnly} inPopup={inPopup} levelId={levelId} />
       ))}
     </>
   );
@@ -172,11 +169,10 @@ export function SubtaskTree({ task, items = task.subtasks, variant = 'row', comp
       onMouseDown={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
     >
-      {visibleItems(items, completedOnly, todoOnly).map((st, i) => {
-        const row = <SubtaskRow key={st.id} task={task} subtask={st} index={i} focus={focus} completedOnly={completedOnly} todoOnly={todoOnly} inPopup={inPopup} laneHead={variant === 'board'} />;
-        // On the board each top-level item gets its own lane, its nested items stacked beneath it.
-        return variant === 'board' ? <div key={st.id} className="sub-lane">{row}</div> : row;
-      })}
+      {/* Every sub-task is a row of the same list, in one column; nested items indent under their row. */}
+      {visibleItems(items, completedOnly, todoOnly).map((st, i) => (
+        <SubtaskRow key={st.id} task={task} subtask={st} index={i} focus={focus} completedOnly={completedOnly} todoOnly={todoOnly} inPopup={inPopup} />
+      ))}
     </div>
   );
 }

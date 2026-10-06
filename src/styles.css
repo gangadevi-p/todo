@@ -1775,7 +1775,6 @@ kbd {
   overflow: visible;
 }
 .column-lane .column-body > .card,
-.column-lane .sub-lane,
 .column-lane .column-body > .child-add-row,
 .column-lane .column-empty {
   width: auto;
@@ -1793,49 +1792,52 @@ kbd {
   padding-left: 16px;
   min-width: 0;
 }
-/* A major task with several sub-tasks: full row, sub-tasks as a wrapping grid. */
+/* A major task takes a full row. All its sub-tasks sit in one column beneath
+   it, first, second and third alike; nested items indent under their row. */
 .column-lane.column-wide {
   grid-column: 1 / -1;
 }
-.column-wide .column-body,
-.column-wide .subtasks-board {
-  display: grid;
-  /* Four major tasks per row; fewer only when the page is too narrow for 260px each, the least a title plus its date, colour and delete controls need. */
-  grid-template-columns: repeat(auto-fill, minmax(max(260px, calc((100% - 42px) / 4)), 1fr));
+.column-wide .column-body {
+  display: flex;
+  flex-direction: column;
   align-items: stretch;
-  gap: 8px;
-}
-.column-wide .column-checklist,
-.column-wide .column-body > .child-add-row,
-.column-wide .column-body > .drop-line,
-.column-wide .column-empty {
-  grid-column: 1 / -1;
+  max-width: 760px;
 }
 .column-wide .subtasks-board {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   padding-left: 0;
+}
+/* The checklist sub-tasks are rows of one filled box. */
+.column-wide .column-checklist {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  box-shadow: 0 1px 2px rgba(15, 15, 15, 0.035);
+  transition: border-color 0.1s;
+}
+.column-wide .column-checklist:hover {
+  border-color: var(--border-strong);
 }
 /* Major tasks keep their delete and colour controls in view instead of hover-only. */
 .column-lane .column-style,
-.column-lane .column-delete,
-.sub-lane > .sub-row:first-child .sub-del,
-.sub-lane > .sub-row:first-child .sub-style {
+.column-lane .column-delete {
   opacity: 0.7;
 }
 .column-lane .column-delete {
   flex: none;
   color: var(--text-3);
 }
-.column-lane .column-delete:hover,
-.sub-lane > .sub-row:first-child .sub-del:hover,
-.sub-lane > .sub-row:first-child .sub-style:hover {
+.column-lane .column-delete:hover {
   opacity: 1;
 }
 .column-lane .column-delete:hover {
   color: var(--danger);
 }
-/* Every major task is its own box: a compact heading, or one item inside a wide heading's grid. */
-.column-lane:not(.column-wide),
-.column-wide .sub-lane {
+/* A compact major task (no wide layout) is its own box. */
+.column-lane:not(.column-wide) {
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -1843,11 +1845,7 @@ kbd {
   box-shadow: 0 1px 2px rgba(15, 15, 15, 0.035);
   transition: border-color 0.1s, background 0.12s, box-shadow 0.12s;
 }
-.column-wide .sub-lane {
-  padding: 8px;
-}
-.column-lane:not(.column-wide):hover,
-.column-wide .sub-lane:hover {
+.column-lane:not(.column-wide):hover {
   border-color: var(--border-strong);
 }
 .column-lane:not(.column-wide).drop-active {
@@ -1860,12 +1858,6 @@ kbd {
   flex: none;
   top: auto;
   transform: none;
-}
-.column-wide .sub-lane > .sub-row:first-child .sub-add-left {
-  opacity: 0.7;
-}
-.column-wide .sub-lane > .sub-row:first-child .sub-add-left:hover {
-  opacity: 1;
 }
 .column-head .group-title.done {
   color: var(--text-3);
@@ -1894,7 +1886,7 @@ kbd {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent);
 }
-/* A sub-task directly under a wide major task is one box of its grid, filled like its checklist boxes. */
+/* A task sub-task directly under a wide major task is a filled box in its column, like the checklist box. */
 .column-wide .column-body > .card {
   padding: 8px;
   border: 1px solid var(--border);
@@ -1914,12 +1906,6 @@ kbd {
   min-height: 0;
   padding: 8px;
   max-width: 100%;
-}
-.sub-lane {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
 }
 .column-lane .column-body > .drop-line {
   align-self: stretch;
@@ -1951,7 +1937,6 @@ kbd {
     padding-left: 0;
   }
   .column-lane .column-body > .card,
-  .column-lane .sub-lane,
   .column-lane .column-body > .child-add-row,
   .column-lane .column-empty {
     width: auto;
@@ -3402,14 +3387,11 @@ mark {
 .strike-button:focus-visible {
   opacity: 1;
 }
-.column-lane .column-head :is(.due-button, .strike-button),
-.sub-lane > .sub-row:first-child :is(.due-button, .strike-button) {
+.column-lane .column-head :is(.due-button, .strike-button) {
   opacity: 0.7;
 }
 .column-lane .column-head :is(.due-button, .strike-button):hover,
-.column-lane .column-head .strike-button.on,
-.sub-lane > .sub-row:first-child :is(.due-button, .strike-button):hover,
-.sub-lane > .sub-row:first-child .strike-button.on {
+.column-lane .column-head .strike-button.on {
   opacity: 1;
 }
 .card-actions {
@@ -3476,7 +3458,6 @@ mark {
 
 /* Rule 5: below 352px inside a card or box (room for the title plus the longest date, "Tomorrow", and four controls), the chip keeps its icon and drops the date text. */
 .card,
-.sub-lane,
 .column-lane {
   container-type: inline-size;
 }
@@ -3529,13 +3510,11 @@ mark {
 .column-wide .column-head {
   margin-bottom: 20px;
 }
-.column-wide .column-body,
-.column-wide .subtasks-board {
-  gap: 16px;
-}
-.column-wide .sub-lane {
-  padding: 16px;
+.column-wide .column-body {
   gap: 12px;
+}
+.column-wide .subtasks-board {
+  gap: 2px;
 }
 .board-lanes {
   row-gap: 16px;
