@@ -2244,6 +2244,8 @@ kbd {
   max-width: none;
   height: 30px;
   padding: 0;
+  /* The popup title starts at about the size − / + start from, so the first step is a small, visible one. */
+  font-size: 15px;
   field-sizing: fixed;
   overflow: hidden;
   text-overflow: ellipsis;

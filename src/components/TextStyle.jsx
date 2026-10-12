@@ -14,7 +14,8 @@ function Toggle({ active, label, icon: Icon, onClick }) {
 
 const MIN_SIZE = 11;
 const MAX_SIZE = 32;
-const START_SIZE = 14;
+// Where − / + start from when no size is set: close to what titles are drawn at by default.
+const START_SIZE = 15;
 
 /**
  * Text size in px. The number is only applied once it is a whole size in range
