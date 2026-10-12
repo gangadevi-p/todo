@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import {
-  closeMobileNav, data, removeSubtask, requestDeleteTask, duplicateTask, hidePreview, navigate, openNewTask, openSearch, selectTask,
+  closeMobileNav, data, removeSubtask, requestDeleteTask, duplicateTask, hidePreview, navigate, openNewTask, openQA, openSearch, selectTask,
   setHelp, setPref, setSelecting, toggleComplete, toggleToday, ui, undoLast, updateTask, useData, useUI,
 } from './store';
 import { activeMajorId, buildView, NAV_VIEWS, shownMajors } from './lib/views';
@@ -14,6 +14,9 @@ import { MenuLayer } from './components/MenuLayer';
 import { ConfirmDialog, SearchPalette, ShortcutsHelp } from './components/Overlays';
 import { TaskPreview } from './components/TaskPreview';
 import { PopupHost } from './components/Popups';
+
+// A stable empty list, so a selector that falls back to it never changes between renders.
+const NO_QA = [];
 
 function scrollSelectedIntoView(id) {
   requestAnimationFrame(() => {
@@ -38,7 +41,7 @@ function handleKey(e, model) {
     if (key === 'k' || key === 'f') { e.preventDefault(); openSearch(); return; }
     if (key === '\\') { e.preventDefault(); setPref('sidebarCollapsed', !data.get().prefs.sidebarCollapsed); return; }
     const n = Number(key);
-    if (n >= 1 && n <= 5) { e.preventDefault(); navigate(NAV_VIEWS[n - 1]); return; }
+    if (n >= 1 && n <= NAV_VIEWS.length) { e.preventDefault(); navigate(NAV_VIEWS[n - 1]); return; }
   }
 
   if (u.menu || u.search || u.help || u.confirm) return;
@@ -122,6 +125,7 @@ function handleKey(e, model) {
       break;
     case 'n': {
       e.preventDefault();
+      if (model.kind === 'qa') { openQA(); break; }
       // Same as the page "+": a major task first, then a box under the one showing.
       addForPage(model, activeMajorId({ ...model, majorTasks: shownMajors(model, u.statsFilter) }, u.majorFilter));
       break;
@@ -139,6 +143,7 @@ export default function App() {
   const tasks = useData((s) => s.tasks);
   const trash = useData((s) => s.trash || []);
   const projects = useData((s) => s.projects);
+  const qa = useData((s) => s.qa || NO_QA);
   const prefs = useData((s) => s.prefs);
   const view = useUI((u) => u.view);
   const lingering = useUI((u) => u.lingering);
@@ -146,8 +151,8 @@ export default function App() {
   const platform = useUI((u) => u.platform);
 
   const model = useMemo(
-    () => buildView(view, { tasks, projects, trash, today, lingering, prefs }),
-    [view, tasks, trash, projects, today, lingering, prefs],
+    () => buildView(view, { tasks, projects, trash, qa, today, lingering, prefs }),
+    [view, tasks, trash, qa, projects, today, lingering, prefs],
   );
 
   // "system" leaves no attribute, so the OS-preference media query in CSS keeps driving it.

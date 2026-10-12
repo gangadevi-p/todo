@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, CalendarDays, CheckSquare, CircleCheck, Columns3, Layers, List, PanelLeftOpen, Plus, Sun, Trash2, X } from 'lucide-react';
 import {
-  confirmDeleteSelection, confirmDeleteTasks, getSpace, markSelectionDone, openEditProject, openMobileNav, openNewTask, parseSelectionKey, renameProject, setPref, setProjectMode,
+  Check, CalendarDays, CheckSquare, CircleCheck, Columns3, Layers, List, MessageCircleQuestion, PanelLeftOpen, Plus, Sun, Trash2, X,
+} from 'lucide-react';
+import {
+  confirmDeleteSelection, confirmDeleteTasks, getSpace, markSelectionDone, openEditProject, openMobileNav, openNewTask, openQA, parseSelectionKey, renameProject, setPref, setProjectMode,
   updateProject, setSectionMode, setSelecting, useUI,
 } from '../store';
 import { Board } from './Board';
 import { Kbd, ProjectDot } from './bits';
 import { MajorFilter } from './MajorFilter';
+import { QAView } from './QAView';
 import { SectionStats } from './SectionStats';
 import { TaskList, useProjectsById } from './TaskList';
 import { TrashView } from './TrashView';
@@ -15,7 +18,7 @@ import { textStyleProps } from '../lib/textStyle';
 import { activeMajorId, applyStatsFilter, shownMajors } from '../lib/views';
 import { addForPage, isMajorBoard } from '../lib/pageAdd';
 
-const VIEW_ICONS = { today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck, trash: Trash2 };
+const VIEW_ICONS = { today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck, trash: Trash2, qa: MessageCircleQuestion };
 
 /** Narrows a project's groups down to a single major task (and everything nested under it). */
 function applyMajorFilter(model, majorId) {
@@ -77,6 +80,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
   const newTask = () => addForPage(model, activeMajor);
   const isBoard = model.mode === 'board';
   const isTrash = model.kind === 'trash';
+  const isQA = model.kind === 'qa';
   const projectBoard = isMajorBoard(model);
   const projectsById = useProjectsById();
   const canAddMajor = projectBoard && model.kind !== 'completed';
@@ -111,7 +115,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
         <X size={14} strokeWidth={2} /> Cancel
       </button>
     </>
-  ) : isTrash ? null : (
+  ) : isTrash || isQA ? null : (
     <>
       <div className="segmented" role="tablist" aria-label="Layout">
         <button
@@ -183,8 +187,8 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
               {!isTrash && <button
                 type="button"
                 className="icon-btn page-add"
-                onClick={newTask}
-                aria-label={activeMajor ? 'New box' : canAddMajor ? 'New major task' : 'New task'}
+                onClick={isQA ? () => openQA() : newTask}
+                aria-label={isQA ? 'New question' : activeMajor ? 'New box' : canAddMajor ? 'New major task' : 'New task'}
               >
                 <Plus size={17} strokeWidth={2.2} />
               </button>}
@@ -203,7 +207,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
               <span>It starts empty. Anything added here stays only in this browser.</span>
             </div>
           )}
-          {!isTrash && (
+          {!isTrash && !isQA && (
             <MajorFilter
               majors={projectBoard ? chipModel.majorTasks : null}
               active={activeMajor}
@@ -211,7 +215,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
               projectsById={model.kind === 'all' ? projectsById : null}
             />
           )}
-          {isTrash ? <TrashView /> : noMajors ? (
+          {isTrash ? <TrashView /> : isQA ? <QAView /> : noMajors ? (
             <div className="major-empty">
               <p>Start with a major task: the big piece of work in this project. Boxes and sub-tasks go inside it.</p>
               <button type="button" className="btn" onClick={() => openNewTask({ ...model.newTaskDefaults, isHeading: true })}>

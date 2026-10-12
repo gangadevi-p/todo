@@ -7,7 +7,7 @@ const byCompletedDesc = (a, b) => (b.completedAt || 0) - (a.completedAt || 0);
 
 export const inToday = (t, today) => t.addedToToday || (!!t.dueDate && t.dueDate <= today);
 
-export const NAV_VIEWS = ['today', 'upcoming', 'all', 'completed', 'trash'];
+export const NAV_VIEWS = ['today', 'upcoming', 'all', 'completed', 'trash', 'qa'];
 
 /** Status columns for Board view, built from any flat task list. */
 function statusBoardGroups(list, statusOf, addDefaults) {
@@ -203,7 +203,7 @@ export function shownMajors(model, statsFilter) {
  * Turns the raw task list into what a view renders: titled groups of tasks,
  * each knowing how a dropped task should change and where new tasks go.
  */
-export function buildView(viewId, { tasks: allTasks, projects, trash = [], today, lingering, prefs }) {
+export function buildView(viewId, { tasks: allTasks, projects, trash = [], qa = [], today, lingering, prefs }) {
   // Sub-tasks (tasks nested under another task via parentId) only ever show
   // indented under their parent, wherever it appears — never as their own
   // top-level row, the same way a checklist item doesn't get one either.
@@ -378,6 +378,16 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       model.subtitle = trash.length ? `${plural(trash.length, 'task')} retained for 7 days` : 'Deleted tasks stay here for 7 days';
       model.emptyText = 'Trash is empty.';
       model.total = trash.length;
+      model.mode = 'list';
+      model.stats = null;
+      break;
+    }
+    case 'qa': {
+      const open = qa.filter((q) => !q.answer.trim()).length;
+      model.title = 'Q&A';
+      model.subtitle = !qa.length
+        ? 'Questions and answers to keep for the design'
+        : `${plural(qa.length, 'question')}${open ? ` · ${open} waiting for an answer` : ' · all answered'}`;
       model.mode = 'list';
       model.stats = null;
       break;

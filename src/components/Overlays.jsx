@@ -140,12 +140,12 @@ const SHORTCUTS = [
   ['Anywhere', [
     ['mod+N', 'New task (popup)'],
     ['mod+K', 'Search'],
-    ['mod+1 – 5', 'Today · Upcoming · All · Completed · Trash'],
+    ['mod+1 – 6', 'Today · Upcoming · All · Completed · Trash · Q&A'],
     ['mod+\\', 'Toggle sidebar'],
     ['?', 'Show shortcuts'],
   ]],
   ['Tasks', [
-    ['N', 'New task in this view (popup)'],
+    ['N', 'New task in this view (a new question on Q&A)'],
     ['↑ / ↓', 'Move selection'],
     ['Enter', 'Open the task popup'],
     ['Space', 'Complete / reopen'],

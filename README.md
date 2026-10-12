@@ -31,9 +31,9 @@ The sign-in is a screen lock for that browser, not an online account: only a sal
 | --- | --- |
 | `Ctrl/⌘ N` | New task popup (works anywhere) |
 | `Ctrl/⌘ K` | Search |
-| `Ctrl/⌘ 1–5` | Today · Upcoming · All Tasks · Completed · Trash |
+| `Ctrl/⌘ 1–6` | Today · Upcoming · All Tasks · Completed · Trash · Q&A |
 | `Ctrl/⌘ \` | Toggle sidebar |
-| `N` | New task for the current view (in a project's Board: a major task, then a box under the one showing) |
+| `N` | New task for the current view (in a project's Board: a major task, then a box under the one showing; on Q&A: a new question) |
 | `↑ ↓` or `J K` | Move the selection |
 | `Enter` | Open the task's editor |
 | `Space` | Complete or reopen |
@@ -60,6 +60,15 @@ On every Board page (Today, Upcoming, All Tasks, Completed and each project) the
 - The page **+** and **N** add a major task when the project has none, otherwise a box under the major task showing.
 - **Enter** on a sub-task adds the next one at the same level; **Tab** nests it under the item above.
 - Nothing opens on hover. Right-click a task (or use its ⋯ grip) and choose **Edit** to open its editor.
+
+## Q&A
+
+**Q&A** in the sidebar keeps the questions the design depends on, each with its answer.
+
+- The page **+** (or **N**) opens a popup. Only the question is required; leave the answer empty and add it later.
+- Click a question, or its pencil, to edit it. The trash icon deletes it (you can undo with `Ctrl/⌘ Z`).
+- A question without an answer has a dashed edge, and the number next to **Q&A** in the sidebar counts them.
+- Q&A is saved with the rest of your data, so **Export data** and **Import data** carry it too.
 
 ## Project layout
 

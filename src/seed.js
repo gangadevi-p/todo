@@ -6,7 +6,7 @@ export const DEMO_NAME = 'Demo Workspace';
 
 // The demo space starts empty: no sample projects or tasks.
 export function seedData() {
-  return { projects: [], tasks: [], trash: [], prefs: { ...defaultPrefs(), demoVersion: DEMO_VERSION } };
+  return { projects: [], tasks: [], trash: [], qa: [], prefs: { ...defaultPrefs(), demoVersion: DEMO_VERSION } };
 }
 
 export function defaultPrefs() {

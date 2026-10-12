@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import {
-  CalendarDays, CircleCheck, CircleHelp, Download, Ellipsis, Eraser, Inbox, Layers, Moon, PanelLeftClose, Pencil, Plus, Search, Sun, Trash2, Upload, UserRound,
+  CalendarDays, CircleCheck, CircleHelp, Download, Ellipsis, Eraser, Inbox, Layers, MessageCircleQuestion, Moon, PanelLeftClose, Pencil, Plus, Search, Sun, Trash2, Upload, UserRound,
 } from 'lucide-react';
 import {
   askConfirm, closeMobileNav, confirmDeleteAll, exportData, flushSave, getSpace, importData, deleteProject, findTask, navigate, openMenu, openNewProject, openSearch, placeProject, renameProject,
@@ -22,7 +22,10 @@ const NAV = [
   { id: 'all', label: 'All Tasks', icon: Layers },
   { id: 'completed', label: 'Completed', icon: CircleCheck, drop: () => ({ status: 'done' }) },
   { id: 'trash', label: 'Trash', icon: Trash2 },
+  { id: 'qa', label: 'Q&A', icon: MessageCircleQuestion, apart: true },
 ];
+
+const NO_QA = [];
 
 function NameInput({ initial = '', placeholder, onSubmit, onCancel }) {
   const [value, setValue] = useState(initial);
@@ -86,7 +89,7 @@ function NavItem({ item, active, count }) {
   return (
     <button
       type="button"
-      className={`nav-item${active ? ' active' : ''}${over ? ' drop-over' : ''}`}
+      className={`nav-item${active ? ' active' : ''}${over ? ' drop-over' : ''}${item.apart ? ' nav-apart' : ''}`}
       onClick={() => navigate(item.id)}
       {...dropProps}
     >
@@ -184,6 +187,7 @@ export function Sidebar({ view, isMobile = false }) {
   const tasks = useData((s) => s.tasks);
   const trash = useData((s) => s.trash || []);
   const projects = useData((s) => s.projects);
+  const qa = useData((s) => s.qa || NO_QA);
   const editingId = useUI((u) => u.editingProjectId);
   const theme = useData((s) => s.prefs.theme);
   const effectiveTheme = useEffectiveTheme(theme);
@@ -209,6 +213,8 @@ export function Sidebar({ view, isMobile = false }) {
     });
   };
 
+  // Questions still waiting for an answer: the Q&A badge.
+  const unanswered = useMemo(() => qa.filter((q) => !q.answer.trim()).length, [qa]);
   const sorted = useMemo(() => [...projects].sort((a, b) => a.order - b.order), [projects]);
   const counts = useMemo(() => {
     const c = { today: 0, projects: {} };
@@ -282,7 +288,7 @@ export function Sidebar({ view, isMobile = false }) {
               key={item.id}
               item={item}
               active={view === item.id}
-              count={item.id === 'today' ? counts.today : item.id === 'trash' ? trash.length : 0}
+              count={item.id === 'today' ? counts.today : item.id === 'trash' ? trash.length : item.id === 'qa' ? unanswered : 0}
             />
           ))}
         </div>

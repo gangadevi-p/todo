@@ -24,7 +24,7 @@ function createStore(initial) {
   };
 }
 
-export const data = createStore({ projects: [], tasks: [], trash: [], prefs: defaultPrefs() });
+export const data = createStore({ projects: [], tasks: [], trash: [], qa: [], prefs: defaultPrefs() });
 
 export const ui = createStore({
   platform: 'web',
@@ -65,8 +65,8 @@ export const TRASH_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 let saveTimer = null;
 
 function payload() {
-  const { projects, tasks, trash, prefs } = data.get();
-  return { version: 2, savedAt: Date.now(), projects, tasks, trash, prefs };
+  const { projects, tasks, trash, qa, prefs } = data.get();
+  return { version: 2, savedAt: Date.now(), projects, tasks, trash, qa, prefs };
 }
 
 function writeNow(sync) {
@@ -147,6 +147,17 @@ function normalizeTask(t, i) {
   };
 }
 
+function normalizeQA(q = {}) {
+  const createdAt = q.createdAt || Date.now();
+  return {
+    id: q.id || uid(),
+    question: typeof q.question === 'string' ? q.question : '',
+    answer: typeof q.answer === 'string' ? q.answer : '',
+    createdAt,
+    updatedAt: q.updatedAt || createdAt,
+  };
+}
+
 function normalize(raw) {
   const projects = (raw.projects || []).map((p, i) => ({
     id: p.id || uid(),
@@ -170,7 +181,8 @@ function normalize(raw) {
       trashBatchId: t.trashBatchId || t.id || uid(),
     }))
     .filter((t) => t.deletedAt > cutoff);
-  return { projects, tasks, trash, prefs: { ...defaultPrefs(), ...(raw.prefs || {}) } };
+  const qa = (raw.qa || []).map(normalizeQA).filter((q) => q.question.trim() || q.answer.trim());
+  return { projects, tasks, trash, qa, prefs: { ...defaultPrefs(), ...(raw.prefs || {}) } };
 }
 
 const APP_TITLE = typeof document !== 'undefined' ? document.title : '';
@@ -189,7 +201,7 @@ export async function loadData(which = 'owner') {
   }
   // Only the demo gets sample tasks; a brand-new personal space starts empty.
   // A demo saved from an older sample set is replaced with the current one.
-  const empty = { projects: [], tasks: [], trash: [], prefs: defaultPrefs() };
+  const empty = { projects: [], tasks: [], trash: [], qa: [], prefs: defaultPrefs() };
   const stale = space === 'demo' && raw?.prefs?.demoVersion !== DEMO_VERSION;
   const saved = raw && Array.isArray(raw.tasks) && !stale;
   const initial = saved ? normalize(raw) : space === 'demo' ? seedData() : empty;
@@ -825,6 +837,51 @@ export function placeProject(id, prevId, nextId) {
 }
 
 // ---------------------------------------------------------------------------
+// Q&A: questions noted for the designer, each with an answer (added now or later)
+// ---------------------------------------------------------------------------
+
+export const findQA = (id) => (data.get().qa || []).find((q) => q.id === id);
+
+export function addQA({ question, answer = '' }) {
+  const id = uid();
+  const t = now();
+  commit((s) => ({
+    ...s,
+    qa: [...(s.qa || []), { id, question: question.trim(), answer: answer.trim(), createdAt: t, updatedAt: t }],
+  }));
+  return id;
+}
+
+export function updateQA(id, { question, answer }) {
+  commit((s) => ({
+    ...s,
+    qa: (s.qa || []).map((q) => (q.id === id
+      ? { ...q, question: question.trim(), answer: answer.trim(), updatedAt: now() }
+      : q)),
+  }));
+}
+
+export function deleteQA(id) {
+  const item = findQA(id);
+  if (!item) return;
+  commit((s) => ({ ...s, qa: (s.qa || []).filter((q) => q.id !== id) }));
+  rememberUndo(() => commit((s) => ((s.qa || []).some((q) => q.id === id) ? s : { ...s, qa: [...(s.qa || []), item] })));
+}
+
+/** Asks before deleting a question, from its card or from its popup. */
+export function confirmDeleteQA(item) {
+  askConfirm({
+    title: 'Delete this question?',
+    body: `“${truncate(item.question || item.answer, 60)}” and its answer will be removed. You can undo right after with Ctrl+Z.`,
+    confirmLabel: 'Delete',
+    onConfirm: () => {
+      closePopup();
+      deleteQA(item.id);
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Preferences
 // ---------------------------------------------------------------------------
 
@@ -915,6 +972,7 @@ function openPopup(popup) {
 export const openNewTask = (defaults = {}) => openPopup({ kind: 'task', defaults });
 export const openNewProject = () => openPopup({ kind: 'project' });
 export const openEditProject = (projectId) => openPopup({ kind: 'editProject', projectId });
+export const openQA = (id = null) => openPopup({ kind: 'qa', id });
 export const closePopup = () => patchUI({ popup: null });
 
 export const openSearch = () => patchUI({ search: true, popup: null, help: false, menu: null, preview: null });
