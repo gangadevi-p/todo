@@ -8,13 +8,13 @@ import { Board } from './Board';
 import { Kbd, ProjectDot } from './bits';
 import { MajorFilter } from './MajorFilter';
 import { SectionStats } from './SectionStats';
-import { TaskList } from './TaskList';
+import { TaskList, useProjectsById } from './TaskList';
 import { TrashView } from './TrashView';
 import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
 import { flattenChecklist } from '../lib/checklist';
 import { activeMajorId } from '../lib/views';
-import { addForPage, isProjectBoard } from '../lib/pageAdd';
+import { addForPage, isMajorBoard } from '../lib/pageAdd';
 
 const VIEW_ICONS = { today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck, trash: Trash2 };
 
@@ -144,8 +144,10 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
   const newTask = () => addForPage(model, activeMajor);
   const isBoard = model.mode === 'board';
   const isTrash = model.kind === 'trash';
-  const projectBoard = isProjectBoard(model);
-  const noMajors = projectBoard && model.majorTasks.length === 0;
+  const projectBoard = isMajorBoard(model);
+  const projectsById = useProjectsById();
+  const canAddMajor = projectBoard && model.kind !== 'completed';
+  const noMajors = canAddMajor && model.majorTasks.length === 0;
   const setMode = (mode) => (model.project ? setProjectMode(model.project.id, mode) : setSectionMode(model.id, mode));
   const selecting = useUI((u) => u.selecting);
   const selected = useUI((u) => u.selected);
@@ -247,7 +249,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
                 type="button"
                 className="icon-btn page-add"
                 onClick={newTask}
-                aria-label={activeMajor ? 'New box' : projectBoard ? 'New major task' : 'New task'}
+                aria-label={activeMajor ? 'New box' : canAddMajor ? 'New major task' : 'New task'}
               >
                 <Plus size={17} strokeWidth={2.2} />
               </button>}
@@ -270,7 +272,8 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
             <MajorFilter
               majors={projectBoard ? model.majorTasks : null}
               active={activeMajor}
-              onAdd={() => openNewTask({ ...model.newTaskDefaults, isHeading: true })}
+              onAdd={canAddMajor ? () => openNewTask({ ...model.newTaskDefaults, isHeading: true }) : undefined}
+              projectsById={model.kind === 'all' ? projectsById : null}
             />
           )}
           {isTrash ? <TrashView /> : noMajors ? (

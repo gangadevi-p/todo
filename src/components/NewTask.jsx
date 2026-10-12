@@ -24,7 +24,7 @@ export function NewTaskForm({ defaults }) {
   // A sub-task lives in its parent's project, so that can't be picked here.
   const parent = parentId ? tasks.find((t) => t.id === parentId) || null : null;
   // Under a major task a new task is a box; under anything else it is a sub-task.
-  const isBox = Boolean(parent && !parent.parentId && (parent.isHeading || parent.projectId));
+  const isBox = Boolean(parent && !parent.parentId);
   const [pickedProjectId, setProjectId] = useState(defaults.projectId || null);
   const projectId = parent ? parent.projectId : pickedProjectId;
   const [dueDate, setDueDate] = useState(defaults.dueDate || null);

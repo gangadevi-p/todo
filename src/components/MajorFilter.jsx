@@ -1,13 +1,14 @@
 import { Plus } from 'lucide-react';
 import { setMajorFilter } from '../store';
 import { textStyleProps } from '../lib/textStyle';
+import { ProjectDot } from './bits';
 
 /**
  * A project's major tasks as chips under the overview; only the picked one
  * (the first by default) is shown below. The "+" at the end adds a major task
  * and is there even when the project has none yet.
  */
-export function MajorFilter({ majors, active, onAdd }) {
+export function MajorFilter({ majors, active, onAdd, projectsById = null }) {
   if (!majors) return null;
   const empty = majors.length === 0;
   return (
@@ -24,6 +25,7 @@ export function MajorFilter({ majors, active, onAdd }) {
             style={color ? { '--chip-color': color } : undefined}
             onClick={() => setMajorFilter(task.id)}
           >
+            {projectsById?.get(task.projectId) && <ProjectDot color={projectsById.get(task.projectId).color} size={7} />}
             {color && <i />}
             <span className="major-chip-title">{task.title || 'Untitled'}</span>
           </button>

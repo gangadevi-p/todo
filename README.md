@@ -55,7 +55,7 @@ Project            sidebar → New project (opens on its Board)
              └─ Nested     Tab on a sub-task nests the next one under it
 ```
 
-On a project's Board the chips are the major tasks (gray, the one showing is purple). Its boxes sit side by side below (teal), each holding its sub-tasks (coral) in one column; nested ones are indented.
+On every Board page (Today, Upcoming, All Tasks, Completed and each project) the chips are the major tasks (gray, the one showing is purple). Its boxes sit side by side below (teal), each holding its sub-tasks (coral) in one column; nested ones are indented.
 
 - The page **+** and **N** add a major task when the project has none, otherwise a box under the major task showing.
 - **Enter** on a sub-task adds the next one at the same level; **Tab** nests it under the item above.

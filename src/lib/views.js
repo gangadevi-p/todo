@@ -149,7 +149,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
   const isOpen = (t) => t.status !== 'done' || t.id in lingering;
   const statusOf = (t) => (t.id in lingering ? lingering[t.id] : t.status);
   const collapsedKey = (gid) => `${viewId}:${gid}`;
-  const sectionMode = prefs.sectionModes?.[viewId] === 'board' ? 'board' : 'list';
+  const sectionMode = prefs.sectionModes?.[viewId] === 'list' ? 'list' : 'board';
 
   const model = {
     id: viewId,
@@ -168,6 +168,8 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
     total: 0,
     stats: null,
     majorTasks: [],
+    // Board pages work in major tasks: chips, then boxes, then sub-tasks.
+    majorBoard: false,
     taskIdsOverride: null,
   };
 
@@ -195,13 +197,11 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       model.mode = sectionMode;
       model.stats = progressStats(scope, statusOf, today);
       if (sectionMode === 'board') {
-        const majors = majorHeadings(scope, allTasks);
-        if (majors.length > 0) {
-          model.groups = headingBoardGroups(majors, allTasks, { addedToToday: true });
-          model.taskIdsOverride = scope.map((t) => t.id);
-        } else {
-          model.groups = statusBoardGroups(scope, statusOf, { addedToToday: true });
-        }
+        const majors = [...scope].sort(byOrder);
+        model.groups = headingBoardGroups(majors, allTasks, { addedToToday: true });
+        model.taskIdsOverride = scope.map((t) => t.id);
+        model.majorTasks = majors;
+        model.majorBoard = true;
         model.total = list.length;
       } else {
         mainAndDone(list, scope.filter((t) => statusOf(t) === 'done').sort(byCompletedDesc), () => ({ addedToToday: true }), scope);
@@ -221,13 +221,11 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       model.stats = progressStats(scope, statusOf, today);
       if (sectionMode === 'board') {
         model.show.due = true;
-        const majors = majorHeadings(scope, allTasks);
-        if (majors.length > 0) {
-          model.groups = headingBoardGroups(majors, allTasks, { dueDate: addDays(today, 1) });
-          model.taskIdsOverride = scope.map((t) => t.id);
-        } else {
-          model.groups = statusBoardGroups(scope, statusOf, { dueDate: addDays(today, 1) });
-        }
+        const majors = [...scope].sort(byOrder);
+        model.groups = headingBoardGroups(majors, allTasks, { dueDate: addDays(today, 1) });
+        model.taskIdsOverride = scope.map((t) => t.id);
+        model.majorTasks = majors;
+        model.majorBoard = true;
         model.total = list.length;
       } else {
         const dates = [...new Set(list.map((t) => t.dueDate))].sort();
@@ -265,17 +263,27 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       // All Tasks is deliberately organised by project, never by completion
       // status. Empty projects stay visible so this view is a complete map of
       // the workspace and also provides a quick add point for every project.
-      model.groups = buckets.map((b) => ({
-        id: b.id,
-        title: b.title,
-        color: b.color,
-        icon: b.icon,
-        tasks: tasks.filter((t) => (t.projectId || null) === b.projectId).sort(byOrder),
-        sortable: true,
-        collapsible: sectionMode === 'list',
-        patch: () => ({ projectId: b.projectId }),
-        add: { defaults: { projectId: b.projectId } },
-      }));
+      if (sectionMode === 'board') {
+        // Every task of every project is a major task here, project by project.
+        const rank = new Map([...projects].sort(byOrder).map((p, i) => [p.id, i + 1]));
+        const majors = [...tasks].sort((a, b) => ((rank.get(a.projectId) || 0) - (rank.get(b.projectId) || 0)) || byOrder(a, b));
+        model.groups = headingBoardGroups(majors, allTasks, {});
+        model.taskIdsOverride = tasks.map((t) => t.id);
+        model.majorTasks = majors;
+        model.majorBoard = true;
+      } else {
+        model.groups = buckets.map((b) => ({
+          id: b.id,
+          title: b.title,
+          color: b.color,
+          icon: b.icon,
+          tasks: tasks.filter((t) => (t.projectId || null) === b.projectId).sort(byOrder),
+          sortable: true,
+          collapsible: true,
+          patch: () => ({ projectId: b.projectId }),
+          add: { defaults: { projectId: b.projectId } },
+        }));
+      }
       model.total = tasks.length;
       break;
     }
@@ -292,7 +300,10 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       // Every task here is already done, so there's no "Todo" side to show
       // and nothing to drop onto — just the full, flat list of what's finished.
       if (sectionMode === 'board') {
-        model.groups = [{ id: 'done', statusId: 'done', title: 'Done', tasks: list, collapsible: false, showCompleted: true, sortable: false, patch: null, add: null }];
+        model.groups = headingBoardGroups(list, allTasks, {});
+        model.taskIdsOverride = list.map((t) => t.id);
+        model.majorTasks = list;
+        model.majorBoard = true;
       } else {
         model.groups = [{ id: 'main', title: null, tasks: list, showCompleted: true, sortable: false, patch: null }];
       }
@@ -313,7 +324,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       const project = projects.find((p) => p.id === pid);
       if (!project) return buildView('today', { tasks, projects, today, lingering, prefs });
       const own = tasks.filter((t) => t.projectId === pid);
-      const mode = prefs.projectModes?.[pid] === 'board' ? 'board' : 'list';
+      const mode = prefs.projectModes?.[pid] === 'list' ? 'list' : 'board';
       const pick = (s) => own.filter((t) => statusOf(t) === s);
 
       model.title = project.name;
@@ -350,6 +361,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
         model.groups = headingBoardGroups(majors, allTasks, { projectId: pid });
         model.taskIdsOverride = own.map((t) => t.id);
         model.majorTasks = majors;
+        model.majorBoard = true;
       } else {
         model.groups = statusGroups;
       }
