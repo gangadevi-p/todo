@@ -12,58 +12,10 @@ import { TaskList, useProjectsById } from './TaskList';
 import { TrashView } from './TrashView';
 import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
-import { flattenChecklist } from '../lib/checklist';
-import { activeMajorId } from '../lib/views';
+import { activeMajorId, applyStatsFilter, shownMajors } from '../lib/views';
 import { addForPage, isMajorBoard } from '../lib/pageAdd';
 
 const VIEW_ICONS = { today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck, trash: Trash2 };
-
-const FILTER_EMPTY_TEXT = {
-  todo: 'Nothing left to do here — everything is done.',
-  done: 'You have done nothing till now. Start working and finish them off.',
-};
-
-/** Narrows a view's groups down to just the tasks matching the overview bar's active tab. */
-function applyStatsFilter(model, filter) {
-  const groups = model.groups.map((g) => {
-    const tasks = g.statusId && g.statusId !== filter ? [] : g.tasks.filter((t) => t.status === filter);
-    // In a major-task board, the group title is also a real task. Keep a
-    // heading-only card visible when its own status matches the active tab.
-    const headingVisible = Boolean(g.headingTask && g.headingTask.status === filter);
-    const canShowChecklistParents = filter === 'done' && (!g.statusId || g.statusId === 'done');
-    const parentCandidates = [
-      ...(g.completedChecklistParents || []),
-      ...(canShowChecklistParents ? g.tasks.filter((task) =>
-        task.status !== 'done' && flattenChecklist(task.subtasks).some((item) => item.done)) : []),
-    ];
-    const completedChecklistParents = canShowChecklistParents
-      ? [...new Map(parentCandidates.map((task) => [task.id, task])).values()]
-      : [];
-    const checklistTask = g.checklistTask && flattenChecklist(g.checklistTask.subtasks)
-      .some((item) => filter === 'done' ? item.done : !item.done)
-      ? g.checklistTask
-      : null;
-    const hasVisibleWork = headingVisible || tasks.length > 0 || completedChecklistParents.length > 0 || Boolean(checklistTask);
-    // A group with nothing left after filtering has no business still showing
-    // an "add" drop zone or a board column's empty placeholder.
-    return {
-      ...g,
-      tasks,
-      headingVisible,
-      completedChecklistParents,
-      checklistTask,
-      checklistStatus: filter,
-      add: filter === 'todo' && hasVisibleWork ? g.add : null,
-      filteredEmpty: !hasVisibleWork,
-    };
-  });
-  const taskIds = groups.flatMap((g) => [
-    ...(g.headingVisible ? [g.headingTask.id] : []),
-    ...g.tasks.map((t) => t.id),
-  ]);
-  const total = groups.reduce((count, g) => count + (g.headingVisible ? 1 : 0) + g.tasks.length + (g.completedChecklistParents || []).length, 0);
-  return { ...model, groups, taskIds, total, emptyText: total === 0 && model.stats && model.stats.total > 0 ? FILTER_EMPTY_TEXT[filter] : model.emptyText };
-}
 
 /** Narrows a project's groups down to a single major task (and everything nested under it). */
 function applyMajorFilter(model, majorId) {
@@ -106,9 +58,15 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
   }, [view]);
 
   const majorFilter = useUI((u) => u.majorFilter);
+  // The chips follow the picked todo / done tab: a finished major task with
+  // nothing left to do is listed under "done", not among the active ones.
+  const chipModel = useMemo(
+    () => ({ ...model, majorTasks: shownMajors(model, statsFilter) }),
+    [model, statsFilter],
+  );
   // A project with major tasks always shows exactly one of them: the picked
   // chip, or the first major task when nothing (or a deleted one) is picked.
-  const activeMajor = activeMajorId(model, majorFilter);
+  const activeMajor = activeMajorId(chipModel, majorFilter);
 
   const filteredModel = useMemo(
     () => applyStatsFilter(activeMajor ? applyMajorFilter(model, activeMajor) : model, statsFilter),
@@ -247,7 +205,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
           <SectionStats stats={model.stats} />
           {!isTrash && (
             <MajorFilter
-              majors={projectBoard ? model.majorTasks : null}
+              majors={projectBoard ? chipModel.majorTasks : null}
               active={activeMajor}
               onAdd={canAddMajor ? () => openNewTask({ ...model.newTaskDefaults, isHeading: true }) : undefined}
               projectsById={model.kind === 'all' ? projectsById : null}

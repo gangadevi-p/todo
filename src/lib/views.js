@@ -138,6 +138,67 @@ export function activeMajorId(model, picked) {
   return majors.some((t) => t.id === picked) ? picked : majors[0]?.id ?? null;
 }
 
+const FILTER_EMPTY_TEXT = {
+  todo: 'Nothing left to do here — everything is done.',
+  done: 'You have done nothing till now. Start working and finish them off.',
+};
+
+/** Narrows a view's groups down to just the tasks matching the overview bar's active tab. */
+export function applyStatsFilter(model, filter) {
+  const groups = model.groups.map((g) => {
+    const tasks = g.statusId && g.statusId !== filter ? [] : g.tasks.filter((t) => t.status === filter);
+    // In a major-task board, the group title is also a real task. Keep a
+    // heading-only card visible when its own status matches the active tab.
+    const headingVisible = Boolean(g.headingTask && g.headingTask.status === filter);
+    const canShowChecklistParents = filter === 'done' && (!g.statusId || g.statusId === 'done');
+    const parentCandidates = [
+      ...(g.completedChecklistParents || []),
+      ...(canShowChecklistParents ? g.tasks.filter((task) =>
+        task.status !== 'done' && flattenChecklist(task.subtasks).some((item) => item.done)) : []),
+    ];
+    const completedChecklistParents = canShowChecklistParents
+      ? [...new Map(parentCandidates.map((task) => [task.id, task])).values()]
+      : [];
+    const checklistTask = g.checklistTask && flattenChecklist(g.checklistTask.subtasks)
+      .some((item) => filter === 'done' ? item.done : !item.done)
+      ? g.checklistTask
+      : null;
+    const hasVisibleWork = headingVisible || tasks.length > 0 || completedChecklistParents.length > 0 || Boolean(checklistTask);
+    // A group with nothing left after filtering has no business still showing
+    // an "add" drop zone or a board column's empty placeholder.
+    return {
+      ...g,
+      tasks,
+      headingVisible,
+      completedChecklistParents,
+      checklistTask,
+      checklistStatus: filter,
+      add: filter === 'todo' && hasVisibleWork ? g.add : null,
+      filteredEmpty: !hasVisibleWork,
+    };
+  });
+  const taskIds = groups.flatMap((g) => [
+    ...(g.headingVisible ? [g.headingTask.id] : []),
+    ...g.tasks.map((t) => t.id),
+  ]);
+  const total = groups.reduce((count, g) => count + (g.headingVisible ? 1 : 0) + g.tasks.length + (g.completedChecklistParents || []).length, 0);
+  return { ...model, groups, taskIds, total, emptyText: total === 0 && model.stats && model.stats.total > 0 ? FILTER_EMPTY_TEXT[filter] : model.emptyText };
+}
+
+/**
+ * The major tasks that still have something to show under the picked todo /
+ * done tab. A finished major task with nothing left to do is listed under
+ * "done" only, so struck-off chips don't sit among the active ones.
+ */
+export function shownMajors(model, statsFilter) {
+  const majors = model.majorTasks || [];
+  if (!model.majorBoard || !statsFilter) return majors;
+  const shown = new Set(applyStatsFilter(model, statsFilter).groups
+    .filter((g) => g.headingTask && !g.filteredEmpty)
+    .map((g) => g.headingTask.id));
+  return majors.filter((t) => shown.has(t.id));
+}
+
 /**
  * Turns the raw task list into what a view renders: titled groups of tasks,
  * each knowing how a dropped task should change and where new tasks go.

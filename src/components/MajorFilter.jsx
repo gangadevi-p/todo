@@ -12,6 +12,8 @@ import { ProjectDot } from './bits';
 export function MajorFilter({ majors, active, onAdd, projectsById = null }) {
   if (!majors) return null;
   const empty = majors.length === 0;
+  // Nothing to pick and nowhere to add (e.g. the "todo" tab of Completed): no empty strip.
+  if (empty && !onAdd) return null;
   return (
     <div className={`major-filter${projectsById ? ' major-filter-wrap' : ''}`} role="tablist" aria-label="Major tasks">
       {majors.map((task) => {

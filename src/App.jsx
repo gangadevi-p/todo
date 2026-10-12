@@ -3,7 +3,7 @@ import {
   closeMobileNav, data, removeSubtask, requestDeleteTask, duplicateTask, hidePreview, navigate, openNewTask, openSearch, selectTask,
   setHelp, setPref, setSelecting, toggleComplete, toggleToday, ui, undoLast, updateTask, useData, useUI,
 } from './store';
-import { activeMajorId, buildView, NAV_VIEWS } from './lib/views';
+import { activeMajorId, buildView, NAV_VIEWS, shownMajors } from './lib/views';
 import { addForPage } from './lib/pageAdd';
 import { isTypingTarget } from './lib/util';
 import { TodayContext, useTodayClock } from './lib/useToday';
@@ -123,7 +123,7 @@ function handleKey(e, model) {
     case 'n': {
       e.preventDefault();
       // Same as the page "+": a major task first, then a box under the one showing.
-      addForPage(model, activeMajorId(model, u.majorFilter));
+      addForPage(model, activeMajorId({ ...model, majorTasks: shownMajors(model, u.statsFilter) }, u.majorFilter));
       break;
     }
     case '?':
