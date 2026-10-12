@@ -15,7 +15,7 @@ import { Checkbox, PriorityIcon, ProjectDot, StatusIcon } from './bits';
 import { rectOf } from './MenuLayer';
 import { SubtaskTree } from './Subtasks';
 import { openDatePicker, priorityItems, projectItems, statusItems } from './taskMenu';
-import { TextStyleButton, TextStyleControls } from './TextStyle';
+import { TextStyleButton, TextStyleControls, TextStyleTool } from './TextStyle';
 import { CompletedDate, DueButton, DueChip } from './DueButton';
 import { StrikeButton } from './StrikeButton';
 import { DatePicker } from './DatePicker';
@@ -305,9 +305,19 @@ export function TaskEditor({ task }) {
         )}
       >
         {compact ? (
-          <button type="button" className="icon-btn sm" aria-label="Delete task" onClick={() => requestDeleteTask(task.id)}>
-            <Trash2 size={15} />
-          </button>
+          <>
+            <button
+              type="button"
+              className={`icon-btn sm${planned ? ' on-today' : ''}`}
+              aria-label={planned ? 'Remove from Today' : 'Add to Today'}
+              onClick={() => updateTask(task.id, { addedToToday: !planned })}
+            >
+              <Sun size={15} strokeWidth={1.9} />
+            </button>
+            <button type="button" className="icon-btn sm" aria-label="Delete task" onClick={() => requestDeleteTask(task.id)}>
+              <Trash2 size={15} />
+            </button>
+          </>
         ) : (
           <>
             <button
@@ -335,50 +345,80 @@ export function TaskEditor({ task }) {
       </PopupHead>
 
       <div className="preview-body">
-        <div className="panel-title-row">
-          <Checkbox state={task.status} size="lg" onToggle={() => toggleComplete(task.id)} />
-          <TitleField
-            inputRef={titleRef}
-            className={`panel-title${done ? ' done' : ''} ${style.className}`}
-            style={style.style}
-            value={task.title}
-            placeholder="Task title"
-            onSave={(title) => updateTask(task.id, { title })}
-          />
-        </div>
-
-        {compact && (
-          <div className="props compact-props">
-            <PropRow icon={Type} label="Name style">
-              <TextStyleControls value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} />
-            </PropRow>
-            <div className="prop-chips">
-              <button type="button" className="prop-btn" aria-label="Status" onClick={(e) => menuAt(e, statusItems(task))}>
+        {compact ? (
+          <div className="task-grid">
+            <div className="tg-cell tg-box">
+              <Checkbox state={task.status} size="lg" onToggle={() => toggleComplete(task.id)} />
+              <TitleField
+                inputRef={titleRef}
+                className={`panel-title${done ? ' done' : ''} ${style.className}`}
+                style={style.style}
+                value={task.title}
+                placeholder="Task title"
+                onSave={(title) => updateTask(task.id, { title })}
+              />
+            </div>
+            <div className="tg-cell">
+              <button type="button" className="tg-box tg-btn" aria-label="Status" onClick={(e) => menuAt(e, statusItems(task))}>
                 <StatusIcon status={task.status} />
                 {statusLabel(task.status)}
               </button>
-              <button type="button" className={`prop-btn${task.priority ? '' : ' empty'}`} aria-label="Priority" onClick={(e) => menuAt(e, priorityItems(task))}>
+            </div>
+
+            <div className="tg-cell">
+              <TextStyleTool value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} panel="color" />
+            </div>
+            <div className="tg-cell">
+              <button type="button" className={`tg-btn${task.priority ? '' : ' empty'}`} aria-label="Priority" onClick={(e) => menuAt(e, priorityItems(task))}>
                 {task.priority ? <PriorityIcon level={task.priority} /> : <PriorityGlyph />}
                 {task.priority ? priorityLabel(task.priority) : 'Priority'}
               </button>
+            </div>
+
+            <div className="tg-cell">
+              <TextStyleTool value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} panel="style" />
+            </div>
+            <div className="tg-cell">
               <button
                 type="button"
-                className={`prop-btn${task.dueDate ? ` due-${done ? 'normal' : due.tone}` : ' empty'}`}
+                className={`tg-btn${task.dueDate ? ` due-${done ? 'normal' : due.tone}` : ' empty'}`}
                 aria-label="Last day"
                 onClick={(e) => openDatePicker(task, { rect: rectOf(e.currentTarget) })}
               >
                 <CalendarDays size={14} strokeWidth={1.9} />
                 {task.dueDate ? dueLabelLong(task.dueDate, today) : 'Last day'}
               </button>
-              <button type="button" className={`prop-btn${planned ? ' on' : ''}`} aria-pressed={Boolean(planned)} onClick={() => updateTask(task.id, { addedToToday: !planned })}>
-                <Sun size={14} strokeWidth={1.9} />
-                Today
-              </button>
-              <button type="button" className={`prop-btn${task.struck ? ' on' : ''}`} aria-pressed={Boolean(task.struck)} onClick={() => updateTask(task.id, { struck: !task.struck })}>
+            </div>
+
+            <div className="tg-cell">
+              <span className="tg-size-glyph text-style-size-glyph">A+</span>
+              <TextStyleTool value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} panel="size" />
+            </div>
+            <div className="tg-cell">
+              <button
+                type="button"
+                className="tg-btn"
+                role="switch"
+                aria-checked={Boolean(task.struck)}
+                onClick={() => updateTask(task.id, { struck: !task.struck })}
+              >
                 <Strikethrough size={14} strokeWidth={1.9} />
                 Strike off
+                <span className={`switch${task.struck ? ' on' : ''}`} aria-hidden="true"><span /></span>
               </button>
             </div>
+          </div>
+        ) : (
+          <div className="panel-title-row">
+            <Checkbox state={task.status} size="lg" onToggle={() => toggleComplete(task.id)} />
+            <TitleField
+              inputRef={titleRef}
+              className={`panel-title${done ? ' done' : ''} ${style.className}`}
+              style={style.style}
+              value={task.title}
+              placeholder="Task title"
+              onSave={(title) => updateTask(task.id, { title })}
+            />
           </div>
         )}
 

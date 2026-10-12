@@ -2189,24 +2189,64 @@ kbd {
 .prop-btn.empty {
   color: var(--text-3);
 }
-/* A project task's popup: its style, then status, priority, last day, Today and strike-off as one row of chips. */
-.compact-props {
-  margin-bottom: 14px;
-  padding-bottom: 12px;
+/* A project task's popup: title and style tools on the left, status, priority, last day and strike-off on the right. */
+.task-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  align-items: center;
+  gap: 8px 28px;
+  margin-bottom: 16px;
 }
-.prop-chips {
+.tg-cell {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 34px;
 }
-.prop-chips .prop-btn {
-  gap: 6px;
-  border: 1px solid var(--border);
+.tg-box {
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--bg-fill);
 }
-.prop-chips .prop-btn.on {
-  border-color: var(--accent-ring);
-  background: var(--accent-soft);
+.tg-cell.tg-box {
+  align-items: flex-start;
+}
+.tg-cell.tg-box .check {
+  margin-top: 3px;
+}
+.tg-cell.tg-box .panel-title {
+  flex: 1;
+  min-width: 0;
+}
+.tg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 13.5px;
+  text-align: left;
+}
+.tg-btn.tg-box {
+  padding: 0 10px;
+  background: var(--bg-fill);
+  border-radius: 8px;
+}
+.tg-btn.empty {
+  color: var(--text-3);
+}
+.tg-btn .switch {
+  margin-left: auto;
+}
+.tg-size-glyph {
+  color: var(--text-2);
+  font-weight: 600;
 }
 .prop-clear {
   opacity: 0;

@@ -12,6 +12,58 @@ function Toggle({ active, label, icon: Icon, onClick }) {
   );
 }
 
+/** One tool of the text style (color, bold/italic/underline or size), driven by the caller's style so several can sit side by side. */
+export function TextStyleSection({ style, set, panel, label }) {
+  const wrap = (body) => (label ? <div className="text-style-popup-row"><span>{label}</span>{body}</div> : body);
+  if (panel === 'color') {
+    return wrap(
+      <div className="text-style-swatches" aria-label="Text color">
+        <button
+          type="button"
+          className={`text-style-color none${!style.color ? ' on' : ''}`}
+          aria-label="Default color"
+          onClick={() => set({ color: null })}
+        >A</button>
+        {TEXT_COLORS.map((color) => (
+          <button
+            key={color}
+            type="button"
+            className={`text-style-color${style.color === color ? ' on' : ''}`}
+            style={{ '--swatch': color }}
+            aria-label={`Use ${color}`}
+            aria-pressed={style.color === color}
+            onClick={() => set({ color })}
+          />
+        ))}
+        <label className="text-style-custom">
+          <Palette size={13} strokeWidth={2} />
+          <input type="color" value={style.color || '#64748b'} onChange={(e) => set({ color: e.target.value })} />
+        </label>
+      </div>,
+    );
+  }
+  if (panel === 'style') {
+    return wrap(
+      <div className="text-style-toggles" aria-label="Text style">
+        <Toggle active={style.bold} label="Bold" icon={Bold} onClick={() => set({ bold: !style.bold })} />
+        <Toggle active={style.italic} label="Italic" icon={Italic} onClick={() => set({ italic: !style.italic })} />
+        <Toggle active={style.underline} label="Underline" icon={Underline} onClick={() => set({ underline: !style.underline })} />
+      </div>,
+    );
+  }
+  return wrap(
+    <label className="text-style-size">
+      <input type="number" min="11" max="32" value={style.size || ''} placeholder="Default" onChange={(e) => set({ size: e.target.value === '' ? null : Number(e.target.value) })} /> px
+    </label>,
+  );
+}
+
+/** The same tools for a plain value + onChange, with no state of its own. */
+export function TextStyleTool({ value, onChange, panel, label }) {
+  const style = normalizeTextStyle(value);
+  return <TextStyleSection style={style} set={(patch) => onChange({ ...style, ...patch })} panel={panel} label={label} />;
+}
+
 export function TextStylePopover({ value, onChange, initialPanel = null, showAll = false }) {
   const [style, setStyle] = useState(() => normalizeTextStyle(value));
   const [panel, setPanel] = useState(initialPanel);
@@ -23,52 +75,9 @@ export function TextStylePopover({ value, onChange, initialPanel = null, showAll
   return (
     <div className={`text-style-popover${showAll ? ' text-style-popover-full' : ''}`} aria-label="Text style">
       {!initialPanel && !showAll && <TextStyleControls value={style} onChange={set} activePanel={panel} onPanel={setPanel} />}
-      {(showAll || panel === 'color') && (
-        <div className={showAll ? 'text-style-popup-row' : ''}>
-          {showAll && <span>Color</span>}
-          <div className="text-style-swatches" aria-label="Text color">
-            <button
-              type="button"
-              className={`text-style-color none${!style.color ? ' on' : ''}`}
-              aria-label="Default color"
-              onClick={() => set({ color: null })}
-            >A</button>
-            {TEXT_COLORS.map((color) => (
-              <button
-                key={color}
-                type="button"
-                className={`text-style-color${style.color === color ? ' on' : ''}`}
-                style={{ '--swatch': color }}
-                aria-label={`Use ${color}`}
-                aria-pressed={style.color === color}
-                onClick={() => set({ color })}
-              />
-            ))}
-            <label className="text-style-custom">
-              <Palette size={13} strokeWidth={2} />
-              <input type="color" value={style.color || '#64748b'} onChange={(e) => set({ color: e.target.value })} />
-            </label>
-          </div>
-        </div>
-      )}
-      {(showAll || panel === 'style') && (
-        <div className={showAll ? 'text-style-popup-row' : ''}>
-          {showAll && <span>Style</span>}
-          <div className="text-style-toggles" aria-label="Text style">
-            <Toggle active={style.bold} label="Bold" icon={Bold} onClick={() => set({ bold: !style.bold })} />
-            <Toggle active={style.italic} label="Italic" icon={Italic} onClick={() => set({ italic: !style.italic })} />
-            <Toggle active={style.underline} label="Underline" icon={Underline} onClick={() => set({ underline: !style.underline })} />
-          </div>
-        </div>
-      )}
-      {(showAll || panel === 'size') && (
-        <div className={showAll ? 'text-style-popup-row' : ''}>
-          {showAll && <span>Size</span>}
-          <label className="text-style-size">
-            <input type="number" min="11" max="32" value={style.size || ''} placeholder="Default" onChange={(e) => set({ size: e.target.value === '' ? null : Number(e.target.value) })} /> px
-          </label>
-        </div>
-      )}
+      {(showAll || panel === 'color') && <TextStyleSection style={style} set={set} panel="color" label={showAll ? 'Color' : null} />}
+      {(showAll || panel === 'style') && <TextStyleSection style={style} set={set} panel="style" label={showAll ? 'Style' : null} />}
+      {(showAll || panel === 'size') && <TextStyleSection style={style} set={set} panel="size" label={showAll ? 'Size' : null} />}
       {showAll && <div className="text-style-popup-row"><span>Capsule fill</span><CapsuleToggle style={style} onChange={set} /></div>}
     </div>
   );
