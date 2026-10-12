@@ -4412,3 +4412,32 @@ button.stats-deadline {
 .column-wide .column-body > .column-checklist {
   max-width: 600px;
 }
+
+/* ==========================================================================
+   Many boxes: the title row, overview, chips and the major task's row grow to
+   the board's width, and the boxes share it evenly. A few boxes keep the
+   centred column above.
+   ========================================================================== */
+.page-board.page-wide > .page-head,
+.page-board.page-wide > .stats-panel,
+.page-board.page-wide > .major-filter,
+.page-board.page-wide > .demo-banner {
+  max-width: none;
+}
+.page-board.page-wide .column-lane.column-wide .column-head {
+  max-width: none;
+}
+.page-board.page-wide .column-wide .column-body {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  justify-content: stretch;
+}
+.page-board.page-wide .column-wide .column-body > .card.box,
+.page-board.page-wide .column-wide .column-body > .column-checklist {
+  width: 100%;
+  max-width: none;
+}
+.page-board.page-wide .column-wide .column-body > .child-add-row,
+.page-board.page-wide .column-wide .column-body > .column-empty,
+.page-board.page-wide .column-wide .column-body > .drop-line {
+  max-width: none;
+}

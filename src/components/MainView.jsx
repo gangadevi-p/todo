@@ -147,6 +147,9 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
   const projectBoard = isMajorBoard(model);
   const projectsById = useProjectsById();
   const canAddMajor = projectBoard && model.kind !== 'completed';
+  // A major task with many boxes widens the whole page to the board; a few keep the centred column.
+  const shownGroup = projectBoard ? model.groups.find((g) => g.headingTask && g.headingTask.id === activeMajor) : null;
+  const wideBoard = Boolean(shownGroup) && shownGroup.tasks.length + (shownGroup.checklistTask ? 1 : 0) >= 3;
   const noMajors = canAddMajor && model.majorTasks.length === 0;
   const setMode = (mode) => (model.project ? setProjectMode(model.project.id, mode) : setSectionMode(model.id, mode));
   const selecting = useUI((u) => u.selecting);
@@ -239,7 +242,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
       </div>
 
       <div className="main-scroll" ref={scrollRef} onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 40)}>
-        <div className={`page view-${model.kind}${isBoard ? ' page-board' : ''}`}>
+        <div className={`page view-${model.kind}${isBoard ? ' page-board' : ''}${isBoard && wideBoard ? ' page-wide' : ''}`}>
           <header className="page-head">
             <div className="page-icon"><ViewIcon model={model} size={20} /></div>
             <div className="page-title-line">
