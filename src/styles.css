@@ -4139,3 +4139,29 @@ button.stats-deadline {
 .column-lane.column-wide .column-head {
   max-width: var(--box-w);
 }
+
+/* ==========================================================================
+   Page header: title, add, style and the icon-only layout / select / delete
+   buttons share one row.
+   ========================================================================== */
+.btn.btn-icon {
+  width: 28px;
+  padding: 0;
+  justify-content: center;
+}
+.segmented button[aria-label] {
+  width: 30px;
+  padding: 0;
+  justify-content: center;
+}
+.page-head-actions {
+  gap: 6px;
+}
+.page-title-line {
+  flex: 1 1 0%;
+  max-width: none;
+  min-width: min(100%, 160px);
+}
+.page-head > .page-sub {
+  flex: 1 1 100%;
+}

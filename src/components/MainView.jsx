@@ -180,36 +180,44 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
           type="button"
           role="tab"
           aria-selected={!isBoard}
+          aria-label="List"
+          title="List"
           className={!isBoard ? 'on' : ''}
           onClick={() => setMode('list')}
         >
-          <List size={14} strokeWidth={1.9} /> List
+          <List size={14} strokeWidth={1.9} />
         </button>
         <button
           type="button"
           role="tab"
           aria-selected={isBoard}
+          aria-label="Board"
+          title="Board"
           className={isBoard ? 'on' : ''}
           onClick={() => setMode('board')}
         >
-          <Columns3 size={14} strokeWidth={1.9} /> Board
+          <Columns3 size={14} strokeWidth={1.9} />
         </button>
       </div>
       <button
         type="button"
-        className="btn"
+        className="btn btn-icon"
+        aria-label="Select all"
+        title="Select all"
         disabled={model.taskIds.length === 0}
         onClick={() => setSelecting(true, filteredModel.taskIds)}
       >
-        <CheckSquare size={14} strokeWidth={1.9} /> Select all
+        <CheckSquare size={14} strokeWidth={1.9} />
       </button>
       <button
         type="button"
-        className="btn btn-danger-ghost"
+        className="btn btn-icon btn-danger-ghost"
+        aria-label="Delete all"
+        title="Delete all"
         disabled={model.taskIds.length === 0}
         onClick={() => confirmDeleteTasks(filteredModel.taskIds, model.deleteScope, model.deleteNote)}
       >
-        <Trash2 size={14} strokeWidth={1.9} /> Delete all
+        <Trash2 size={14} strokeWidth={1.9} />
       </button>
     </>
   );
