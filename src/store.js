@@ -2,6 +2,7 @@ import { useMemo, useSyncExternalStore } from 'react';
 import { seedData, defaultPrefs, DEMO_VERSION, DEMO_NAME } from './seed';
 import { uid, PROJECT_COLORS } from './lib/util';
 import { normalizeTextStyle } from './lib/textStyle';
+import { flattenChecklist } from './lib/checklist';
 
 // ---------------------------------------------------------------------------
 // Tiny external stores. `data` is persisted; `ui` is session-only.
@@ -329,10 +330,61 @@ export function toggleToday(id) {
   if (task) updateTask(id, { addedToToday: !task.addedToToday });
 }
 
+/** How many parents a task has above it: 0 for a major task, 1 for a box, 2 or more for a sub-task. */
+function taskDepth(id, tasks) {
+  let depth = 0;
+  let cur = tasks.find((t) => t.id === id);
+  while (cur?.parentId) {
+    depth += 1;
+    cur = tasks.find((t) => t.id === cur.parentId);
+  }
+  return depth;
+}
+
+const reparent = (ids, parentId) => commit((s) => ({
+  ...s,
+  tasks: s.tasks.map((t) => (ids.includes(t.id) ? { ...t, parentId } : t)),
+}));
+
+/**
+ * Deleting a major task or a box takes what is inside it along. Deleting a
+ * sub-task never does: whatever was nested under it moves up one level.
+ */
 export function deleteTask(id) {
-  if (!findTask(id)) return;
+  const task = findTask(id);
+  if (!task) return;
+  const all = data.get().tasks;
+  const nested = taskDepth(id, all) >= 2 ? all.filter((t) => t.parentId === id).map((t) => t.id) : [];
+  if (nested.length) reparent(nested, task.parentId);
   const { batchId } = moveTasksToTrash([id]);
-  rememberUndo(() => restoreTrashBatch(batchId));
+  rememberUndo(() => {
+    restoreTrashBatch(batchId);
+    if (nested.length) reparent(nested, id);
+  });
+}
+
+/**
+ * Delete from a button or key. A major task or box that holds anything asks
+ * first and names how much goes with it. Returns true when it deleted at once.
+ */
+export function requestDeleteTask(id) {
+  const task = findTask(id);
+  if (!task) return false;
+  const all = data.get().tasks;
+  const holds = taskDepth(id, all) >= 2 ? 0
+    : [id, ...descendantIds(id, all)].reduce((n, tid) => n + flattenChecklist(all.find((t) => t.id === tid)?.subtasks).length, 0)
+      + descendantIds(id, all).length;
+  if (!holds) {
+    deleteTask(id);
+    return true;
+  }
+  askConfirm({
+    title: `Delete “${task.title || 'Untitled'}”?`,
+    body: `This also deletes the ${holds} item${holds === 1 ? '' : 's'} inside it. You can undo right after with Ctrl+Z.`,
+    confirmLabel: 'Delete',
+    onConfirm: () => deleteTask(id),
+  });
+  return false;
 }
 
 export function duplicateTask(id) {
@@ -411,7 +463,8 @@ function removeChecklistItem(list, itemId, parentId = null) {
   for (let index = 0; index < list.length; index += 1) {
     const item = list[index];
     if (item.id === itemId) {
-      return { list: [...list.slice(0, index), ...list.slice(index + 1)], removed: item, index, parentId };
+      // Whatever was nested under it stays, in its place.
+      return { list: [...list.slice(0, index), ...(item.subtasks || []), ...list.slice(index + 1)], removed: item, index, parentId };
     }
     const nested = removeChecklistItem(item.subtasks || [], itemId, item.id);
     if (nested.removed) {
@@ -422,21 +475,6 @@ function removeChecklistItem(list, itemId, parentId = null) {
     }
   }
   return { list, removed: null, index: -1, parentId: null };
-}
-
-function restoreChecklistItem(list, parentId, item, index) {
-  if (!parentId) {
-    if (findChecklistItem(list, item.id)) return list;
-    const next = [...list];
-    next.splice(Math.min(index, next.length), 0, item);
-    return next;
-  }
-  return mapChecklistItem(list, parentId, (parent) => {
-    if (findChecklistItem(parent.subtasks || [], item.id)) return parent;
-    const subtasks = [...(parent.subtasks || [])];
-    subtasks.splice(Math.min(index, subtasks.length), 0, item);
-    return { ...parent, subtasks };
-  });
 }
 
 function insertChecklistSibling(list, siblingId, item) {
@@ -462,10 +500,12 @@ function updateSelectedChecklist(list, selectedIds, patch) {
   }));
 }
 
+/** Removes the selected items; anything nested under a removed item stays, in its place. */
 function deleteSelectedChecklist(list, selectedIds) {
-  return list
-    .filter((item) => !selectedIds.has(item.id))
-    .map((item) => ({ ...item, subtasks: deleteSelectedChecklist(item.subtasks || [], selectedIds) }));
+  return list.flatMap((item) => {
+    const subtasks = deleteSelectedChecklist(item.subtasks || [], selectedIds);
+    return selectedIds.has(item.id) ? subtasks : [{ ...item, subtasks }];
+  });
 }
 
 function patchSubtasks(taskId, fn) {
@@ -512,11 +552,10 @@ export const updateSubtask = (taskId, subId, patch) =>
 
 export function removeSubtask(taskId, subId) {
   const task = findTask(taskId);
-  const found = task ? findChecklistItem(task.subtasks, subId) : null;
-  if (!found) return;
-  const { item: removed, index, parentId } = found;
+  if (!task || !findChecklistItem(task.subtasks, subId)) return;
+  const before = task.subtasks;
   patchSubtasks(taskId, (list) => removeChecklistItem(list, subId).list);
-  rememberUndo(() => patchSubtasks(taskId, (list) => restoreChecklistItem(list, parentId, removed, index)));
+  rememberUndo(() => patchSubtasks(taskId, () => before));
 }
 
 // ---------------------------------------------------------------------------

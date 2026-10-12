@@ -2,7 +2,7 @@ import {
   ArrowRight, CalendarArrowUp, CalendarDays, CalendarX, Copy, Inbox, ListChecks, ListTree, Minus, Pencil, RotateCcw, Check, Sun, SunDim, Sunrise, Trash2, CircleDashed,
 } from 'lucide-react';
 import {
-  addSubtask, data, deleteTask, duplicateTask, openMenu, selectTask, setChildTasksOpen, toggleComplete, toggleToday, updateTask,
+  addSubtask, data, requestDeleteTask, duplicateTask, openMenu, selectTask, setChildTasksOpen, toggleComplete, toggleToday, updateTask,
 } from '../store';
 import { STATUSES, PRIORITIES } from '../lib/util';
 import { addDays, nextWeekday, todayKey } from '../lib/dates';
@@ -80,7 +80,7 @@ export function taskMenuItems(task) {
     { label: 'Add nested task', icon: ListTree, onSelect: () => setChildTasksOpen(task.id, true) },
     { divider: true },
     { label: 'Duplicate', icon: Copy, shortcut: 'mod+D', onSelect: () => { const id = duplicateTask(task.id); if (id) selectTask(id, false); } },
-    { label: 'Delete', icon: Trash2, shortcut: 'Del', danger: true, onSelect: () => deleteTask(task.id) },
+    { label: 'Delete', icon: Trash2, shortcut: 'Del', danger: true, onSelect: () => requestDeleteTask(task.id) },
   ];
 }
 

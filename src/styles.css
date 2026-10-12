@@ -3607,7 +3607,7 @@ mark {
 /* A major task's boxes sit side by side in a grid. */
 .column-wide .column-body {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   align-items: start;
   gap: 12px;
   max-width: none;
@@ -3654,9 +3654,6 @@ button.column-empty span {
 .card.box .task-title-text {
   color: var(--lv-box-text);
   font-weight: 500;
-}
-.card.box .card-child-add {
-  color: var(--lv-box-text);
 }
 .card.box .card-delete,
 .card.box .card-actions button {
@@ -3724,4 +3721,46 @@ button.column-empty span {
 .box-add:hover {
   border-color: var(--lv-box-line);
   background: color-mix(in srgb, var(--lv-box-line) 12%, transparent);
+}
+
+/* "+ Box" beside a major task's title. */
+.column-head .column-major-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 9px 0 6px;
+  border: 1px solid color-mix(in srgb, var(--lv-box-line) 50%, transparent);
+  border-radius: 12px;
+  background: var(--lv-box-bg);
+  color: var(--lv-box-text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.column-head .column-major-add:hover {
+  border-color: var(--lv-box-line);
+}
+
+/* A sub-task row keeps its width for the text; its tools appear on hover. */
+.card.box .subtasks-card .sub-row .due-button,
+.card.box .subtasks-card .sub-row .strike-button,
+.card.box .subtasks-card .sub-row .sub-style,
+.card.box .subtasks-card .sub-row .sub-del {
+  display: none;
+}
+.card.box .subtasks-card .sub-row:hover .due-button,
+.card.box .subtasks-card .sub-row:hover .strike-button,
+.card.box .subtasks-card .sub-row:hover .sub-style,
+.card.box .subtasks-card .sub-row:hover .sub-del,
+.card.box .subtasks-card .sub-row:focus-within .due-button,
+.card.box .subtasks-card .sub-row:focus-within .strike-button,
+.card.box .subtasks-card .sub-row:focus-within .sub-style,
+.card.box .subtasks-card .sub-row:focus-within .sub-del {
+  display: inline-grid;
+}
+.card.box .subtasks-card .sub-row .sub-add-left {
+  width: 14px;
+  margin-right: -6px;
 }

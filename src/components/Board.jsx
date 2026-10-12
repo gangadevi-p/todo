@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Inbox, Plus, Trash2 } from 'lucide-react';
-import { deleteTask, openNewTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
+import { requestDeleteTask, openNewTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
 import { endDrag, startTaskDrag, useTaskDrop } from '../lib/dnd';
 import { useToday } from '../lib/useToday';
 import { Checkbox, ProjectDot, StatusIcon } from './bits';
@@ -44,19 +44,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
       }}
     >
       <div className="card-main">
-        {!selecting && (box ? (
-          <button
-            type="button"
-            className="child-add-button card-child-add"
-            aria-label="Add sub-task"
-            onClick={(e) => {
-              e.stopPropagation();
-              addSubtaskTo(task.id);
-            }}
-          >
-            <Plus size={15} strokeWidth={2.1} />
-          </button>
-        ) : <ChildAddButton task={task} className="card-child-add" />)}
+        {!selecting && !box && <ChildAddButton task={task} className="card-child-add" />}
         <Checkbox
           state={selecting ? (picked ? 'done' : 'todo') : task.status}
           onToggle={() => (selecting ? toggleSelected(key) : toggleComplete(task.id))}
@@ -89,7 +77,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
               aria-label="Delete task"
               onClick={(e) => {
                 e.stopPropagation();
-                deleteTask(task.id);
+                requestDeleteTask(task.id);
               }}
             >
               <Trash2 size={14} strokeWidth={1.9} />
@@ -163,16 +151,7 @@ export function Board({ model }) {
               className="column-head"
               {...(col.heading ? { 'data-task-row': '', 'data-id': col.headingTask.id } : {})}
             >
-              {col.statusId ? <StatusIcon status={col.statusId} size={13} /> : col.heading ? (
-                <button
-                  type="button"
-                  className="icon-btn sm column-major-add"
-                  aria-label={`Add a box to ${col.title}`}
-                  onClick={() => openNewTask(boxDefaults(col.headingTask))}
-                >
-                  <Plus size={15} />
-                </button>
-              ) : col.color ? <ProjectDot color={col.color} /> : <Inbox size={14} strokeWidth={1.9} className="group-icon" />}
+              {col.statusId ? <StatusIcon status={col.statusId} size={13} /> : col.heading ? null : col.color ? <ProjectDot color={col.color} /> : <Inbox size={14} strokeWidth={1.9} className="group-icon" />}
               {col.heading && (
                 <Checkbox
                   state={col.headingTask.status}
@@ -184,6 +163,16 @@ export function Board({ model }) {
                 style={textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).style}
               >{col.title}</span>
               {(col.count ?? col.tasks.length) > 0 && <span className="group-count">{col.count ?? col.tasks.length}</span>}
+              {col.heading && (
+                <button
+                  type="button"
+                  className="column-major-add"
+                  aria-label={`Add a box to ${col.title}`}
+                  onClick={() => openNewTask(boxDefaults(col.headingTask))}
+                >
+                  <Plus size={14} strokeWidth={2.2} /> Box
+                </button>
+              )}
               {col.heading && (col.headingTask.dueDate
                 ? <DueChip value={col.headingTask.dueDate} today={today} done={col.headingTask.status === 'done'} onChange={(dueDate) => updateTask(col.headingTask.id, { dueDate })} />
                 : <DueButton value={null} onChange={(dueDate) => updateTask(col.headingTask.id, { dueDate })} />)}
@@ -199,7 +188,7 @@ export function Board({ model }) {
                   type="button"
                   className="icon-btn sm column-delete"
                   aria-label="Delete major task"
-                  onClick={() => deleteTask(col.headingTask.id)}
+                  onClick={() => requestDeleteTask(col.headingTask.id)}
                 >
                   <Trash2 size={14} strokeWidth={1.9} />
                 </button>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import {
-  closeMobileNav, data, deleteTask, duplicateTask, hidePreview, navigate, openNewTask, openSearch, selectTask,
+  closeMobileNav, data, requestDeleteTask, duplicateTask, hidePreview, navigate, openNewTask, openSearch, selectTask,
   setHelp, setPref, setSelecting, toggleComplete, toggleToday, ui, undoLast, updateTask, useData, useUI,
 } from './store';
 import { activeMajorId, buildView, NAV_VIEWS } from './lib/views';
@@ -71,8 +71,7 @@ function handleKey(e, model) {
 
   const removeSelected = () => {
     const neighbour = list[idx + 1] || list[idx - 1];
-    deleteTask(selected.id);
-    if (neighbour) selectTask(neighbour.id, false);
+    if (requestDeleteTask(selected.id) && neighbour) selectTask(neighbour.id, false);
   };
 
   if (mod) {

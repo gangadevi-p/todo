@@ -3,7 +3,7 @@ import {
   CalendarDays, CircleCheck, CircleDashed, Copy, Ellipsis, FolderClosed, Inbox, ListChecks, Plus, Sun, Trash2, X,
 } from 'lucide-react';
 import {
-  addNestedSubtask, addSubtask, childTasks, deleteTask, duplicateTask, hidePreview, openMenu, removeSubtask, selectTask,
+  addNestedSubtask, addSubtask, childTasks, requestDeleteTask, duplicateTask, hidePreview, openMenu, removeSubtask, selectTask,
   toggleComplete, updateSubtask, updateTask, useChildTasks, useData, useUI,
 } from '../store';
 import { dueLabel, dueLabelLong, formatTimestamp } from '../lib/dates';
@@ -239,7 +239,7 @@ function NestedTaskLine({ task, depth }) {
           : <DueButton value={null} onChange={(dueDate) => updateTask(task.id, { dueDate })} />}
         <StrikeButton on={task.struck} onToggle={() => updateTask(task.id, { struck: !task.struck })} />
         <TextStyleButton className="sub-style" value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} label="Style task text" />
-        <button type="button" className="icon-btn sm sub-del" aria-label="Delete task" onClick={() => deleteTask(task.id)}>
+        <button type="button" className="icon-btn sm sub-del" aria-label="Delete task" onClick={() => requestDeleteTask(task.id)}>
           <Trash2 size={13} />
         </button>
       </div>
@@ -302,7 +302,7 @@ export function TaskEditor({ task }) {
           onClick={(e) => menuAt(e, [
             { label: 'Duplicate', icon: Copy, shortcut: 'mod+D', onSelect: () => { const id = duplicateTask(task.id); if (id) selectTask(id, false); } },
             { divider: true },
-            { label: 'Delete task', icon: Trash2, shortcut: 'Del', danger: true, onSelect: () => deleteTask(task.id) },
+            { label: 'Delete task', icon: Trash2, shortcut: 'Del', danger: true, onSelect: () => requestDeleteTask(task.id) },
           ])}
         >
           <Ellipsis size={15} />
