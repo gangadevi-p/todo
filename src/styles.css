@@ -2441,7 +2441,11 @@ kbd {
 }
 .sub-add-nested {
   flex: none;
+  margin-left: auto;
   color: var(--text-3);
+}
+.sub-add-nested + .notes-chev-btn {
+  margin-left: 2px;
 }
 .sub-row:hover .sub-add-nested,
 .sub-row:focus-within .sub-add-nested {
