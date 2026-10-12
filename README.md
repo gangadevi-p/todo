@@ -50,13 +50,15 @@ The sign-in is a screen lock for that browser, not an online account: only a sal
 ```
 Project            sidebar → New project (opens on its Board)
  └─ Major task     a chip under the overview; the + after the chips adds one
-     └─ Box        the + beside the major task's title adds one
+     ├─ Sub-task   the + beside the major task's title adds one, right inside it
+     └─ Box        the page + (or N) adds one under the major task showing
          └─ Sub-task   the + on a box, or Enter, adds one
              └─ Nested     Tab on a sub-task nests the next one under it
 ```
 
 On every Board page (Today, Upcoming, All Tasks, Completed and each project) the chips are the major tasks (gray, the one showing is purple). Its boxes sit side by side below (teal), each holding its sub-tasks (coral) in one column; nested ones are indented.
 
+- The **+** beside a major task's title adds a sub-task straight into that major task, with no box.
 - The page **+** and **N** add a major task when the project has none, otherwise a box under the major task showing.
 - **Enter** on a sub-task adds the next one at the same level; **Tab** nests it under the item above.
 - Nothing opens on hover. Right-click a task (or use its ⋯ grip) and choose **Edit** to open its editor.
