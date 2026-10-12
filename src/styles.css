@@ -5398,3 +5398,7 @@ button.stats-deadline {
 .sidebar.rail .search-item {
   margin-bottom: 8px;
 }
+/* The empty-state "New project" row repeats the section's +, which stays in the rail. */
+.sidebar.rail .projects > .nav-item.muted {
+  display: none;
+}
