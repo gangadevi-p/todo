@@ -2212,13 +2212,29 @@ kbd {
 }
 .tg-cell.tg-box {
   align-items: flex-start;
+  min-height: 42px;
 }
 .tg-cell.tg-box .check {
-  margin-top: 3px;
+  margin-top: 4px;
 }
 .tg-cell.tg-box .panel-title {
   flex: 1;
   min-width: 0;
+  width: auto;
+  max-width: none;
+  padding: 0;
+  field-sizing: fixed;
+}
+/* The box is the only fill: a capsule-filled title tints the box itself, not a second box inside it. */
+.tg-cell.tg-box.text-capsule {
+  background: color-mix(in srgb, var(--title-style-color, var(--accent)) 17%, transparent);
+}
+.tg-cell.tg-box .panel-title.text-capsule {
+  background: transparent;
+}
+/* Tools and values line up under the title's checkbox / the status box's icon. */
+.tg-cell:not(.tg-box):not(.tg-flush) {
+  padding: 0 10px;
 }
 .tg-btn {
   display: inline-flex;
@@ -2226,7 +2242,7 @@ kbd {
   gap: 9px;
   width: 100%;
   min-height: 34px;
-  padding: 0 4px;
+  padding: 0;
   border: 0;
   background: transparent;
   color: var(--text);
@@ -2234,6 +2250,7 @@ kbd {
   text-align: left;
 }
 .tg-btn.tg-box {
+  min-height: 42px;
   padding: 0 10px;
   background: var(--bg-fill);
   border-radius: 8px;

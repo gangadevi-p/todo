@@ -347,7 +347,10 @@ export function TaskEditor({ task }) {
       <div className="preview-body">
         {compact ? (
           <div className="task-grid">
-            <div className="tg-cell tg-box">
+            <div
+              className={`tg-cell tg-box${style.className ? ` ${style.className}` : ''}`}
+              style={style.style?.['--title-style-color'] ? { '--title-style-color': style.style['--title-style-color'] } : undefined}
+            >
               <Checkbox state={task.status} size="lg" onToggle={() => toggleComplete(task.id)} />
               <TitleField
                 inputRef={titleRef}
@@ -358,7 +361,7 @@ export function TaskEditor({ task }) {
                 onSave={(title) => updateTask(task.id, { title })}
               />
             </div>
-            <div className="tg-cell">
+            <div className="tg-cell tg-flush">
               <button type="button" className="tg-box tg-btn" aria-label="Status" onClick={(e) => menuAt(e, statusItems(task))}>
                 <StatusIcon status={task.status} />
                 {statusLabel(task.status)}
