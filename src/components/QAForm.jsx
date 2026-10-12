@@ -52,7 +52,7 @@ export function QAForm({ id = null }) {
   return (
     <Popup
       title={isNew ? 'New question' : 'Edit question'}
-      subtitle="Only the question is required. The answer can come later."
+      subtitle={`Only the question is required. ${modKey()}+Enter saves.`}
       dirty={dirty}
       canSubmit={Boolean(q) && dirty}
       submitLabel={isNew ? 'Add question' : 'Save'}
@@ -86,7 +86,7 @@ export function QAForm({ id = null }) {
         />
       </Field>
 
-      <Field f={ANSWER} hint={`${modKey()}+Enter to save`} top>
+      <Field f={ANSWER} hint="Optional" top>
         <textarea
           ref={answerRef}
           className="pp-notes"
