@@ -4134,3 +4134,8 @@ button.stats-deadline {
   margin-right: auto;
   text-align: center;
 }
+
+/* A long major-task title wraps within the boxes' width instead of stretching the row. */
+.column-lane.column-wide .column-head {
+  max-width: var(--box-w);
+}
