@@ -4170,3 +4170,56 @@ button.stats-deadline {
 .major-filter {
   justify-content: flex-start;
 }
+
+/* ==========================================================================
+   Boxes size to their text: narrower for short text, wider for long text (up
+   to the column). The column itself stays centred at one fixed width.
+   ========================================================================== */
+.column-lane.column-wide {
+  width: min(100%, var(--box-w));
+  min-width: 0;
+  justify-self: center;
+}
+.column-wide .column-body > .card.box,
+.column-wide .column-body > .column-checklist {
+  flex: 0 1 auto;
+  width: fit-content;
+  min-width: min(100%, 240px);
+  max-width: 100%;
+  /* A size container has no natural width, so a box is not one. */
+  container-type: normal;
+}
+/* A row keeps room on its right for its tools, so showing them never changes
+   the box's width or covers the text. */
+.card.box .subtasks-card .sub-row,
+.column-wide .column-checklist .subtasks-board .sub-row {
+  padding-right: 104px;
+}
+.card.box .subtasks-card .sub-row .due-button,
+.card.box .subtasks-card .sub-row .strike-button,
+.card.box .subtasks-card .sub-row .sub-style,
+.card.box .subtasks-card .sub-row .sub-del,
+.column-wide .column-checklist .subtasks-board .sub-row .due-button,
+.column-wide .column-checklist .subtasks-board .sub-row .strike-button,
+.column-wide .column-checklist .subtasks-board .sub-row .sub-style,
+.column-wide .column-checklist .subtasks-board .sub-row .sub-del {
+  position: absolute;
+  top: 4px;
+  margin: 0;
+}
+.card.box .subtasks-card .sub-row .sub-del,
+.column-wide .column-checklist .subtasks-board .sub-row .sub-del {
+  right: 6px;
+}
+.card.box .subtasks-card .sub-row .sub-style,
+.column-wide .column-checklist .subtasks-board .sub-row .sub-style {
+  right: 30px;
+}
+.card.box .subtasks-card .sub-row .strike-button,
+.column-wide .column-checklist .subtasks-board .sub-row .strike-button {
+  right: 54px;
+}
+.card.box .subtasks-card .sub-row .due-button,
+.column-wide .column-checklist .subtasks-board .sub-row .due-button {
+  right: 78px;
+}
