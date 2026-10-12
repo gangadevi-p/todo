@@ -88,7 +88,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
           </span>
         )}
       </div>
-      {!selecting && <NotesLine notes={task.notes} onOpen={() => selectTask(task.id, true)} className="card-notes" />}
+      {!selecting && <NotesLine id={task.id} notes={task.notes} onOpen={() => selectTask(task.id, true)} className="card-notes" />}
       {hasMeta ? (
         <div className="card-meta">
           <TaskMeta task={task} show={show} today={today} hidePriority hideDue />
@@ -191,7 +191,7 @@ export function Board({ model }) {
                 </button>
               )}
             </header>
-            {col.heading && <NotesLine notes={col.headingTask.notes} onOpen={() => selectTask(col.headingTask.id, true)} className="major-notes" />}
+            {col.heading && <NotesLine id={col.headingTask.id} notes={col.headingTask.notes} onOpen={() => selectTask(col.headingTask.id, true)} className="major-notes" />}
             <div className="column-body">
               {col.heading && <HeadingAddField task={col.headingTask} />}
               {withDropLine(col.tasks, draggingId, isTarget && col.sortable ? target.index : null, (t) => (

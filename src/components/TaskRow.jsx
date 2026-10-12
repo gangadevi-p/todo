@@ -142,7 +142,7 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
           <TaskMeta task={task} show={show} today={today} />
         </span>
       </div>
-      {!selecting && <NotesLine notes={task.notes} onOpen={() => selectTask(task.id, true)} className="row-notes" />}
+      {!selecting && <NotesLine id={task.id} notes={task.notes} onOpen={() => selectTask(task.id, true)} className="row-notes" />}
       <ChildTaskList
         task={task}
         kids={kids}

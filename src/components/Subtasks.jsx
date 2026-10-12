@@ -223,6 +223,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
       </div>
       {!selecting && !inPopup && (
         <NotesLine
+          id={subtask.id}
           notes={subtask.notes}
           onOpen={() => openEditor(task.id, subtask.id)}
           className="sub-note"
