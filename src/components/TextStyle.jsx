@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Bold, Italic, Palette, Underline } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Bold, Italic, Minus, Palette, Plus, Underline } from 'lucide-react';
 import { openMenu } from '../store';
 import { TEXT_COLORS, normalizeTextStyle } from '../lib/textStyle';
 import { rectOf } from './MenuLayer';
@@ -9,6 +9,84 @@ function Toggle({ active, label, icon: Icon, onClick }) {
     <button type="button" className={`text-style-toggle${active ? ' on' : ''}`} aria-pressed={active} aria-label={label} onClick={onClick}>
       <Icon size={15} strokeWidth={2} />
     </button>
+  );
+}
+
+const MIN_SIZE = 11;
+const MAX_SIZE = 32;
+const START_SIZE = 14;
+
+/**
+ * Text size in px. The number is only applied once it is a whole size in range
+ * (typing "1" on the way to "16" must not jump to 11), and − / + step by one.
+ */
+function SizeField({ value, onChange }) {
+  const [draft, setDraft] = useState(value ? String(value) : '');
+  const applied = useRef(value);
+  useEffect(() => {
+    if (value === applied.current) return;
+    applied.current = value;
+    setDraft(value ? String(value) : '');
+  }, [value]);
+
+  const apply = (size) => {
+    applied.current = size;
+    onChange(size);
+  };
+  const commit = (raw) => {
+    const text = String(raw).trim();
+    if (!text) {
+      apply(null);
+      setDraft('');
+      return;
+    }
+    const size = Math.max(MIN_SIZE, Math.min(MAX_SIZE, Math.round(Number(text))));
+    if (!Number.isFinite(size)) {
+      setDraft(value ? String(value) : '');
+      return;
+    }
+    apply(size);
+    setDraft(String(size));
+  };
+  const step = (delta) => commit((value ?? START_SIZE) + delta);
+
+  return (
+    <div className="text-style-size">
+      <button type="button" className="text-style-step" aria-label="Smaller text" disabled={value != null && value <= MIN_SIZE} onClick={() => step(-1)}>
+        <Minus size={13} strokeWidth={2.2} />
+      </button>
+      <input
+        type="text"
+        inputMode="numeric"
+        aria-label="Text size in px"
+        value={draft}
+        placeholder="Default"
+        onChange={(e) => {
+          const next = e.target.value.replace(/D/g, '').slice(0, 2);
+          setDraft(next);
+          const n = Number(next);
+          if (next && n >= MIN_SIZE && n <= MAX_SIZE) apply(n);
+        }}
+        onBlur={() => commit(draft)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            commit(draft);
+            e.currentTarget.blur();
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            step(1);
+          } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            step(-1);
+          }
+        }}
+      />
+      <button type="button" className="text-style-step" aria-label="Larger text" disabled={value != null && value >= MAX_SIZE} onClick={() => step(1)}>
+        <Plus size={13} strokeWidth={2.2} />
+      </button>
+      <span>px</span>
+    </div>
   );
 }
 
@@ -51,11 +129,7 @@ export function TextStyleSection({ style, set, panel, label }) {
       </div>,
     );
   }
-  return wrap(
-    <label className="text-style-size">
-      <input type="number" min="11" max="32" value={style.size || ''} placeholder="Default" onChange={(e) => set({ size: e.target.value === '' ? null : Number(e.target.value) })} /> px
-    </label>,
-  );
+  return wrap(<SizeField value={style.size} onChange={(size) => set({ size })} />);
 }
 
 /** The same tools for a plain value + onChange, with no state of its own. */

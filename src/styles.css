@@ -1064,6 +1064,7 @@ kbd {
 }
 .text-style-size input {
   width: 58px;
+  text-align: center;
   height: 25px;
   padding: 0 6px;
   border: 1px solid var(--border);
@@ -1072,6 +1073,26 @@ kbd {
   background: var(--bg);
   color: var(--text);
   font: inherit;
+}
+.text-style-step {
+  display: inline-grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.text-style-step:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.text-style-step:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 .text-style-switch {
   position: relative;
@@ -2265,7 +2286,7 @@ kbd {
   margin-left: auto;
 }
 .tg-cell .text-style-size input {
-  width: 74px;
+  width: 62px;
 }
 .tg-size-glyph {
   color: var(--text-2);
