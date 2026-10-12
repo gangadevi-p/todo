@@ -5287,3 +5287,88 @@ button.stats-deadline {
   font-size: 12.5px;
   line-height: 1.5;
 }
+
+/* Read with AI: the button under the paste box, the key field, and errors. */
+.plan-ai {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 8px;
+}
+.plan-ai-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.plan-ai-btn.attention {
+  border-color: var(--text);
+}
+.plan-ai-note {
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.plan-error {
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.45;
+  padding: 7px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--bg-fill);
+}
+.plan-key {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-subtle);
+}
+.plan-key p {
+  margin: 0 0 8px;
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.plan-key-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.plan-key-row .pp-input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  font-size: 13px;
+}
+.plan-key-saved {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  color: var(--text-3);
+  font-size: 12px;
+}
+.plan-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-2);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.plan-link:hover {
+  color: var(--text);
+}
+.plan-source {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+.plan-source .plan-link {
+  margin-left: auto;
+}

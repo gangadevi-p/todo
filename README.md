@@ -80,7 +80,16 @@ Output: A feature inventory describing the current capabilities and gaps.
 | a bullet, `Name — description` | a sub-task named `Name`, with `description` as its notes |
 | a more indented bullet | a sub-task nested under the one above |
 
-Several phases pasted together make several major tasks. A preview shows what will be created before anything is. It reads the format; it is not a language model, so it needs no key and works offline.
+Several phases pasted together make several major tasks. A preview shows what will be created before anything is.
+
+### Any other wording: Read with AI
+
+Text in the format above is read instantly, offline, with no key. For any other wording (meeting notes, a brief, a numbered list, a paragraph) click **Read with AI** in the popup. Claude reads the text and shapes it into the same major tasks, notes and sub-tasks, and the preview shows the result before anything is created. **Use the quick read instead** switches back.
+
+- **Your own key.** The first time, paste an Anthropic API key (from console.anthropic.com). It is saved only in this browser, is never part of **Export data**, and is sent only to Anthropic. **Remove** in the popup deletes it. A key with a spend limit is a good idea.
+- **What is sent.** Only the text in the popup, when you click **Read with AI**. Nothing is sent otherwise.
+- **Cost.** One reading is a single request to `claude-opus-5-5` (`AI_MODEL` in `src/lib/aiPlan.js`), a few cents for a page of text. Text over 30,000 characters is refused, not cut.
+- **No server.** The browser calls `api.anthropic.com` directly; the page's Content-Security-Policy allows that one host and nothing else (`vite.config.mjs`).
 
 ## Q&A
 
