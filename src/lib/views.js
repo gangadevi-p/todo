@@ -61,9 +61,11 @@ export function taskProgress(t, statusOf) {
  * Todo / done breakdown, checklist-weighted completion, and the nearest due
  * date for a section overview panel.
  */
-function progressStats(scope, statusOf, today) {
-  // A major task is real work itself, and each checklist item beneath it is
-  // real work too. Count both, alongside nested child tasks already in scope.
+function progressStats(top, statusOf, today, allTasks = []) {
+  // A major task is real work itself, and so is everything inside it: its
+  // boxes and every sub-task (checklist item, nested ones too). Count them all.
+  const under = (id) => allTasks.filter((t) => t.parentId === id).flatMap((c) => [c, ...under(c.id)]);
+  const scope = [...top, ...top.flatMap((t) => under(t.id))];
   const checklist = scope.flatMap((t) => flattenChecklist(t.subtasks));
   const total = scope.length + checklist.length;
   // The overview is a summary of both major tasks and nested tasks, so its
@@ -195,7 +197,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       model.newTaskDefaults = { addedToToday: true };
       model.deleteScope = 'Today';
       model.mode = sectionMode;
-      model.stats = progressStats(scope, statusOf, today);
+      model.stats = progressStats(scope, statusOf, today, allTasks);
       if (sectionMode === 'board') {
         const majors = [...scope].sort(byOrder);
         model.groups = headingBoardGroups(majors, allTasks, { addedToToday: true });
@@ -218,7 +220,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       model.newTaskDefaults = { dueDate: addDays(today, 1) };
       model.deleteScope = 'Upcoming';
       model.mode = sectionMode;
-      model.stats = progressStats(scope, statusOf, today);
+      model.stats = progressStats(scope, statusOf, today, allTasks);
       if (sectionMode === 'board') {
         model.show.due = true;
         const majors = [...scope].sort(byOrder);
@@ -259,7 +261,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       model.emptyText = 'No tasks yet. Add one to a project.';
       model.deleteScope = 'All Tasks';
       model.mode = sectionMode;
-      model.stats = progressStats(tasks, statusOf, today);
+      model.stats = progressStats(tasks, statusOf, today, allTasks);
       // All Tasks is deliberately organised by project, never by completion
       // status. Empty projects stay visible so this view is a complete map of
       // the workspace and also provides a quick add point for every project.
@@ -296,7 +298,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       model.emptyText = "You didn't complete anything yet — start working, bro.";
       model.deleteScope = 'Completed';
       model.mode = sectionMode;
-      model.stats = progressStats(list, statusOf, today);
+      model.stats = progressStats(list, statusOf, today, allTasks);
       // Every task here is already done, so there's no "Todo" side to show
       // and nothing to drop onto — just the full, flat list of what's finished.
       if (sectionMode === 'board') {
@@ -338,7 +340,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       model.deleteScope = `“${project.name}”`;
       model.deleteNote = ' The project itself stays.';
       model.show.project = false;
-      model.stats = progressStats(own, statusOf, today);
+      model.stats = progressStats(own, statusOf, today, allTasks);
       const statusGroups = [
         // In list mode the page title already reads "<project name>", so the
         // main task group needs no "Todo" label of its own — only Board,
