@@ -881,12 +881,15 @@ kbd {
   padding: 8px 16px;
 }
 .panel-title.text-capsule,
-.sub-row input.text-capsule {
+.sub-row input.text-capsule,
+.sub-row textarea.text-capsule {
   background: color-mix(in srgb, var(--title-style-color, var(--accent)) 17%, transparent);
 }
 .page-title-input.text-capsule,
 .panel-title.text-capsule,
-.sub-row input.text-capsule {
+.sub-row input.text-capsule,
+.page-title-textarea.text-capsule,
+.sub-row textarea.text-capsule {
   width: auto;
   min-width: 0;
   max-width: 100%;
@@ -2292,7 +2295,8 @@ kbd {
 .sub-row:hover {
   background: var(--bg-hover);
 }
-.sub-row input {
+.sub-row input,
+.sub-row textarea {
   flex: 1;
   min-width: 0;
   padding: 0;
@@ -2301,7 +2305,8 @@ kbd {
   background: transparent;
   font-size: 13.5px;
 }
-.sub-row input.text-capsule {
+.sub-row input.text-capsule,
+.sub-row textarea.text-capsule {
   display: block;
   flex: 0 1 auto;
   width: auto;
@@ -2309,11 +2314,13 @@ kbd {
   padding: 8px 16px;
   line-height: 1.35;
 }
-.sub-row:has(input.text-capsule) {
+.sub-row:has(input.text-capsule),
+.sub-row:has(textarea.text-capsule) {
   height: auto;
   min-height: 36px;
 }
-.sub-row.done input {
+.sub-row.done input,
+.sub-row.done textarea {
   color: var(--text-3);
   text-decoration: line-through;
 }
@@ -2406,7 +2413,8 @@ kbd {
   border-color: var(--border-strong);
   background: var(--bg-card);
 }
-.subtasks-board .sub-row input {
+.subtasks-board .sub-row input,
+.subtasks-board .sub-row textarea {
   font-size: 14px;
 }
 .subtasks-board .sub-row[style*="--sub-depth"] {
@@ -3488,7 +3496,10 @@ mark {
 }
 .subtasks-row .sub-row input,
 .subtasks-card .sub-row input,
-.subtasks-board .sub-row input {
+.subtasks-board .sub-row input,
+.subtasks-row .sub-row textarea,
+.subtasks-card .sub-row textarea,
+.subtasks-board .sub-row textarea {
   flex: 0 1 auto;
   width: auto;
   min-width: 4ch;
@@ -3542,7 +3553,8 @@ mark {
 .row.struck .row-title,
 .card.struck > .card-main .card-title,
 .sub-row.struck input,
-.column-head .group-title.struck {
+.column-head .group-title.struck,
+.sub-row.struck textarea {
   opacity: 0.55;
 }
 
@@ -3685,11 +3697,13 @@ button.column-empty span {
   border-color: var(--lv-sub-line);
   background: var(--lv-sub-bg);
 }
-.card.box .subtasks-card .sub-row input {
+.card.box .subtasks-card .sub-row input,
+.card.box .subtasks-card .sub-row textarea {
   color: var(--lv-sub-text);
   font-size: 12.5px;
 }
-.card.box .subtasks-card .sub-row.done input {
+.card.box .subtasks-card .sub-row.done input,
+.card.box .subtasks-card .sub-row.done textarea {
   color: var(--lv-sub-text);
   opacity: 0.65;
 }
@@ -3793,11 +3807,13 @@ button.column-empty span {
   border-color: var(--lv-sub-line);
   background: var(--lv-sub-bg);
 }
-.column-wide .column-checklist .subtasks-board .sub-row input {
+.column-wide .column-checklist .subtasks-board .sub-row input,
+.column-wide .column-checklist .subtasks-board .sub-row textarea {
   color: var(--lv-sub-text);
   font-size: 12.5px;
 }
-.column-wide .column-checklist .subtasks-board .sub-row.done input {
+.column-wide .column-checklist .subtasks-board .sub-row.done input,
+.column-wide .column-checklist .subtasks-board .sub-row.done textarea {
   color: var(--lv-sub-text);
   opacity: 0.65;
 }
@@ -3930,4 +3946,95 @@ button.stats-deadline {
   .column-wide .column-checklist .subtasks-board .sub-row .sub-del {
     display: inline-grid !important;
   }
+}
+
+/* ==========================================================================
+   Wrapping text, a centred major task, and everything readable in full
+   ========================================================================== */
+
+/* A sub-task's text wraps onto more lines instead of being cut off. */
+.sub-row textarea {
+  display: block;
+  resize: none;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.sub-row textarea::placeholder {
+  color: var(--text-3);
+}
+.sub-row {
+  height: auto;
+  min-height: 32px;
+}
+.subtasks-inline .sub-row {
+  height: auto;
+  min-height: 28px;
+}
+.card.box .subtasks-card .sub-row,
+.column-wide .column-checklist .subtasks-board .sub-row {
+  align-items: flex-start;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.card.box .subtasks-card .sub-row .check,
+.column-wide .column-checklist .subtasks-board .sub-row .check {
+  margin-top: 1px;
+}
+.card.box .subtasks-card .sub-row textarea {
+  font-size: 12.5px;
+  color: var(--lv-sub-text);
+}
+.column-wide .column-checklist .subtasks-board .sub-row textarea {
+  font-size: 12.5px;
+  color: var(--lv-sub-text);
+}
+
+/* Titles are shown in full. */
+.card.box .card-title {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+.column-lane .column-head {
+  height: auto;
+  min-height: 32px;
+}
+.column-lane .column-head .group-title {
+  flex: 0 1 auto;
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+.major-chip {
+  height: auto;
+  min-height: 28px;
+  max-width: 100%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  white-space: normal;
+  text-align: left;
+}
+.major-chip-title {
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+
+/* One major task shows at a time: its chips and its boxes sit in the middle. */
+.major-filter {
+  justify-content: center;
+}
+.column-lane.column-wide {
+  justify-self: center;
 }

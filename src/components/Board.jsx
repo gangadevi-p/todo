@@ -217,12 +217,23 @@ export function Board({ model }) {
                   box={Boolean(col.heading)}
                 />
               ))}
+              {(col.completedChecklistParents || []).map((t) => (
+                <Card
+                  key={`completed-checklist:${t.id}`}
+                  task={t}
+                  show={{ ...model.show, completed: true }}
+                  today={today}
+                  projectsById={projectsById}
+                  checklistStatus="done"
+                  box={Boolean(col.heading)}
+                />
+              ))}
               {col.checklistTask && (
                 <div className="column-checklist">
                   <SubtaskTree task={col.checklistTask} variant="board" completedOnly={col.checklistStatus === 'done'} todoOnly={col.checklistStatus === 'todo'} />
                 </div>
               )}
-              {col.tasks.length === 0 && !col.checklistTask && (
+              {col.tasks.length === 0 && !col.checklistTask && !(col.completedChecklistParents || []).length && (
                 col.heading
                   ? (
                     <button type="button" className="column-empty column-heading-empty" onClick={() => openNewTask(boxDefaults(col.headingTask))}>

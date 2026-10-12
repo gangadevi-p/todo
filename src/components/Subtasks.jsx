@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import {
   addNestedSubtask, addSubtask, addSubtaskAfter, removeSubtask, setStatsFilter, subtaskKey, toggleSelected, ui, updateSubtask, useUI,
@@ -15,6 +15,9 @@ import { StrikeButton } from './StrikeButton';
  * Focuses a subtask's title field once it's in the DOM — used right after creating one.
  * The same item can be on the page and in the task popup at once: stay in the popup when typing there.
  */
+// Browsers without field-sizing need the text field's height set from its content.
+const SIZES_ITSELF = typeof CSS !== 'undefined' && CSS.supports?.('field-sizing', 'content');
+
 export const focusSubtask = (id) => {
   const scope = document.activeElement?.closest?.('.preview') || document;
   const selector = `[data-subtask-input="${id}"]`;
@@ -55,6 +58,13 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
   const key = subtaskKey(task.id, subtask.id);
   const picked = useUI((u) => u.selected.has(key));
   const suppressEmptyDelete = useRef(false);
+  const textRef = useRef(null);
+  useLayoutEffect(() => {
+    const el = textRef.current;
+    if (!el || SIZES_ITSELF) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [subtask.title]);
 
   const addSibling = () => {
     const id = addSubtaskAfter(task.id, subtask.id);
@@ -110,7 +120,9 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
           onChange={selecting ? undefined : (completedAt) => updateSubtask(task.id, subtask.id, { completedAt })}
         />
       )}
-      <input
+      <textarea
+        ref={textRef}
+        rows={1}
         data-subtask-input={subtask.id}
         className={textStyleProps(subtask.textStyle, subtask.struck).className}
         style={textStyleProps(subtask.textStyle, subtask.struck).style}
@@ -118,9 +130,12 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         spellCheck
         readOnly={selecting}
         placeholder="Subtask"
-        onChange={(e) => updateSubtask(task.id, subtask.id, { title: e.target.value })}
+        onChange={(e) => updateSubtask(task.id, subtask.id, { title: e.target.value.replace(/\n/g, ' ') })}
         onKeyDown={(e) => {
           if (e.nativeEvent.isComposing) return;
+          // A long sub-task wraps; the arrows only leave it from its first or last line.
+          const el = e.currentTarget;
+          const wrapped = el.clientHeight > (parseFloat(getComputedStyle(el).lineHeight) || 18) * 1.5;
           if (e.key === 'Enter') {
             e.preventDefault();
             if (subtask.title.trim()) addSibling();
@@ -132,10 +147,10 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
             e.preventDefault();
             removeSubtask(task.id, subtask.id);
             focus(index - 1);
-          } else if (e.key === 'ArrowUp') {
+          } else if (e.key === 'ArrowUp' && (!wrapped || el.selectionStart === 0)) {
             e.preventDefault();
             focus(index - 1);
-          } else if (e.key === 'ArrowDown') {
+          } else if (e.key === 'ArrowDown' && (!wrapped || el.selectionEnd === el.value.length)) {
             e.preventDefault();
             focus(index + 1);
           }
