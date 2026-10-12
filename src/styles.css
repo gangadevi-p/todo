@@ -4338,3 +4338,12 @@ button.stats-deadline {
     min-width: min(100%, 150px);
   }
 }
+
+/* Phones: a long title gets the whole width and the icons drop under it; a short one stays beside them. */
+@media (max-width: 480px) {
+  .page-title-line {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: calc(100% - 24px);
+  }
+}
