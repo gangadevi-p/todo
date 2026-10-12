@@ -62,7 +62,7 @@ function SizeField({ value, onChange }) {
         value={draft}
         placeholder="Default"
         onChange={(e) => {
-          const next = e.target.value.replace(/D/g, '').slice(0, 2);
+          const next = e.target.value.replace(/\D/g, '').slice(0, 2);
           setDraft(next);
           const n = Number(next);
           if (next && n >= MIN_SIZE && n <= MAX_SIZE) apply(n);
