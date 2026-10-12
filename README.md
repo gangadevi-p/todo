@@ -33,7 +33,7 @@ The sign-in is a screen lock for that browser, not an online account: only a sal
 | `Ctrl/⌘ K` | Search |
 | `Ctrl/⌘ 1–5` | Inbox · Today · Upcoming · All Tasks · Completed |
 | `Ctrl/⌘ \` | Toggle sidebar |
-| `N` | New task for the current view (a sub-task of the selected major task in a project) |
+| `N` | New task for the current view (in a project's Board: a major task, then a box under the one showing) |
 | `↑ ↓` or `J K` | Move the selection |
 | `Enter` | Open the task's editor |
 | `Space` | Complete or reopen |
@@ -45,17 +45,21 @@ The sign-in is a screen lock for that browser, not an online account: only a sal
 | `Esc` | Close the editor or clear the selection |
 | `?` | Show all shortcuts |
 
-## Major tasks and sub-tasks
+## Project, major task, box, sub-task
 
-In a project with two or more major tasks, chips under the overview pick which major task is shown. The **+** at the end of the chips adds a new major task.
+```
+Project            sidebar → New project (opens on its Board)
+ └─ Major task     a chip under the overview; the + after the chips adds one
+     └─ Box        the + beside the major task's title adds one
+         └─ Sub-task   the + on a box, or Enter, adds one
+             └─ Nested     Tab on a sub-task nests the next one under it
+```
 
-On the Board:
+On a project's Board the chips are the major tasks (gray, the one showing is purple). Its boxes sit side by side below (teal), each holding its sub-tasks (coral) in one column; nested ones are indented.
 
-- The **+** beside a major task's title adds a new box under it.
-- **Enter** or the **+** on a box's first row adds a sub-task inside that box.
-- **Enter** on any other item adds the next one at the same level; **Tab** nests it under the item above.
-
-Nothing opens on hover. Right-click a task (or use its ⋯ grip) and choose **Edit** to open its editor.
+- The page **+** and **N** add a major task when the project has none, otherwise a box under the major task showing.
+- **Enter** on a sub-task adds the next one at the same level; **Tab** nests it under the item above.
+- Nothing opens on hover. Right-click a task (or use its ⋯ grip) and choose **Edit** to open its editor.
 
 ## Project layout
 

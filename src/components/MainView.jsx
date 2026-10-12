@@ -14,7 +14,7 @@ import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
 import { flattenChecklist } from '../lib/checklist';
 import { activeMajorId } from '../lib/views';
-import { addSubtaskTo } from './Subtasks';
+import { addForPage, isProjectBoard } from '../lib/pageAdd';
 
 const VIEW_ICONS = { inbox: Inbox, today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck, trash: Trash2 };
 
@@ -140,10 +140,12 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
     [model, statsFilter, activeMajor],
   );
 
-  // With a major task showing, "+" adds a sub-task row to its box, not another major task.
-  const newTask = () => (activeMajor ? addSubtaskTo(activeMajor) : openNewTask(model.newTaskDefaults));
+  // On a project's Board "+" adds a major task first, then a box under the one showing.
+  const newTask = () => addForPage(model, activeMajor);
   const isBoard = model.mode === 'board';
   const isTrash = model.kind === 'trash';
+  const projectBoard = isProjectBoard(model);
+  const noMajors = projectBoard && model.majorTasks.length === 0;
   const setMode = (mode) => (model.project ? setProjectMode(model.project.id, mode) : setSectionMode(model.id, mode));
   const selecting = useUI((u) => u.selecting);
   const selected = useUI((u) => u.selected);
@@ -237,7 +239,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
                 type="button"
                 className="icon-btn page-add"
                 onClick={newTask}
-                aria-label={activeMajor ? 'New sub-task' : 'New task'}
+                aria-label={activeMajor ? 'New box' : projectBoard ? 'New major task' : 'New task'}
               >
                 <Plus size={17} strokeWidth={2.2} />
               </button>}
@@ -261,12 +263,19 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
           <SectionStats stats={model.stats} />
           {!isTrash && (
             <MajorFilter
-              majors={model.majorTasks}
+              majors={projectBoard ? model.majorTasks : null}
               active={activeMajor}
               onAdd={() => openNewTask({ ...model.newTaskDefaults, isHeading: true })}
             />
           )}
-          {isTrash ? <TrashView /> : isBoard ? <Board model={filteredModel} /> : <TaskList model={filteredModel} />}
+          {isTrash ? <TrashView /> : noMajors ? (
+            <div className="major-empty">
+              <p>Start with a major task: the big piece of work in this project. Boxes and sub-tasks go inside it.</p>
+              <button type="button" className="btn" onClick={() => openNewTask({ ...model.newTaskDefaults, isHeading: true })}>
+                <Plus size={14} strokeWidth={2} /> Add major task
+              </button>
+            </div>
+          ) : isBoard ? <Board model={filteredModel} /> : <TaskList model={filteredModel} />}
         </div>
       </div>
     </main>

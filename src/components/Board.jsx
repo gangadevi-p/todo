@@ -14,7 +14,7 @@ import { TextStyleButton } from './TextStyle';
 import { DueButton, DueChip } from './DueButton';
 import { StrikeButton } from './StrikeButton';
 
-const Card = memo(function Card({ task, show, today, projectsById, checklistStatus }) {
+const Card = memo(function Card({ task, show, today, projectsById, checklistStatus, box = false }) {
   const dragging = useUI((u) => u.draggingId === task.id);
   const selecting = useUI((u) => u.selecting);
   const selected = useUI((u) => u.selectedId === task.id);
@@ -26,7 +26,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
   const hasMeta = Boolean(show.completed && task.completedAt);
   const showDue = Boolean(show.due && task.dueDate);
   const cls = [
-    'card', selected && 'selected', picked && 'picked', task.status === 'done' && 'done', task.struck && 'struck', completing && 'completing', dragging && 'dragging',
+    'card', box && 'box', selected && 'selected', picked && 'picked', task.status === 'done' && 'done', task.struck && 'struck', completing && 'completing', dragging && 'dragging',
   ].filter(Boolean).join(' ');
   // Clicking a task does nothing; its popup opens from the task menu's Edit or Enter. Bulk-select still picks cards.
   return (
@@ -44,7 +44,19 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
       }}
     >
       <div className="card-main">
-        {!selecting && <ChildAddButton task={task} className="card-child-add" />}
+        {!selecting && (box ? (
+          <button
+            type="button"
+            className="child-add-button card-child-add"
+            aria-label="Add sub-task"
+            onClick={(e) => {
+              e.stopPropagation();
+              addSubtaskTo(task.id);
+            }}
+          >
+            <Plus size={15} strokeWidth={2.1} />
+          </button>
+        ) : <ChildAddButton task={task} className="card-child-add" />)}
         <Checkbox
           state={selecting ? (picked ? 'done' : 'todo') : task.status}
           onToggle={() => (selecting ? toggleSelected(key) : toggleComplete(task.id))}
@@ -100,9 +112,17 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
         autoFocus={showChildAdd}
       />
       {task.subtasks.length > 0 && <SubtaskTree task={task} variant="card" completedOnly={checklistStatus === 'done'} todoOnly={checklistStatus === 'todo'} />}
+      {box && !selecting && task.status !== 'done' && (
+        <button type="button" className="box-add" onClick={() => addSubtaskTo(task.id)}>
+          <Plus size={13} strokeWidth={2} /> Add sub-task
+        </button>
+      )}
     </div>
   );
 });
+
+/** A new box goes under its major task, in the same project. */
+const boxDefaults = (major) => ({ projectId: major.projectId, parentId: major.id });
 
 function HeadingAddField({ task }) {
   const open = useShowChildAdd(task.id);
@@ -147,8 +167,8 @@ export function Board({ model }) {
                 <button
                   type="button"
                   className="icon-btn sm column-major-add"
-                  aria-label={`Add sub-task to ${col.title}`}
-                  onClick={() => addSubtaskTo(col.headingTask.id)}
+                  aria-label={`Add a box to ${col.title}`}
+                  onClick={() => openNewTask(boxDefaults(col.headingTask))}
                 >
                   <Plus size={15} />
                 </button>
@@ -189,7 +209,7 @@ export function Board({ model }) {
                   type="button"
                   className="icon-btn sm column-add"
                   aria-label={col.heading ? `New sub-task in ${col.title}` : `New ${col.title.toLowerCase()} task`}
-                  onClick={() => openNewTask(col.add.defaults)}
+                  onClick={() => openNewTask(boxDefaults(col.headingTask))}
                 >
                   <Plus size={15} />
                 </button>
@@ -204,6 +224,7 @@ export function Board({ model }) {
                   today={today}
                   projectsById={projectsById}
                   checklistStatus={col.checklistStatus}
+                  box={Boolean(col.heading)}
                 />
               ))}
               {col.checklistTask && (
@@ -213,7 +234,11 @@ export function Board({ model }) {
               )}
               {col.tasks.length === 0 && !col.checklistTask && (
                 col.heading
-                  ? <div className="column-empty column-heading-empty" aria-label="No subtasks" />
+                  ? (
+                    <button type="button" className="column-empty column-heading-empty" onClick={() => openNewTask(boxDefaults(col.headingTask))}>
+                      <span><Plus size={14} strokeWidth={2} /> Add a box</span>
+                    </button>
+                  )
                   : <div className="column-empty">No sub-tasks · add one</div>
               )}
             </div>

@@ -4,7 +4,7 @@ import {
   setHelp, setPref, setSelecting, toggleComplete, toggleToday, ui, undoLast, updateTask, useData, useUI,
 } from './store';
 import { activeMajorId, buildView, NAV_VIEWS } from './lib/views';
-import { addSubtaskTo } from './components/Subtasks';
+import { addForPage } from './lib/pageAdd';
 import { isTypingTarget } from './lib/util';
 import { TodayContext, useTodayClock } from './lib/useToday';
 import { useIsMobile } from './lib/useViewport';
@@ -115,10 +115,8 @@ function handleKey(e, model) {
       break;
     case 'n': {
       e.preventDefault();
-      // With a major task showing, N adds a sub-task row to its box, like the page "+".
-      const major = activeMajorId(model, u.majorFilter);
-      if (major) addSubtaskTo(major);
-      else openNewTask(model.newTaskDefaults);
+      // Same as the page "+": a major task first, then a box under the one showing.
+      addForPage(model, activeMajorId(model, u.majorFilter));
       break;
     }
     case '?':

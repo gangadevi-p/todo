@@ -23,6 +23,8 @@ export function NewTaskForm({ defaults }) {
   const parentId = defaults.parentId || null;
   // A sub-task lives in its parent's project, so that can't be picked here.
   const parent = parentId ? tasks.find((t) => t.id === parentId) || null : null;
+  // Under a major task a new task is a box; under anything else it is a sub-task.
+  const isBox = Boolean(parent && !parent.parentId && (parent.isHeading || parent.projectId));
   const [pickedProjectId, setProjectId] = useState(defaults.projectId || null);
   const projectId = parent ? parent.projectId : pickedProjectId;
   const [dueDate, setDueDate] = useState(defaults.dueDate || null);
@@ -121,11 +123,11 @@ export function NewTaskForm({ defaults }) {
 
   return (
     <Popup
-      title={defaults.isHeading ? 'New major task' : parent ? 'New sub-task' : 'New task'}
+      title={defaults.isHeading ? 'New major task' : isBox ? 'New box' : parent ? 'New sub-task' : 'New task'}
       subtitle={parent ? `Goes under “${parent.title}”. Only the title is required.` : 'Only the title is required.'}
       dirty={dirty}
       canSubmit={Boolean(name)}
-      submitLabel={defaults.isHeading ? 'Create major task' : 'Create task'}
+      submitLabel={defaults.isHeading ? 'Create major task' : isBox ? 'Create box' : 'Create task'}
       onSubmit={submit}
       focusRef={titleRef}
     >

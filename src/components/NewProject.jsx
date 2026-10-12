@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Check, TriangleAlert } from 'lucide-react';
-import { closePopup, createProject, navigate, nextProjectColor, nextProjectOrder, useData } from '../store';
+import { closePopup, createProject, navigate, nextProjectColor, nextProjectOrder, setProjectMode, useData } from '../store';
 import { PROJECT_COLORS, uid } from '../lib/util';
 import { ProjectDot } from './bits';
 import { F, Field, Popup, ReadOnly } from './Popup';
@@ -29,6 +29,8 @@ export function NewProjectForm() {
     if (taken) return;
     const position = Number(order);
     createProject({ id, name: clean, color, order: order.trim() !== '' && Number.isFinite(position) ? position : undefined });
+    // A project opens on its Board: major tasks, then boxes, then sub-tasks.
+    setProjectMode(id, 'board');
     closePopup();
     navigate(`project:${id}`);
   };

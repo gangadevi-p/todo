@@ -51,6 +51,20 @@
   --row-h: 36px;
   --font: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
 
+  /* Levels: major task (purple), box (teal), sub-task (coral), neutral (gray) */
+  --lv-major-bg: #eeedfe;
+  --lv-major-line: #534ab7;
+  --lv-major-text: #3c3489;
+  --lv-box-bg: #e1f5ee;
+  --lv-box-line: #0f6e56;
+  --lv-box-text: #085041;
+  --lv-sub-bg: #faece7;
+  --lv-sub-line: #993c1d;
+  --lv-sub-text: #712b13;
+  --lv-gray-bg: #f1efe8;
+  --lv-gray-line: #5f5e5a;
+  --lv-gray-text: #444441;
+
   color-scheme: light;
 }
 
@@ -105,6 +119,19 @@
     --shadow-pop: 0 0 0 1px rgba(255, 255, 255, 0.07), 0 8px 24px rgba(0, 0, 0, 0.45);
     --shadow-modal: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 60px rgba(0, 0, 0, 0.55);
 
+    --lv-major-bg: #3c3489;
+    --lv-major-line: #afa9ec;
+    --lv-major-text: #cecbf6;
+    --lv-box-bg: #085041;
+    --lv-box-line: #5dcaa5;
+    --lv-box-text: #9fe1cb;
+    --lv-sub-bg: #712b13;
+    --lv-sub-line: #f0997b;
+    --lv-sub-text: #f5c4b3;
+    --lv-gray-bg: #444441;
+    --lv-gray-line: #b4b2a9;
+    --lv-gray-text: #d3d1c7;
+
     color-scheme: dark;
   }
 }
@@ -153,6 +180,19 @@
 
   --shadow-pop: 0 0 0 1px rgba(255, 255, 255, 0.07), 0 8px 24px rgba(0, 0, 0, 0.45);
   --shadow-modal: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 60px rgba(0, 0, 0, 0.55);
+
+  --lv-major-bg: #3c3489;
+  --lv-major-line: #afa9ec;
+  --lv-major-text: #cecbf6;
+  --lv-box-bg: #085041;
+  --lv-box-line: #5dcaa5;
+  --lv-box-text: #9fe1cb;
+  --lv-sub-bg: #712b13;
+  --lv-sub-line: #f0997b;
+  --lv-sub-text: #f5c4b3;
+  --lv-gray-bg: #444441;
+  --lv-gray-line: #b4b2a9;
+  --lv-gray-text: #d3d1c7;
 
   color-scheme: dark;
 }
@@ -3518,4 +3558,170 @@ mark {
 }
 .board-lanes {
   row-gap: 16px;
+}
+
+/* ==========================================================================
+   Project → major task → box → sub-task → nested task
+   ========================================================================== */
+
+/* Major tasks: gray chips, the picked one purple, then a "+" for a new one. */
+.major-chip {
+  background: var(--lv-gray-bg);
+  color: var(--lv-gray-text);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--lv-gray-line) 40%, transparent) inset;
+}
+.major-chip:hover {
+  background: var(--lv-gray-bg);
+  box-shadow: 0 0 0 1px var(--lv-gray-line) inset;
+}
+.major-chip.on,
+.major-chip.on:hover {
+  background: var(--lv-major-bg);
+  color: var(--lv-major-text);
+  box-shadow: 0 0 0 1px var(--lv-major-line) inset;
+}
+.major-chip-add {
+  background: var(--lv-gray-bg);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--lv-gray-line) 40%, transparent) inset;
+}
+.major-chip-add.empty {
+  width: auto;
+  padding: 0 12px 0 8px;
+}
+.major-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 460px;
+  padding: 16px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 12px;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+.major-empty p {
+  margin: 0;
+}
+
+/* A major task's boxes sit side by side in a grid. */
+.column-wide .column-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  align-items: start;
+  gap: 12px;
+  max-width: none;
+}
+.column-wide .column-body > .child-add-row,
+.column-wide .column-body > .column-checklist,
+.column-wide .column-body > .column-empty,
+.column-wide .column-body > .drop-line {
+  grid-column: 1 / -1;
+}
+button.column-empty {
+  width: 100%;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+button.column-empty:hover {
+  border-color: var(--lv-box-line);
+  color: var(--lv-box-text);
+}
+button.column-empty span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* A box: teal, its title at the top, sub-tasks inside. */
+.column-wide .column-body > .card.box {
+  padding: 10px 12px 12px;
+  border: 1px solid color-mix(in srgb, var(--lv-box-line) 50%, transparent);
+  border-radius: 10px;
+  background: var(--lv-box-bg);
+  box-shadow: none;
+}
+.column-wide .column-body > .card.box:hover {
+  border-color: var(--lv-box-line);
+  background: var(--lv-box-bg);
+}
+.column-wide .column-body > .card.box.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.card.box .card-title,
+.card.box .task-title-text {
+  color: var(--lv-box-text);
+  font-weight: 500;
+}
+.card.box .card-child-add {
+  color: var(--lv-box-text);
+}
+.card.box .card-delete,
+.card.box .card-actions button {
+  color: var(--lv-box-text);
+}
+.card.box .card-meta {
+  color: var(--lv-box-text);
+}
+
+/* Sub-tasks: coral rows, one column; a nested one is indented under the row above. */
+.card.box .subtasks-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding-left: 0;
+}
+.card.box .subtasks-card .sub-row {
+  height: auto;
+  min-height: 30px;
+  margin: 0;
+  padding: 0 6px 0 8px;
+  border: 1px solid color-mix(in srgb, var(--lv-sub-line) 50%, transparent);
+  border-radius: 6px;
+  background: var(--lv-sub-bg);
+  color: var(--lv-sub-text);
+}
+.card.box .subtasks-card .sub-row:hover {
+  border-color: var(--lv-sub-line);
+  background: var(--lv-sub-bg);
+}
+.card.box .subtasks-card .sub-row input {
+  color: var(--lv-sub-text);
+  font-size: 12.5px;
+}
+.card.box .subtasks-card .sub-row.done input {
+  color: var(--lv-sub-text);
+  opacity: 0.65;
+}
+.card.box .subtasks-card .sub-row[style*="--sub-depth"] {
+  margin-left: calc(var(--sub-depth) * 20px);
+}
+.card.box .subtasks-card .sub-add-left,
+.card.box .subtasks-card .sub-del,
+.card.box .subtasks-card .sub-style {
+  color: var(--lv-sub-text);
+}
+.card.box .child-tasks {
+  margin-top: 8px;
+}
+.box-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 4px 10px 4px 8px;
+  border: 1px dashed color-mix(in srgb, var(--lv-box-line) 55%, transparent);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--lv-box-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.box-add:hover {
+  border-color: var(--lv-box-line);
+  background: color-mix(in srgb, var(--lv-box-line) 12%, transparent);
 }

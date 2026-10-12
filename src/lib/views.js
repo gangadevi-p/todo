@@ -365,23 +365,17 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
         patch: () => ({ status: g.statusId }),
         add: g.statusId === 'done' ? null : { defaults: { projectId: pid, status: g.statusId } },
       }));
-      const majors = majorHeadings(own, allTasks);
-      if (mode === 'board' && majors.length > 0) {
+      if (mode === 'board') {
+        // Project → major task → box → sub-task → nested. On a project's
+        // Board every top-level task is a major task: a chip under the
+        // overview whose boxes (its child tasks) fill the page.
+        const majors = [...own].sort(byOrder);
         model.groups = headingBoardGroups(majors, allTasks, { projectId: pid });
         model.taskIdsOverride = own.map((t) => t.id);
+        model.majorTasks = majors;
       } else {
         model.groups = statusGroups;
       }
-      // Only real major tasks become filters under the overview — not every
-      // plain task: one marked as major, holding child tasks, or broken down
-      // into several checklist items / a checklist with items of its own.
-      const majorTasks = own
-        .filter((t) => t.isHeading
-          || allTasks.some((c) => c.parentId === t.id)
-          || t.subtasks.length > 1
-          || t.subtasks.some((s) => s.subtasks?.length))
-        .sort(byOrder);
-      model.majorTasks = majorTasks.length > 1 ? majorTasks : [];
       model.total = own.length;
       break;
     }
