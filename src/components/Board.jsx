@@ -13,7 +13,7 @@ import { textStyleProps } from '../lib/textStyle';
 import { TextStyleButton } from './TextStyle';
 import { DueButton, DueChip } from './DueButton';
 import { StrikeButton } from './StrikeButton';
-import { NotesLine } from './NotesLine';
+import { NotesLine, NotesToggle } from './NotesLine';
 
 const Card = memo(function Card({ task, show, today, projectsById, checklistStatus, box = false }) {
   const dragging = useUI((u) => u.draggingId === task.id);
@@ -64,6 +64,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
               className={`task-title-text ${textStyleProps(task.textStyle, task.struck).className}`}
               style={textStyleProps(task.textStyle, task.struck).style}
             >{task.title || 'Untitled'}</span>
+            {!selecting && <NotesToggle id={task.id} notes={task.notes} />}
           </span>
           {!box && <TaskProgress task={task} kids={kids} />}
           <TaskPriority task={task} />
@@ -164,7 +165,10 @@ export function Board({ model }) {
               <span
                 className={`group-title${col.heading && col.headingTask.status === 'done' ? ' done' : ''}${col.heading && col.headingTask.struck ? ' struck' : ''} ${textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).className}`}
                 style={textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).style}
-              >{col.title}</span>
+              >
+                {col.title}
+                {col.heading && <NotesToggle id={col.headingTask.id} notes={col.headingTask.notes} />}
+              </span>
               {!col.heading && (col.count ?? col.tasks.length) > 0 && <span className="group-count">{col.count ?? col.tasks.length}</span>}
               {col.heading && (
                 <button

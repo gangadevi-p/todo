@@ -10,7 +10,7 @@ import { formatTimestamp } from '../lib/dates';
 import { useToday } from '../lib/useToday';
 import { CompletedDate, DueButton, DueChip } from './DueButton';
 import { StrikeButton } from './StrikeButton';
-import { NotesLine } from './NotesLine';
+import { NotesLine, NotesToggle } from './NotesLine';
 
 /**
  * Focuses a subtask's title field once it's in the DOM — used right after creating one.
@@ -196,6 +196,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
           if (!subtask.title.trim() && !suppressEmptyDelete.current) removeSubtask(task.id, subtask.id);
         }}
       />
+      {!selecting && !inPopup && <NotesToggle id={subtask.id} notes={subtask.notes} />}
       {subtask.dueDate
         ? <DueChip value={subtask.dueDate} today={today} done={subtask.done} onChange={selecting ? undefined : (dueDate) => updateSubtask(task.id, subtask.id, { dueDate })} />
         : !selecting && inPopup && <DueButton value={null} onChange={(dueDate) => updateSubtask(task.id, subtask.id, { dueDate })} />}

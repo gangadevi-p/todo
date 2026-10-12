@@ -12,7 +12,7 @@ import { textStyleProps } from '../lib/textStyle';
 import { TextStyleButton } from './TextStyle';
 import { CompletedDate, DueButton, DueChip } from './DueButton';
 import { StrikeButton } from './StrikeButton';
-import { NotesLine } from './NotesLine';
+import { NotesLine, NotesToggle } from './NotesLine';
 import { flattenChecklist } from '../lib/checklist';
 
 /** Checklist and child-task progress, kept beside the task title rather than right-aligned with other metadata. */
@@ -135,6 +135,7 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
               className={`task-title-text ${textStyleProps(task.textStyle, task.struck).className}`}
               style={textStyleProps(task.textStyle, task.struck).style}
             >{task.title || 'Untitled'}</span>
+            {!selecting && <NotesToggle id={task.id} notes={task.notes} />}
           </span>
           <TaskProgress task={task} kids={kids} />
         </span>

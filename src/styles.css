@@ -4606,51 +4606,46 @@ button.stats-deadline {
    ========================================================================== */
 .notes-line {
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 6px;
   color: var(--text-2);
   font-size: 12.5px;
   line-height: 1.45;
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
+  cursor: pointer;
 }
-/* Closed: one quiet "Notes" row with a chevron. Open: the text underneath. */
-.notes-toggle {
+.notes-line:hover {
+  background: var(--bg-hover);
+}
+/* The chevron after a title: quiet until hovered, turns down once the notes are open. */
+.notes-chev-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  height: 22px;
-  padding: 0 7px 0 3px;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  padding: 0;
   border: 0;
-  border-radius: 6px;
+  border-radius: 5px;
   background: transparent;
-  color: inherit;
-  font: inherit;
+  color: var(--text-3);
+  vertical-align: middle;
   cursor: pointer;
+  opacity: 0.8;
 }
-.notes-toggle:hover {
+.notes-chev-btn:hover {
   background: var(--bg-hover);
+  opacity: 1;
 }
-.notes-toggle svg {
-  flex: none;
-  opacity: 0.7;
-}
-.notes-chev {
+.notes-chev-btn svg {
   transition: transform 0.15s ease;
 }
-.notes-line.open .notes-chev {
+.notes-chev-btn.open svg {
   transform: rotate(90deg);
-}
-.notes-body {
-  width: 100%;
-  margin-left: 14px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  white-space: pre-wrap;
-  cursor: pointer;
-}
-.notes-body:hover {
-  background: var(--bg-hover);
 }
 .major-notes {
   width: 100%;
@@ -4666,8 +4661,7 @@ button.stats-deadline {
 .card.box .card-notes {
   color: var(--lv-box-text);
 }
-.card.box .card-notes .notes-toggle:hover,
-.card.box .card-notes .notes-body:hover {
+.card.box .card-notes:hover {
   background: color-mix(in srgb, var(--lv-box-line) 14%, transparent);
 }
 .row-notes {
@@ -4682,10 +4676,8 @@ button.stats-deadline {
   margin-top: -2px;
   color: var(--lv-box-text);
 }
-.card.box .sub-note .notes-toggle:hover,
-.card.box .sub-note .notes-body:hover,
-.column-wide .column-checklist .sub-note .notes-toggle:hover,
-.column-wide .column-checklist .sub-note .notes-body:hover {
+.card.box .sub-note:hover,
+.column-wide .column-checklist .sub-note:hover {
   background: color-mix(in srgb, var(--lv-box-line) 14%, transparent);
 }
 .task-title-text,
