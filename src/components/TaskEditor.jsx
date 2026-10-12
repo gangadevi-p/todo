@@ -7,7 +7,7 @@ import {
   toggleComplete, updateSubtask, updateTask, useChildTasks, useData, useUI,
 } from '../store';
 import { dueLabel, dueLabelLong, formatTimestamp } from '../lib/dates';
-import { priorityLabel, statusLabel } from '../lib/util';
+import { PRIORITIES, priorityLabel, statusLabel } from '../lib/util';
 import { inToday } from '../lib/views';
 import { useToday } from '../lib/useToday';
 import { textStyleProps } from '../lib/textStyle';
@@ -423,6 +423,18 @@ export function ItemEditor({ task, item }) {
   useFocusOnOpen(titleRef, task.id, item.id);
 
   const set = (patch) => updateSubtask(task.id, item.id, patch);
+  const notesRef = useRef(null);
+  useAutosize(notesRef, item.notes || '');
+  const priorityMenu = (e) => openMenu({
+    kind: 'menu',
+    rect: rectOf(e.currentTarget),
+    items: PRIORITIES.map((p) => ({
+      label: p.label,
+      icon: p.id ? <PriorityIcon level={p.id} /> : undefined,
+      checked: (item.priority || null) === p.id,
+      onSelect: () => set({ priority: p.id }),
+    })),
+  });
   const style = textStyleProps(item.textStyle, item.struck);
   const due = item.dueDate ? dueLabel(item.dueDate, today) : null;
   const under = countItems(item.subtasks);
@@ -486,10 +498,28 @@ export function ItemEditor({ task, item }) {
               </button>
             )}
           </PropRow>
+          <PropRow icon={PriorityGlyph} label="Priority">
+            <button type="button" className={`prop-btn${item.priority ? '' : ' empty'}`} onClick={priorityMenu}>
+              {item.priority && <PriorityIcon level={item.priority} />}
+              {item.priority ? priorityLabel(item.priority) : 'None'}
+            </button>
+          </PropRow>
           <PropRow icon={CircleCheck} label="Strike off">
             <StrikeSwitch on={item.struck} onToggle={() => set({ struck: !item.struck })} />
           </PropRow>
         </div>
+
+        <section className="panel-section">
+          <div className="section-label">Notes</div>
+          <textarea
+            ref={notesRef}
+            className="notes"
+            value={item.notes || ''}
+            placeholder="Add notes, references, ideas…"
+            spellCheck
+            onChange={(e) => set({ notes: e.target.value })}
+          />
+        </section>
 
         <section className="panel-section">
           <ListHead label="Nested" done={under.done} total={under.total} />

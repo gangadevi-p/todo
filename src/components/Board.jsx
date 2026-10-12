@@ -1,6 +1,6 @@
 import { memo } from 'react';
-import { Inbox, Plus, Trash2 } from 'lucide-react';
-import { requestDeleteTask, openNewTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
+import { Inbox, Pencil, Plus, Trash2 } from 'lucide-react';
+import { requestDeleteTask, openNewTask, selectTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
 import { endDrag, startTaskDrag, useTaskDrop } from '../lib/dnd';
 import { useToday } from '../lib/useToday';
 import { Checkbox, ProjectDot, StatusIcon } from './bits';
@@ -75,6 +75,18 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
         )}
         {!selecting && (
           <span className="card-actions">
+            <button
+              type="button"
+              className="icon-btn sm card-edit"
+              aria-label="Edit with notes and dates"
+              title="Edit: notes, dates, priority"
+              onClick={(e) => {
+                e.stopPropagation();
+                selectTask(task.id, true);
+              }}
+            >
+              <Pencil size={14} strokeWidth={1.9} />
+            </button>
             {showDue
               ? <DueChip value={task.dueDate} today={today} done={task.status === 'done'} onChange={(dueDate) => updateTask(task.id, { dueDate })} />
               : <DueButton value={task.dueDate} onChange={(dueDate) => updateTask(task.id, { dueDate })} />}
@@ -181,6 +193,17 @@ export function Board({ model }) {
                   onClick={() => openNewTask(boxDefaults(col.headingTask))}
                 >
                   <Plus size={14} strokeWidth={2.2} />
+                </button>
+              )}
+              {col.heading && (
+                <button
+                  type="button"
+                  className="icon-btn sm column-edit"
+                  aria-label="Edit major task with notes and dates"
+                  title="Edit: notes, dates, priority"
+                  onClick={() => selectTask(col.headingTask.id, true)}
+                >
+                  <Pencil size={14} strokeWidth={1.9} />
                 </button>
               )}
               {col.heading && (col.headingTask.dueDate

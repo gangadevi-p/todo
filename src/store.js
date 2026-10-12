@@ -118,6 +118,8 @@ function normalizeChecklistItem(item = {}) {
     done: Boolean(item.done),
     completedAt: item.completedAt || null,
     dueDate: item.dueDate || null,
+    notes: typeof item.notes === 'string' ? item.notes : '',
+    priority: ['low', 'medium', 'high'].includes(item.priority) ? item.priority : null,
     struck: Boolean(item.struck),
     textStyle: normalizeTextStyle(item.textStyle),
     subtasks: Array.isArray(item.subtasks) ? item.subtasks.map(normalizeChecklistItem) : [],

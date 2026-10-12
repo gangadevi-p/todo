@@ -4441,3 +4441,63 @@ button.stats-deadline {
 .page-board.page-wide .column-wide .column-body > .drop-line {
   max-width: none;
 }
+
+/* ==========================================================================
+   Every item can be edited: a pencil on each, and the sub-task tools keep
+   their reserved space now that there is one more of them.
+   ========================================================================== */
+.sub-edit {
+  flex: none;
+  color: var(--text-3);
+  opacity: 0;
+}
+.sub-row:hover .sub-edit,
+.sub-row:focus-within .sub-edit {
+  opacity: 1;
+}
+.sub-edit:hover {
+  color: var(--text);
+}
+.column-edit {
+  flex: none;
+  color: var(--text-3);
+  opacity: 0.7;
+}
+.column-edit:hover {
+  opacity: 1;
+  color: var(--text);
+}
+
+/* In a box, the pencil joins the reserved tool space on the row's right. */
+.card.box .subtasks-card .sub-row,
+.column-wide .column-checklist .subtasks-board .sub-row {
+  padding-right: 128px;
+}
+.card.box .subtasks-card .sub-row .sub-edit,
+.column-wide .column-checklist .subtasks-board .sub-row .sub-edit {
+  position: absolute;
+  top: 3px;
+  right: 102px;
+  margin: 0;
+  display: none;
+}
+.card.box .subtasks-card .sub-row:hover .sub-edit,
+.card.box .subtasks-card .sub-row:focus-within .sub-edit,
+.column-wide .column-checklist .subtasks-board .sub-row:hover .sub-edit,
+.column-wide .column-checklist .subtasks-board .sub-row:focus-within .sub-edit {
+  display: inline-grid;
+}
+.card.box .subtasks-card .sub-row:has(textarea.text-capsule) .sub-edit,
+.column-wide .column-checklist .subtasks-board .sub-row:has(textarea.text-capsule) .sub-edit {
+  top: 50%;
+  transform: translateY(-50%);
+}
+@media (hover: none) {
+  .sub-edit {
+    opacity: 1 !important;
+  }
+  .card.box .subtasks-card .sub-row .sub-edit,
+  .column-wide .column-checklist .subtasks-board .sub-row .sub-edit {
+    display: inline-grid !important;
+  }
+}

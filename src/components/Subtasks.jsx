@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { ListChecks, ListTree, Check, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import {
-  addNestedSubtask, addSubtask, addSubtaskAfter, removeSubtask, setStatsFilter, subtaskKey, toggleSelected, ui, updateSubtask, useUI,
+  addNestedSubtask, addSubtask, addSubtaskAfter, openEditor, openMenu, removeSubtask, setStatsFilter, subtaskKey, toggleSelected, ui, updateSubtask, useUI,
 } from '../store';
 import { Checkbox } from './bits';
 import { TextStyleButton } from './TextStyle';
@@ -32,6 +32,27 @@ export const focusSubtask = (id) => {
 export function addSubtaskTo(taskId) {
   if (ui.get().statsFilter === 'done') setStatsFilter('todo');
   focusSubtask(addSubtask(taskId));
+}
+
+/** Right-click on a sub-task or nested task: edit it, tick it, add under or after it, delete it. */
+function openSubtaskMenu(task, subtask, anchor) {
+  openMenu({
+    kind: 'menu',
+    ...anchor,
+    items: [
+      { label: 'Edit', icon: Pencil, onSelect: () => openEditor(task.id, subtask.id) },
+      {
+        label: subtask.done ? 'Mark as incomplete' : 'Mark as complete',
+        icon: subtask.done ? RotateCcw : Check,
+        onSelect: () => updateSubtask(task.id, subtask.id, { done: !subtask.done, completedAt: subtask.done ? null : Date.now() }),
+      },
+      { divider: true },
+      { label: 'Add sub-task below', icon: ListChecks, onSelect: () => { const id = addSubtaskAfter(task.id, subtask.id); if (id) focusSubtask(id); } },
+      { label: 'Add nested task', icon: ListTree, onSelect: () => focusSubtask(addNestedSubtask(task.id, subtask.id)) },
+      { divider: true },
+      { label: 'Delete', icon: Trash2, danger: true, onSelect: () => removeSubtask(task.id, subtask.id) },
+    ],
+  });
 }
 
 function hasCompletedItem(item) {
@@ -97,7 +118,15 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         onClick={(e) => {
           if (selecting) toggleSelected(key);
           // Clicking the row itself focuses it, so Delete removes this row.
-          else if (!e.target.closest('input, button')) e.currentTarget.focus();
+          else if (!e.target.closest('input, textarea, button')) e.currentTarget.focus();
+        }}
+        onDoubleClick={(e) => {
+          if (!selecting && !inPopup && !e.target.closest('textarea, input, button')) openEditor(task.id, subtask.id);
+        }}
+        onContextMenu={(e) => {
+          if (selecting || inPopup) return;
+          e.preventDefault();
+          openSubtaskMenu(task, subtask, { x: e.clientX, y: e.clientY });
         }}
       >
       {!selecting && (
@@ -162,6 +191,11 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
       {subtask.dueDate
         ? <DueChip value={subtask.dueDate} today={today} done={subtask.done} onChange={selecting ? undefined : (dueDate) => updateSubtask(task.id, subtask.id, { dueDate })} />
         : !selecting && <DueButton value={null} onChange={(dueDate) => updateSubtask(task.id, subtask.id, { dueDate })} />}
+      {!selecting && !inPopup && (
+        <button type="button" className="icon-btn sm sub-edit" aria-label="Edit with notes and dates" title="Edit: notes, dates, priority" onClick={() => openEditor(task.id, subtask.id)}>
+          <Pencil size={13} />
+        </button>
+      )}
       {!selecting && (
         <StrikeButton on={subtask.struck} onToggle={() => updateSubtask(task.id, subtask.id, { struck: !subtask.struck })} />
       )}
