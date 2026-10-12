@@ -2435,8 +2435,20 @@ kbd {
   font-size: 11px;
   white-space: nowrap;
 }
-.sub-del {
+.sub-del,
+.sub-add-nested {
   opacity: 0;
+}
+.sub-add-nested {
+  flex: none;
+  color: var(--text-3);
+}
+.sub-row:hover .sub-add-nested,
+.sub-row:focus-within .sub-add-nested {
+  opacity: 1;
+}
+.card.box .subtasks-card .sub-add-nested {
+  color: var(--lv-sub-text);
 }
 .sub-style {
   margin-left: auto;
@@ -4646,11 +4658,12 @@ button.stats-deadline {
 /* The chevron after a title: quiet until hovered, turns down once the notes are open. */
 .notes-chev-btn {
   display: inline-flex;
+  flex: none;
   align-items: center;
   justify-content: center;
   width: 18px;
   height: 18px;
-  margin-left: 4px;
+  margin-left: auto;
   padding: 0;
   border: 0;
   border-radius: 5px;

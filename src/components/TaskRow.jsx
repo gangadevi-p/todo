@@ -135,13 +135,13 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
               className={`task-title-text ${textStyleProps(task.textStyle, task.struck).className}`}
               style={textStyleProps(task.textStyle, task.struck).style}
             >{task.title || 'Untitled'}</span>
-            {!selecting && <NotesToggle id={task.id} notes={task.notes} />}
           </span>
           <TaskProgress task={task} kids={kids} />
         </span>
         <span className="row-meta">
           <TaskMeta task={task} show={show} today={today} />
         </span>
+        {!selecting && <NotesToggle id={task.id} notes={task.notes} />}
       </div>
       {!selecting && <NotesLine id={task.id} notes={task.notes} onOpen={() => selectTask(task.id, true)} className="row-notes" />}
       <ChildTaskList

@@ -196,10 +196,15 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
           if (!subtask.title.trim() && !suppressEmptyDelete.current) removeSubtask(task.id, subtask.id);
         }}
       />
-      {!selecting && !inPopup && <NotesToggle id={subtask.id} notes={subtask.notes} />}
       {subtask.dueDate
         ? <DueChip value={subtask.dueDate} today={today} done={subtask.done} onChange={selecting ? undefined : (dueDate) => updateSubtask(task.id, subtask.id, { dueDate })} />
         : !selecting && inPopup && <DueButton value={null} onChange={(dueDate) => updateSubtask(task.id, subtask.id, { dueDate })} />}
+      {!selecting && !inPopup && (
+        <button type="button" className="icon-btn sm sub-add-nested" aria-label="Add nested task" title="Add nested task" onClick={addNested}>
+          <ListTree size={13} />
+        </button>
+      )}
+      {!selecting && !inPopup && <NotesToggle id={subtask.id} notes={subtask.notes} />}
       {!selecting && inPopup && (
         <button type="button" className="icon-btn sm sub-edit" aria-label="Edit with notes and dates" title="Edit: notes, dates, priority" onClick={() => openEditor(task.id, subtask.id)}>
           <Pencil size={13} />

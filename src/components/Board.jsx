@@ -64,7 +64,6 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
               className={`task-title-text ${textStyleProps(task.textStyle, task.struck).className}`}
               style={textStyleProps(task.textStyle, task.struck).style}
             >{task.title || 'Untitled'}</span>
-            {!selecting && <NotesToggle id={task.id} notes={task.notes} />}
           </span>
           {!box && <TaskProgress task={task} kids={kids} />}
           <TaskPriority task={task} />
@@ -88,6 +87,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
             <DueChip value={task.dueDate} today={today} done={task.status === 'done'} onChange={(dueDate) => updateTask(task.id, { dueDate })} />
           </span>
         )}
+        {!selecting && <NotesToggle id={task.id} notes={task.notes} />}
       </div>
       {!selecting && <NotesLine id={task.id} notes={task.notes} onOpen={() => selectTask(task.id, true)} className="card-notes" />}
       {hasMeta ? (
@@ -165,10 +165,7 @@ export function Board({ model }) {
               <span
                 className={`group-title${col.heading && col.headingTask.status === 'done' ? ' done' : ''}${col.heading && col.headingTask.struck ? ' struck' : ''} ${textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).className}`}
                 style={textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).style}
-              >
-                {col.title}
-                {col.heading && <NotesToggle id={col.headingTask.id} notes={col.headingTask.notes} />}
-              </span>
+              >{col.title}</span>
               {!col.heading && (col.count ?? col.tasks.length) > 0 && <span className="group-count">{col.count ?? col.tasks.length}</span>}
               {col.heading && (
                 <button
@@ -194,6 +191,7 @@ export function Board({ model }) {
                   <Plus size={15} />
                 </button>
               )}
+              {col.heading && <NotesToggle id={col.headingTask.id} notes={col.headingTask.notes} />}
             </header>
             {col.heading && <NotesLine id={col.headingTask.id} notes={col.headingTask.notes} onOpen={() => selectTask(col.headingTask.id, true)} className="major-notes" />}
             <div className="column-body">
