@@ -3830,3 +3830,41 @@ button.column-empty span {
   background: var(--lv-sub-bg);
   border-color: var(--lv-sub-line);
 }
+
+/* ==========================================================================
+   Box width: a box never stretches across the screen, in any Board page.
+   ========================================================================== */
+:root {
+  --box-w: 380px;
+}
+/* A major task is only as wide as its boxes; they wrap onto new rows. */
+.column-lane.column-wide {
+  justify-self: start;
+  width: fit-content;
+  min-width: min(100%, var(--box-w));
+  max-width: 100%;
+}
+.column-wide .column-body {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: none;
+}
+.column-wide .column-body > .card.box,
+.column-wide .column-body > .column-checklist {
+  flex: 0 1 var(--box-w);
+  width: var(--box-w);
+  max-width: 100%;
+  min-width: 0;
+}
+.column-wide .column-body > .child-add-row,
+.column-wide .column-body > .column-empty,
+.column-wide .column-body > .drop-line {
+  flex: 1 1 100%;
+  max-width: var(--box-w);
+}
+/* Plain board columns (Todo, Done, a project in All Tasks) stop at the same width. */
+.board:not(.board-lanes) {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), var(--box-w)));
+}
