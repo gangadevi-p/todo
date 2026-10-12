@@ -62,7 +62,7 @@ function applyStatsFilter(model, filter) {
     ...g.tasks.map((t) => t.id),
   ]);
   const total = groups.reduce((count, g) => count + (g.headingVisible ? 1 : 0) + g.tasks.length + (g.completedChecklistParents || []).length, 0);
-  return { ...model, groups, taskIds, total, emptyText: total === 0 ? FILTER_EMPTY_TEXT[filter] : model.emptyText };
+  return { ...model, groups, taskIds, total, emptyText: total === 0 && model.stats && model.stats.total > 0 ? FILTER_EMPTY_TEXT[filter] : model.emptyText };
 }
 
 /** Narrows a project's groups down to a single major task (and everything nested under it). */
