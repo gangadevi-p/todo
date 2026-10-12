@@ -2210,20 +2210,23 @@ kbd {
   border-radius: 8px;
   background: var(--bg-fill);
 }
+/* The title is one line here: a long one is cut with an ellipsis instead of wrapping into the rows below. */
 .tg-cell.tg-box {
-  align-items: flex-start;
+  align-items: center;
+  height: 42px;
   min-height: 42px;
-}
-.tg-cell.tg-box .check {
-  margin-top: 4px;
 }
 .tg-cell.tg-box .panel-title {
   flex: 1;
   min-width: 0;
   width: auto;
   max-width: none;
+  height: 30px;
   padding: 0;
   field-sizing: fixed;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* The box is the only fill: a capsule-filled title tints the box itself, not a second box inside it. */
 .tg-cell.tg-box.text-capsule {

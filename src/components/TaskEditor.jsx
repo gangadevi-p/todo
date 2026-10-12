@@ -83,12 +83,13 @@ function TitleField({ inputRef, value, onSave, className, style, placeholder }) 
 }
 
 /** A one-line title inside a list of sub-tasks. */
-function RowTitle({ value, onSave, className, style, placeholder }) {
-  const ref = useRef(null);
+function RowTitle({ value, onSave, className, style, placeholder, inputRef }) {
+  const own = useRef(null);
+  const ref = inputRef || own;
   const [text, setText] = useState(value);
   useEffect(() => {
     if (document.activeElement !== ref.current) setText(value);
-  }, [value]);
+  }, [value, ref]);
   return (
     <input
       ref={ref}
@@ -352,7 +353,7 @@ export function TaskEditor({ task }) {
               style={style.style?.['--title-style-color'] ? { '--title-style-color': style.style['--title-style-color'] } : undefined}
             >
               <Checkbox state={task.status} size="lg" onToggle={() => toggleComplete(task.id)} />
-              <TitleField
+              <RowTitle
                 inputRef={titleRef}
                 className={`panel-title${done ? ' done' : ''} ${style.className}`}
                 style={style.style}
