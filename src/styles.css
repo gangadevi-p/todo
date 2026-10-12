@@ -4233,3 +4233,56 @@ button.stats-deadline {
 .card.box .card-sub-add:hover {
   background: color-mix(in srgb, var(--lv-box-line) 18%, transparent);
 }
+
+/* ==========================================================================
+   One alignment rule: everything in a header or row shares one centre line,
+   or (in a wrapped sub-task) the centre of its first line.
+   ========================================================================== */
+.column-lane .column-head,
+.card .card-main {
+  align-items: center;
+}
+.card .card-main .check,
+.card .card-main .card-actions,
+.card .card-main .card-sub-add,
+.card.box .card-sub-add,
+.column-head .column-major-add {
+  margin-top: 0;
+}
+.card .card-main .card-title-line {
+  align-items: center;
+}
+
+/* Sub-task rows: the checkbox, text and tools line up on the first line. */
+.card.box .subtasks-card .sub-row .check,
+.column-wide .column-checklist .subtasks-board .sub-row .check {
+  margin-top: 1.75px;
+}
+.card.box .subtasks-card .sub-row .sub-add-left,
+.column-wide .column-checklist .subtasks-board .sub-row .sub-add-left {
+  margin-top: 0;
+}
+.card.box .subtasks-card .sub-row .due-button,
+.card.box .subtasks-card .sub-row .strike-button,
+.card.box .subtasks-card .sub-row .sub-style,
+.card.box .subtasks-card .sub-row .sub-del,
+.column-wide .column-checklist .subtasks-board .sub-row .due-button,
+.column-wide .column-checklist .subtasks-board .sub-row .strike-button,
+.column-wide .column-checklist .subtasks-board .sub-row .sub-style,
+.column-wide .column-checklist .subtasks-board .sub-row .sub-del {
+  top: 3px;
+}
+/* A capsule title is taller than a line, so its row centres everything on the capsule. */
+.card.box .subtasks-card .sub-row:has(textarea.text-capsule),
+.column-wide .column-checklist .subtasks-board .sub-row:has(textarea.text-capsule) {
+  align-items: center;
+}
+.card.box .subtasks-card .sub-row:has(textarea.text-capsule) .check,
+.column-wide .column-checklist .subtasks-board .sub-row:has(textarea.text-capsule) .check {
+  margin-top: 0;
+}
+.card.box .subtasks-card .sub-row:has(textarea.text-capsule) :is(.due-button, .strike-button, .sub-style, .sub-del),
+.column-wide .column-checklist .subtasks-board .sub-row:has(textarea.text-capsule) :is(.due-button, .strike-button, .sub-style, .sub-del) {
+  top: 50%;
+  transform: translateY(-50%);
+}
