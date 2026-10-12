@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
-  CalendarDays, ChevronDown, Inbox, ListChecks, Plus, Strikethrough, Sun, Trash2, X,
+  CalendarDays, ChevronDown, Inbox, ListChecks, Strikethrough, Sun, Trash2, X,
 } from 'lucide-react';
 import {
-  addNestedSubtask, addSubtask, childTasks, requestDeleteTask, hidePreview, openMenu, removeSubtask,
+  requestDeleteTask, hidePreview, openMenu, removeSubtask,
   toggleComplete, updateSubtask, updateTask, useData, useUI,
 } from '../store';
 import { dueLabel, dueLabelLong, formatTimestamp } from '../lib/dates';
@@ -19,8 +19,8 @@ import { DatePicker } from './DatePicker';
 
 // The task popup's contents: one compact layout for every task, sub-task and
 // nested item. Title and text style on the left; status, priority, last day and
-// strike-off on the right; then notes and a count of what is under it. The
-// sub-tasks themselves are edited on the page, so the popup stays small.
+// strike-off on the right; then notes. Sub-tasks are added and edited on the
+// page, so the popup stays small.
 
 const clean = (text) => text.replace(/\s+/g, ' ').trim();
 
@@ -79,30 +79,6 @@ function RowTitle({ value, onSave, className, style, placeholder, inputRef }) {
   );
 }
 
-/** "Add sub-task" field at the end of a list: Enter adds and stays ready for the next one. */
-function AddLine({ placeholder, onAdd }) {
-  const [text, setText] = useState('');
-  return (
-    <div className="sub-row add-line">
-      <Plus size={14} strokeWidth={2} className="sub-add-icon" />
-      <input
-        value={text}
-        spellCheck
-        placeholder={placeholder}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.nativeEvent.isComposing || e.key !== 'Enter') return;
-          e.preventDefault();
-          const next = clean(text);
-          if (!next) return;
-          onAdd(next);
-          setText('');
-        }}
-      />
-    </div>
-  );
-}
-
 function PopupHead({ crumb, children }) {
   return (
     <div className="preview-head">
@@ -118,43 +94,6 @@ function PopupHead({ crumb, children }) {
 }
 
 const PriorityGlyph = () => <PriorityIcon level="neutral" size={15} />;
-
-/** Done / total over everything under a task: nested tasks and checklist items, all levels. */
-function countUnder(task, tasks) {
-  let done = 0;
-  let total = 0;
-  const items = (list = []) => list.forEach((it) => { total += 1; if (it.done) done += 1; items(it.subtasks); });
-  const walk = (t) => {
-    childTasks(t.id, tasks).forEach((c) => { total += 1; if (c.status === 'done') done += 1; walk(c); });
-    items(t.subtasks);
-  };
-  walk(task);
-  return { done, total };
-}
-
-function countItems(list) {
-  let done = 0;
-  let total = 0;
-  const items = (l = []) => l.forEach((it) => { total += 1; if (it.done) done += 1; items(it.subtasks); });
-  items(list);
-  return { done, total };
-}
-
-function ListHead({ label, done, total }) {
-  return (
-    <>
-      <div className="section-label">
-        <span>{label}</span>
-        {total > 0 && <span className="preview-count">{done}/{total}</span>}
-      </div>
-      {total > 0 && (
-        <div className="progress" aria-hidden="true">
-          <span style={{ width: `${(done / total) * 100}%` }} />
-        </div>
-      )}
-    </>
-  );
-}
 
 /**
  * The two-column block every popup shares. Left: the title in a box, then text
@@ -228,12 +167,11 @@ function PopupGrid({
   );
 }
 
-/** Popup for a task: title and style, status, priority, last day, notes and a count of what is under it. */
+/** Popup for a task: title and style, status, priority, last day and notes. */
 export function TaskEditor({ task }) {
   const today = useToday();
   const project = useData((s) => (task.projectId ? s.projects.find((p) => p.id === task.projectId) : null));
   const parent = useData((s) => (task.parentId ? s.tasks.find((t) => t.id === task.parentId) : null));
-  const tasks = useData((s) => s.tasks);
   const titleRef = useRef(null);
   const notesRef = useRef(null);
   useFocusOnOpen(titleRef, task.id);
@@ -242,7 +180,6 @@ export function TaskEditor({ task }) {
   const done = task.status === 'done';
   const planned = task.addedToToday;
   const due = task.dueDate ? dueLabel(task.dueDate, today) : null;
-  const under = countUnder(task, tasks);
   const menuAt = (e, items) => openMenu({ kind: 'menu', rect: rectOf(e.currentTarget), items });
   const set = (patch) => updateTask(task.id, patch);
 
@@ -308,11 +245,6 @@ export function TaskEditor({ task }) {
           />
         </section>
 
-        <section className="panel-section">
-          <ListHead label="Sub-tasks" done={under.done} total={under.total} />
-          <AddLine placeholder="Add sub-task" onAdd={(title) => addSubtask(task.id, title)} />
-        </section>
-
         <div className="panel-foot">
           Created {formatTimestamp(task.createdAt)}
           {task.completedAt && (
@@ -332,7 +264,7 @@ export function TaskEditor({ task }) {
   );
 }
 
-/** Popup for one checklist item: the same layout, and a count of the items nested under it. */
+/** Popup for one checklist item: the same layout. */
 export function ItemEditor({ task, item }) {
   const today = useToday();
   const titleRef = useRef(null);
@@ -344,7 +276,6 @@ export function ItemEditor({ task, item }) {
   const menuAt = (e, items) => openMenu({ kind: 'menu', rect: rectOf(e.currentTarget), items });
   const state = item.done ? 'done' : 'todo';
   const due = item.dueDate ? dueLabel(item.dueDate, today) : null;
-  const under = countItems(item.subtasks);
   const setDone = (done) => set({ done, completedAt: done ? Date.now() : null });
 
   return (
@@ -414,11 +345,6 @@ export function ItemEditor({ task, item }) {
             spellCheck
             onChange={(e) => set({ notes: e.target.value })}
           />
-        </section>
-
-        <section className="panel-section">
-          <ListHead label="Nested" done={under.done} total={under.total} />
-          <AddLine placeholder="Add nested item" onAdd={(title) => addNestedSubtask(task.id, item.id, title)} />
         </section>
 
         {item.completedAt && (
