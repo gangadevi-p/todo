@@ -117,12 +117,18 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         {...anchorProps}
         tabIndex={inPopup ? undefined : -1}
         onClick={(e) => {
-          if (selecting) toggleSelected(key);
-          // Clicking the row itself focuses it, so Delete removes this row.
-          else if (!e.target.closest('input, textarea, button')) e.currentTarget.focus();
-        }}
-        onDoubleClick={(e) => {
-          if (!selecting && !inPopup && !e.target.closest('textarea, input, button')) openEditor(task.id, subtask.id);
+          if (selecting) {
+            toggleSelected(key);
+            return;
+          }
+          if (e.target.closest('button, .due-chip')) return;
+          // Inside the editor a row stays an inline field; on the page a click on it opens its editor.
+          if (inPopup) {
+            if (!e.target.closest('textarea')) e.currentTarget.focus();
+            return;
+          }
+          if (subtask.title.trim()) openEditor(task.id, subtask.id);
+          else e.currentTarget.focus();
         }}
         onContextMenu={(e) => {
           if (selecting || inPopup) return;
@@ -192,16 +198,16 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
       />
       {subtask.dueDate
         ? <DueChip value={subtask.dueDate} today={today} done={subtask.done} onChange={selecting ? undefined : (dueDate) => updateSubtask(task.id, subtask.id, { dueDate })} />
-        : !selecting && <DueButton value={null} onChange={(dueDate) => updateSubtask(task.id, subtask.id, { dueDate })} />}
-      {!selecting && !inPopup && (
+        : !selecting && inPopup && <DueButton value={null} onChange={(dueDate) => updateSubtask(task.id, subtask.id, { dueDate })} />}
+      {!selecting && inPopup && (
         <button type="button" className="icon-btn sm sub-edit" aria-label="Edit with notes and dates" title="Edit: notes, dates, priority" onClick={() => openEditor(task.id, subtask.id)}>
           <Pencil size={13} />
         </button>
       )}
-      {!selecting && (
+      {!selecting && inPopup && (
         <StrikeButton on={subtask.struck} onToggle={() => updateSubtask(task.id, subtask.id, { struck: !subtask.struck })} />
       )}
-      {!selecting && (
+      {!selecting && inPopup && (
         <TextStyleButton
           className="sub-style"
           value={subtask.textStyle}
@@ -209,7 +215,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
           label="Style checklist text"
         />
       )}
-      {!selecting && (
+      {!selecting && inPopup && (
         <button type="button" className="icon-btn sm sub-del" aria-label={subtask.subtasks?.length ? 'Delete this item and everything under it' : 'Delete checklist item'} onClick={() => removeSubtask(task.id, subtask.id)}>
           <Trash2 size={13} />
         </button>

@@ -99,7 +99,15 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
         draggable={draggable && !selecting && !nested}
         onDragStart={(e) => startTaskDrag(e, task)}
         onDragEnd={endDrag}
-        onClick={selecting ? () => toggleSelected(key) : undefined}
+        onClick={(e) => {
+          if (selecting) {
+            toggleSelected(key);
+            return;
+          }
+          // A click on the row (not on a control) opens its editor.
+          if (e.target.closest('button, input, textarea, .check, .due-chip, .row-handle, .notes-line')) return;
+          selectTask(task.id, true);
+        }}
         onContextMenu={(e) => {
           e.preventDefault();
           if (!selecting) openTaskMenu(task, { x: e.clientX, y: e.clientY });
@@ -126,7 +134,6 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
             <span
               className={`task-title-text ${textStyleProps(task.textStyle, task.struck).className}`}
               style={textStyleProps(task.textStyle, task.struck).style}
-              onClick={selecting ? undefined : (e) => { e.stopPropagation(); selectTask(task.id, true); }}
             >{task.title || 'Untitled'}</span>
           </span>
           <TaskProgress task={task} kids={kids} />
@@ -134,33 +141,6 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
         <span className="row-meta">
           <TaskMeta task={task} show={show} today={today} />
         </span>
-        {!selecting && !(task.dueDate && show.due) && (
-          <DueButton value={task.dueDate} onChange={(dueDate) => updateTask(task.id, { dueDate })} />
-        )}
-        {!selecting && (
-          <StrikeButton on={task.struck} onToggle={() => updateTask(task.id, { struck: !task.struck })} />
-        )}
-        {!selecting && (
-          <TextStyleButton
-            className="row-style"
-            value={task.textStyle}
-            onChange={(textStyle) => updateTask(task.id, { textStyle })}
-            label="Style task text"
-          />
-        )}
-        {!selecting && (
-          <button
-            type="button"
-            className="icon-btn sm row-delete"
-            aria-label="Delete task"
-            onClick={(e) => {
-              e.stopPropagation();
-              deleteTask(task.id);
-            }}
-          >
-            <Trash2 size={14} strokeWidth={1.9} />
-          </button>
-        )}
       </div>
       {!selecting && <NotesLine notes={task.notes} onOpen={() => selectTask(task.id, true)} className="row-notes" />}
       <ChildTaskList

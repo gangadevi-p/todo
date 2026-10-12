@@ -4577,3 +4577,15 @@ button.stats-deadline {
 .column-head .group-title {
   cursor: pointer;
 }
+
+/* Clicking any task opens its editor, so rows and boxes carry no tool icons: no reserved space on the right. */
+.card.box .subtasks-card .sub-row,
+.column-wide .column-checklist .subtasks-board .sub-row {
+  padding-right: 8px;
+  cursor: pointer;
+}
+.card.box,
+.column-head,
+.row {
+  cursor: pointer;
+}

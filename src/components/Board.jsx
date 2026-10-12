@@ -38,7 +38,15 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
       draggable={!selecting}
       onDragStart={(e) => startTaskDrag(e, task)}
       onDragEnd={endDrag}
-      onClick={selecting ? () => toggleSelected(key) : undefined}
+      onClick={(e) => {
+        if (selecting) {
+          toggleSelected(key);
+          return;
+        }
+        // A click on the card itself (not on a control, a sub-task or a note) opens its editor.
+        if (e.target.closest('button, input, textarea, a, .check, .sub-row, .subtasks, .child-tasks, .notes-line, .due-chip')) return;
+        selectTask(task.id, true);
+      }}
       onContextMenu={(e) => {
         e.preventDefault();
         if (!selecting) openTaskMenu(task, { x: e.clientX, y: e.clientY });
@@ -55,7 +63,6 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
             <span
               className={`task-title-text ${textStyleProps(task.textStyle, task.struck).className}`}
               style={textStyleProps(task.textStyle, task.struck).style}
-              onClick={selecting ? undefined : (e) => { e.stopPropagation(); selectTask(task.id, true); }}
             >{task.title || 'Untitled'}</span>
           </span>
           {!box && <TaskProgress task={task} kids={kids} />}
@@ -75,41 +82,9 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
             <Plus size={14} strokeWidth={2.2} />
           </button>
         )}
-        {!selecting && (
+        {!selecting && showDue && (
           <span className="card-actions">
-            <button
-              type="button"
-              className="icon-btn sm card-edit"
-              aria-label="Edit with notes and dates"
-              title="Edit: notes, dates, priority"
-              onClick={(e) => {
-                e.stopPropagation();
-                selectTask(task.id, true);
-              }}
-            >
-              <Pencil size={14} strokeWidth={1.9} />
-            </button>
-            {showDue
-              ? <DueChip value={task.dueDate} today={today} done={task.status === 'done'} onChange={(dueDate) => updateTask(task.id, { dueDate })} />
-              : <DueButton value={task.dueDate} onChange={(dueDate) => updateTask(task.id, { dueDate })} />}
-            <StrikeButton on={task.struck} onToggle={() => updateTask(task.id, { struck: !task.struck })} />
-            <TextStyleButton
-              className="card-style"
-              value={task.textStyle}
-              onChange={(textStyle) => updateTask(task.id, { textStyle })}
-              label="Style task text"
-            />
-            <button
-              type="button"
-              className="icon-btn sm card-delete"
-              aria-label="Delete task"
-              onClick={(e) => {
-                e.stopPropagation();
-                requestDeleteTask(task.id);
-              }}
-            >
-              <Trash2 size={14} strokeWidth={1.9} />
-            </button>
+            <DueChip value={task.dueDate} today={today} done={task.status === 'done'} onChange={(dueDate) => updateTask(task.id, { dueDate })} />
           </span>
         )}
       </div>
@@ -174,6 +149,10 @@ export function Board({ model }) {
             <header
               className="column-head"
               {...(col.heading ? { 'data-task-row': '', 'data-id': col.headingTask.id } : {})}
+              onClick={col.heading ? (e) => {
+                // A click on the major task's row (not on a control) opens its editor.
+                if (!e.target.closest('button, input, .check, .due-chip')) selectTask(col.headingTask.id, true);
+              } : undefined}
             >
               {col.statusId ? <StatusIcon status={col.statusId} size={13} /> : col.heading ? null : col.color ? <ProjectDot color={col.color} /> : <Inbox size={14} strokeWidth={1.9} className="group-icon" />}
               {col.heading && (
@@ -185,7 +164,6 @@ export function Board({ model }) {
               <span
                 className={`group-title${col.heading && col.headingTask.status === 'done' ? ' done' : ''}${col.heading && col.headingTask.struck ? ' struck' : ''} ${textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).className}`}
                 style={textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).style}
-                onClick={col.heading ? () => selectTask(col.headingTask.id, true) : undefined}
               >{col.title}</span>
               {!col.heading && (col.count ?? col.tasks.length) > 0 && <span className="group-count">{col.count ?? col.tasks.length}</span>}
               {col.heading && (
@@ -199,36 +177,8 @@ export function Board({ model }) {
                   <Plus size={14} strokeWidth={2.2} />
                 </button>
               )}
-              {col.heading && (
-                <button
-                  type="button"
-                  className="icon-btn sm column-edit"
-                  aria-label="Edit major task with notes and dates"
-                  title="Edit: notes, dates, priority"
-                  onClick={() => selectTask(col.headingTask.id, true)}
-                >
-                  <Pencil size={14} strokeWidth={1.9} />
-                </button>
-              )}
-              {col.heading && (col.headingTask.dueDate
-                ? <DueChip value={col.headingTask.dueDate} today={today} done={col.headingTask.status === 'done'} onChange={(dueDate) => updateTask(col.headingTask.id, { dueDate })} />
-                : <DueButton value={null} onChange={(dueDate) => updateTask(col.headingTask.id, { dueDate })} />)}
-              {col.heading && <StrikeButton on={col.headingTask.struck} onToggle={() => updateTask(col.headingTask.id, { struck: !col.headingTask.struck })} />}
-              {col.heading && <TextStyleButton
-                className="column-style"
-                value={col.headingTask.textStyle}
-                onChange={(textStyle) => updateTask(col.headingTask.id, { textStyle })}
-                label="Style heading text"
-              />}
-              {col.heading && (
-                <button
-                  type="button"
-                  className="icon-btn sm column-delete"
-                  aria-label="Delete major task"
-                  onClick={() => requestDeleteTask(col.headingTask.id)}
-                >
-                  <Trash2 size={14} strokeWidth={1.9} />
-                </button>
+              {col.heading && col.headingTask.dueDate && (
+                <DueChip value={col.headingTask.dueDate} today={today} done={col.headingTask.status === 'done'} onChange={(dueDate) => updateTask(col.headingTask.id, { dueDate })} />
               )}
               {col.add && !col.heading && (
                 <button
