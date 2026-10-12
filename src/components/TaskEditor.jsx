@@ -277,7 +277,7 @@ export function TaskEditor({ task }) {
   const menuAt = (e, items) => openMenu({ kind: 'menu', rect: rectOf(e.currentTarget), items });
   // A task in a project (a major task, box or sub-task) keeps only what it needs: its project (a small dropdown),
   // delete, title, notes and a sub-task count. Everything else is edited on the board.
-  const isMajor = Boolean(task.isHeading || task.projectId);
+  const compact = Boolean(task.isHeading || task.projectId);
 
   const crumbBody = (
     <>
@@ -289,7 +289,7 @@ export function TaskEditor({ task }) {
   return (
     <>
       <PopupHead
-        crumb={isMajor ? (
+        crumb={compact ? (
           <>
             <button type="button" className="prop-btn" aria-label="Change project" onClick={(e) => menuAt(e, projectItems(task))}>
               {crumbBody}
@@ -304,7 +304,7 @@ export function TaskEditor({ task }) {
           </>
         )}
       >
-        {isMajor ? (
+        {compact ? (
           <button type="button" className="icon-btn sm" aria-label="Delete task" onClick={() => requestDeleteTask(task.id)}>
             <Trash2 size={15} />
           </button>
@@ -347,7 +347,7 @@ export function TaskEditor({ task }) {
           />
         </div>
 
-        {!isMajor && (
+        {!compact && (
           <div className="props">
             <div className="prop text-style-prop">
               <TextStyleControls value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} />
@@ -420,8 +420,8 @@ export function TaskEditor({ task }) {
         <section className="panel-section">
           <ListHead label="Sub-tasks" done={under.done} total={under.total} />
           {/* The board already shows a project task's sub-tasks: the popup only counts them, so it stays small. */}
-          {!isMajor && <NestedTasks parent={task} />}
-          {!isMajor && task.subtasks.length > 0 && <SubtaskTree task={task} variant="panel" inPopup />}
+          {!compact && <NestedTasks parent={task} />}
+          {!compact && task.subtasks.length > 0 && <SubtaskTree task={task} variant="panel" inPopup />}
           <AddLine placeholder="Add sub-task" onAdd={(title) => addSubtask(task.id, title)} />
         </section>
 
