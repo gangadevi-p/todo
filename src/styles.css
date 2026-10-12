@@ -4921,3 +4921,66 @@ button.stats-deadline {
   margin: 0;
   padding: 0;
 }
+
+/* ==========================================================================
+   Black, white and gray only. The title row and the filter chips carry no
+   green or red (nor any colour of their own): the colours left on them are
+   the ones you give a title.
+   ========================================================================== */
+/* Percentage ring. */
+.stats-ring .ring-fill {
+  stroke: var(--text);
+}
+
+/* todo / done chips: one neutral look, filled black (white in dark mode) when picked. */
+.chip-done {
+  color: var(--text-2);
+  box-shadow: 0 0 0 1px var(--border-strong) inset;
+}
+.chip-done:hover {
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--text-3) inset;
+}
+.chip-done i {
+  background: var(--text);
+}
+.chip-done.on,
+.chip-done.on:hover {
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  box-shadow: none;
+}
+
+/* The picked major-task chip: black (white in dark mode), not purple. */
+.major-chip.on,
+.major-chip.on:hover {
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  box-shadow: none;
+}
+.major-chip.on .project-dot,
+.major-chip.on i {
+  box-shadow: 0 0 0 1.5px var(--primary-text);
+}
+
+/* Deadline: overdue is shown by weight, not by red; its priority bars are gray too. */
+.stats-deadline.overdue {
+  color: var(--text);
+  font-weight: 600;
+}
+.stats-deadline .prio {
+  color: currentColor;
+}
+
+/* The page buttons: no red "delete" and no amber Today icon. */
+.page-head .btn-danger-ghost {
+  border-color: var(--border-strong);
+  color: var(--text-2);
+}
+.page-head .btn-danger-ghost:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.view-today .page-icon {
+  color: var(--text-2);
+}
