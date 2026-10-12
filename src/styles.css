@@ -4984,3 +4984,90 @@ button.stats-deadline {
 .view-today .page-icon {
   color: var(--text-2);
 }
+
+/* ==========================================================================
+   No colour on the board: boxes, sub-tasks and major tasks are black, white
+   and gray. The level colours (teal box, coral sub-task, purple major task)
+   become grays, so the hierarchy shows by lightness and outline instead.
+   ========================================================================== */
+:root {
+  --lv-major-bg: #f1f1ef;
+  --lv-major-line: #3a3a38;
+  --lv-major-text: #1f1f1e;
+  --lv-box-bg: #f4f4f2;
+  --lv-box-line: #8a8a86;
+  --lv-box-text: #2b2a27;
+  --lv-sub-bg: #ffffff;
+  --lv-sub-line: #cfcfcb;
+  --lv-sub-text: #2b2a27;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --lv-major-bg: #2a2a29;
+    --lv-major-line: #9a9a96;
+    --lv-major-text: #ececea;
+    --lv-box-bg: #232322;
+    --lv-box-line: #4d4d4a;
+    --lv-box-text: #e4e4e1;
+    --lv-sub-bg: #2f2f2e;
+    --lv-sub-line: #565653;
+    --lv-sub-text: #ececea;
+  }
+}
+:root[data-theme='dark'] {
+  --lv-major-bg: #2a2a29;
+  --lv-major-line: #9a9a96;
+  --lv-major-text: #ececea;
+  --lv-box-bg: #232322;
+  --lv-box-line: #4d4d4a;
+  --lv-box-text: #e4e4e1;
+  --lv-sub-bg: #2f2f2e;
+  --lv-sub-line: #565653;
+  --lv-sub-text: #ececea;
+}
+
+/* A ticked box is black (white in dark mode), not blue. */
+.check[data-state='done'],
+.status-icon[data-state='done'] {
+  border-color: var(--primary-bg);
+  background: var(--primary-bg);
+  color: var(--primary-text);
+}
+
+/* Progress counts: gray, darker once everything in them is done. */
+.task-progress-item.all,
+.task-progress-item.children,
+.task-progress-item.children.all {
+  color: var(--text-2);
+}
+.task-progress-item.all,
+.task-progress-item.children.all {
+  color: var(--text);
+}
+
+/* Last days: overdue and today read by weight, not by red or amber. */
+.due-overdue,
+.due-today {
+  color: var(--text);
+}
+.due-overdue {
+  font-weight: 600;
+}
+
+/* Priority bars: the number of filled bars says it, the shade backs it up. */
+.prio-low {
+  color: var(--text-3);
+}
+.prio-medium {
+  color: var(--text-2);
+}
+.prio-high {
+  color: var(--text);
+}
+
+/* Hovering a delete icon on a row, box or major task is not red. */
+.row-delete:hover,
+.card-delete:hover,
+.column-lane .column-delete:hover {
+  color: var(--text);
+}
