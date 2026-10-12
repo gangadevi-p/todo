@@ -4773,7 +4773,7 @@ button.stats-deadline {
 .major-filter-scroll .major-chip {
   flex: 0 0 auto;
   width: max-content;
-  max-width: 240px;
+  max-width: 320px;
 }
 .major-filter-scroll .major-chip-add {
   width: 28px;
