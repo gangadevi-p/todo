@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
-  CalendarDays, ChevronDown, CircleCheck, CircleDashed, Copy, Ellipsis, FolderClosed, Inbox, ListChecks, Plus, Sun, Trash2, X,
+  CalendarDays, ChevronDown, CircleCheck, CircleDashed, Copy, Ellipsis, FolderClosed, Inbox, ListChecks, Plus, Strikethrough, Sun, Trash2, Type, X,
 } from 'lucide-react';
 import {
   addNestedSubtask, addSubtask, childTasks, requestDeleteTask, duplicateTask, hidePreview, openMenu, removeSubtask, selectTask,
@@ -346,6 +346,41 @@ export function TaskEditor({ task }) {
             onSave={(title) => updateTask(task.id, { title })}
           />
         </div>
+
+        {compact && (
+          <div className="props compact-props">
+            <PropRow icon={Type} label="Name style">
+              <TextStyleControls value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} />
+            </PropRow>
+            <div className="prop-chips">
+              <button type="button" className="prop-btn" aria-label="Status" onClick={(e) => menuAt(e, statusItems(task))}>
+                <StatusIcon status={task.status} />
+                {statusLabel(task.status)}
+              </button>
+              <button type="button" className={`prop-btn${task.priority ? '' : ' empty'}`} aria-label="Priority" onClick={(e) => menuAt(e, priorityItems(task))}>
+                {task.priority ? <PriorityIcon level={task.priority} /> : <PriorityGlyph />}
+                {task.priority ? priorityLabel(task.priority) : 'Priority'}
+              </button>
+              <button
+                type="button"
+                className={`prop-btn${task.dueDate ? ` due-${done ? 'normal' : due.tone}` : ' empty'}`}
+                aria-label="Last day"
+                onClick={(e) => openDatePicker(task, { rect: rectOf(e.currentTarget) })}
+              >
+                <CalendarDays size={14} strokeWidth={1.9} />
+                {task.dueDate ? dueLabelLong(task.dueDate, today) : 'Last day'}
+              </button>
+              <button type="button" className={`prop-btn${planned ? ' on' : ''}`} aria-pressed={Boolean(planned)} onClick={() => updateTask(task.id, { addedToToday: !planned })}>
+                <Sun size={14} strokeWidth={1.9} />
+                Today
+              </button>
+              <button type="button" className={`prop-btn${task.struck ? ' on' : ''}`} aria-pressed={Boolean(task.struck)} onClick={() => updateTask(task.id, { struck: !task.struck })}>
+                <Strikethrough size={14} strokeWidth={1.9} />
+                Strike off
+              </button>
+            </div>
+          </div>
+        )}
 
         {!compact && (
           <div className="props">

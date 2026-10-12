@@ -2189,6 +2189,25 @@ kbd {
 .prop-btn.empty {
   color: var(--text-3);
 }
+/* A project task's popup: its style, then status, priority, last day, Today and strike-off as one row of chips. */
+.compact-props {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+}
+.prop-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.prop-chips .prop-btn {
+  gap: 6px;
+  border: 1px solid var(--border);
+}
+.prop-chips .prop-btn.on {
+  border-color: var(--accent-ring);
+  background: var(--accent-soft);
+}
 .prop-clear {
   opacity: 0;
 }
