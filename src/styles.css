@@ -4755,3 +4755,34 @@ button.stats-deadline {
 .page-title.editable {
   cursor: pointer;
 }
+
+/* ==========================================================================
+   All Tasks lists every task, so its chips stack as aligned rows (one task per
+   row, project dot first) instead of a ragged wrap of pills.
+   ========================================================================== */
+.major-filter.major-filter-rows {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 4px;
+}
+.major-filter-rows .major-chip {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 10px;
+  padding-left: 12px;
+  padding-right: 12px;
+  border-radius: 8px;
+}
+.major-filter-rows .major-chip .project-dot,
+.major-filter-rows .major-chip i {
+  flex: none;
+}
+.major-filter-rows .major-chip-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.major-filter-rows .major-chip-add {
+  width: 100%;
+  border-radius: 8px;
+}

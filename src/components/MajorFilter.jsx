@@ -12,7 +12,7 @@ export function MajorFilter({ majors, active, onAdd, projectsById = null }) {
   if (!majors) return null;
   const empty = majors.length === 0;
   return (
-    <div className="major-filter" role="tablist" aria-label="Major tasks">
+    <div className={`major-filter${projectsById ? ' major-filter-rows' : ''}`} role="tablist" aria-label="Major tasks">
       {majors.map((task) => {
         const { color } = textStyleProps(task.textStyle).style || {};
         return (
