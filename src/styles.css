@@ -4589,3 +4589,7 @@ button.stats-deadline {
 .row {
   cursor: pointer;
 }
+
+.page-title.editable {
+  cursor: pointer;
+}

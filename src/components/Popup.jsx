@@ -56,7 +56,7 @@ export function ReadOnly({ children, mono, muted }) {
  * (main fields + a "Details" column) and a footer with the create button.
  * Expanding makes it wide; the choice is remembered.
  */
-export function Popup({ title, subtitle, dirty, canSubmit, submitLabel, onSubmit, focusRef, side, children }) {
+export function Popup({ title, subtitle, dirty, canSubmit, submitLabel, onSubmit, focusRef, side, children, actionWord = 'create' }) {
   const wide = useData((s) => Boolean(s.prefs.popupWide));
   const menu = useUI((u) => u.menu);
   const wasMenu = useRef(false);
@@ -129,7 +129,7 @@ export function Popup({ title, subtitle, dirty, canSubmit, submitLabel, onSubmit
 
         <footer className="pp-foot">
           <span className="pp-keys">
-            <Kbd keys="Enter" /> create <Kbd keys="Esc" /> cancel
+            <Kbd keys="Enter" /> {actionWord} <Kbd keys="Esc" /> cancel
           </span>
           <span className="pp-actions">
             <button type="button" className="btn" onClick={closePopup}>Cancel</button>

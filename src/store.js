@@ -776,6 +776,22 @@ export function confirmDeleteAll(project) {
   confirmDeleteTasks(ids, `“${project.name}”`, ' The project itself stays.');
 }
 
+/** Ask before deleting a project, from anywhere (its editor, the sidebar). */
+export function confirmDeleteProject(project) {
+  const open = data.get().tasks.filter((t) => t.projectId === project.id && t.status !== 'done').length;
+  askConfirm({
+    title: `Delete “${project.name}”?`,
+    body: open
+      ? `Its ${open} open task${open === 1 ? '' : 's'} and any completed tasks will have no project.`
+      : 'The project will be removed. Any completed tasks will have no project.',
+    confirmLabel: 'Delete project',
+    onConfirm: () => {
+      closePopup();
+      deleteProject(project.id);
+    },
+  });
+}
+
 export function deleteProject(id) {
   const before = data.get();
   const project = before.projects.find((p) => p.id === id);
@@ -898,6 +914,7 @@ function openPopup(popup) {
 }
 export const openNewTask = (defaults = {}) => openPopup({ kind: 'task', defaults });
 export const openNewProject = () => openPopup({ kind: 'project' });
+export const openEditProject = (projectId) => openPopup({ kind: 'editProject', projectId });
 export const closePopup = () => patchUI({ popup: null });
 
 export const openSearch = () => patchUI({ search: true, popup: null, help: false, menu: null, preview: null });

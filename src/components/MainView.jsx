@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, CalendarDays, CheckSquare, CircleCheck, Columns3, Layers, List, PanelLeftOpen, Plus, Sun, Trash2, X } from 'lucide-react';
 import {
-  confirmDeleteSelection, confirmDeleteTasks, getSpace, markSelectionDone, openMobileNav, openNewTask, parseSelectionKey, renameProject, setPref, setProjectMode,
+  confirmDeleteSelection, confirmDeleteTasks, getSpace, markSelectionDone, openEditProject, openMobileNav, openNewTask, parseSelectionKey, renameProject, setPref, setProjectMode,
   updateProject, setSectionMode, setSelecting, useUI,
 } from '../store';
 import { Board } from './Board';
@@ -82,40 +82,15 @@ function ViewIcon({ model, size = 15 }) {
 }
 
 function ProjectTitle({ project }) {
-  const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(project.name);
-  useEffect(() => setValue(project.name), [project.name]);
-  if (!editing) {
-    return (
-      <h1 className={`page-title editable ${textStyleProps(project.textStyle).className}`} style={textStyleProps(project.textStyle).style} onClick={() => setEditing(true)}>
-        {project.name}
-      </h1>
-    );
-  }
-  const commit = () => {
-    if (value.trim()) renameProject(project.id, value);
-    else setValue(project.name);
-    setEditing(false);
-  };
   return (
-    <input
-      className={`page-title page-title-input ${textStyleProps(project.textStyle).className}`}
+    <h1
+      className={`page-title editable ${textStyleProps(project.textStyle).className}`}
       style={textStyleProps(project.textStyle).style}
-      autoFocus
-      value={value}
-      onFocus={(e) => e.target.select()}
-      onChange={(e) => setValue(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => {
-        if (e.nativeEvent.isComposing) return;
-        if (e.key === 'Enter') commit();
-        if (e.key === 'Escape') {
-          e.stopPropagation();
-          setValue(project.name);
-          setEditing(false);
-        }
-      }}
-    />
+      title="Click to edit the project"
+      onClick={() => openEditProject(project.id)}
+    >
+      {project.name}
+    </h1>
   );
 }
 
@@ -247,7 +222,6 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
             <div className="page-icon"><ViewIcon model={model} size={20} /></div>
             <div className="page-title-line">
               {model.project ? <ProjectTitle key={model.project.id} project={model.project} /> : <h1 className="page-title">{model.title}</h1>}
-              {model.project && <TextStyleButton value={model.project.textStyle} onChange={(textStyle) => updateProject(model.project.id, { textStyle })} label="Style project name" />}
               {!isTrash && <button
                 type="button"
                 className="icon-btn page-add"

@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import {
   askConfirm, closeMobileNav, confirmDeleteAll, exportData, flushSave, getSpace, importData, deleteProject, findTask, navigate, openMenu, openNewProject, openSearch, placeProject, renameProject,
-  setEditingProject, setHelp, setPref, updateTask, useData, useUI,
+  openEditProject, setEditingProject, setHelp, setPref, updateTask, useData, useUI,
 } from '../store';
 import { DEMO_NAME } from '../seed';
 import { authEnabled, leaveSpace, publicWeb } from '../lib/auth';
@@ -101,7 +101,7 @@ function ProjectItem({ project, active, count, progress, editing, onReorderTarge
   const [over, dropProps] = useTaskTarget(() => ({ projectId: project.id }), `Moved to ${project.name}`);
 
   const menuItems = [
-    { label: 'Rename', icon: Pencil, onSelect: () => setEditingProject(project.id) },
+    { label: 'Edit', icon: Pencil, onSelect: () => openEditProject(project.id) },
     { label: 'Delete all tasks', icon: Eraser, danger: true, onSelect: () => confirmDeleteAll(project) },
     { divider: true },
     {
@@ -143,7 +143,7 @@ function ProjectItem({ project, active, count, progress, editing, onReorderTarge
         onDragStart={(e) => startProjectDrag(e, project)}
         onDragEnd={endDrag}
         onClick={() => navigate(`project:${project.id}`)}
-        onDoubleClick={() => setEditingProject(project.id)}
+        onDoubleClick={() => openEditProject(project.id)}
         onContextMenu={(e) => {
           e.preventDefault();
           openMenu({ kind: 'menu', x: e.clientX, y: e.clientY, items: menuItems });
