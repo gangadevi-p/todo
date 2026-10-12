@@ -4347,3 +4347,10 @@ button.stats-deadline {
     max-width: calc(100% - 24px);
   }
 }
+
+/* Phones: the small page icon makes way so a project's title and all its buttons fit on one row. */
+@media (max-width: 480px) {
+  .page-head > .page-icon {
+    display: none;
+  }
+}
