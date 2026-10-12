@@ -126,6 +126,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         onContextMenu={(e) => {
           if (selecting || inPopup) return;
           e.preventDefault();
+          e.stopPropagation();
           openSubtaskMenu(task, subtask, { x: e.clientX, y: e.clientY });
         }}
       >
