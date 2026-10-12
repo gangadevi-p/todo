@@ -3853,7 +3853,7 @@ button.column-empty span {
    Box width: a box never stretches across the screen, in any Board page.
    ========================================================================== */
 :root {
-  --box-w: 380px;
+  --box-w: 672px;
 }
 /* A major task is only as wide as its boxes; they wrap onto new rows. */
 .column-lane.column-wide {
@@ -4037,4 +4037,15 @@ button.stats-deadline {
 }
 .column-lane.column-wide {
   justify-self: center;
+}
+
+/* The Board's title, actions, overview and chips share the boxes' centred column, as the List view does. */
+.page-board > .page-head,
+.page-board > .stats-panel,
+.page-board > .major-filter,
+.page-board > .demo-banner {
+  width: 100%;
+  max-width: var(--box-w);
+  margin-left: auto;
+  margin-right: auto;
 }
