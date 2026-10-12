@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import {
-  closeMobileNav, data, requestDeleteTask, duplicateTask, hidePreview, navigate, openNewTask, openSearch, selectTask,
+  closeMobileNav, data, removeSubtask, requestDeleteTask, duplicateTask, hidePreview, navigate, openNewTask, openSearch, selectTask,
   setHelp, setPref, setSelecting, toggleComplete, toggleToday, ui, undoLast, updateTask, useData, useUI,
 } from './store';
 import { activeMajorId, buildView, NAV_VIEWS } from './lib/views';
@@ -57,6 +57,14 @@ function handleKey(e, model) {
   if (typing) return;
   // Let focused buttons keep their native Enter/Space behaviour.
   if ((key === 'Enter' || key === ' ') && e.target.closest?.('button, a, [role="button"]')) return;
+
+  // Delete removes the checklist row you are on, never the task that happens to be selected.
+  const subRow = e.target.closest?.('[data-sub-row][data-sub-task]');
+  if (subRow && (key === 'Delete' || (mod && key === 'Backspace'))) {
+    e.preventDefault();
+    removeSubtask(subRow.dataset.subTask, subRow.dataset.subId);
+    return;
+  }
 
   const list = model.flat;
   const selected = u.selectedId ? data.get().tasks.find((t) => t.id === u.selectedId) : null;

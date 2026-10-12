@@ -75,7 +75,7 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
   };
 
   // Inside the popup a row is being edited there, so it doesn't anchor a popup of its own.
-  const anchorProps = inPopup ? {} : { 'data-sub-row': '', 'data-sub-id': subtask.id };
+  const anchorProps = inPopup ? {} : { 'data-sub-row': '', 'data-sub-id': subtask.id, 'data-sub-task': task.id };
 
   return (
     <>
@@ -83,7 +83,12 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         className={`sub-row${subtask.done ? ' done' : ''}${subtask.struck ? ' struck' : ''}${picked ? ' picked' : ''}`}
         style={depth ? { '--sub-depth': depth } : undefined}
         {...anchorProps}
-        onClick={selecting ? () => toggleSelected(key) : undefined}
+        tabIndex={inPopup ? undefined : -1}
+        onClick={(e) => {
+          if (selecting) toggleSelected(key);
+          // Clicking the row itself focuses it, so Delete removes this row.
+          else if (!e.target.closest('input, button')) e.currentTarget.focus();
+        }}
       >
       {!selecting && (
         <button type="button" className="sub-add-left" aria-label="Add a sub-task" onClick={addSubtaskHere}>

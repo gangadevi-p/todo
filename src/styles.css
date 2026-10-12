@@ -3816,3 +3816,17 @@ button.column-empty span {
 .column-wide .column-checklist .subtasks-board .sub-row:focus-within .sub-del {
   display: inline-grid;
 }
+
+/* A checklist row you clicked has the focus: Delete removes it. */
+.sub-row:focus {
+  outline: none;
+}
+.sub-row:focus-visible,
+.sub-row:focus {
+  background: var(--bg-hover);
+}
+.card.box .subtasks-card .sub-row:focus,
+.column-wide .column-checklist .subtasks-board .sub-row:focus {
+  background: var(--lv-sub-bg);
+  border-color: var(--lv-sub-line);
+}
