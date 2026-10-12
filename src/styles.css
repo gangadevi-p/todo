@@ -4286,3 +4286,35 @@ button.stats-deadline {
   top: 50%;
   transform: translateY(-50%);
 }
+
+/* ==========================================================================
+   Consistency: the two "+" buttons are the same round control in their
+   level's colour, and a box shows its tools the way a major task does.
+   ========================================================================== */
+.column-head .column-major-add,
+.card.box .card-sub-add {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.card.box .card-sub-add {
+  border: 1px solid color-mix(in srgb, var(--lv-sub-line) 50%, transparent);
+  background: var(--lv-sub-bg);
+  color: var(--lv-sub-text);
+}
+.card.box .card-sub-add:hover {
+  border-color: var(--lv-sub-line);
+  background: var(--lv-sub-bg);
+}
+.card.box .card-actions {
+  opacity: 0.7;
+}
+.card.box:hover .card-actions,
+.card.box:focus-within .card-actions {
+  opacity: 1;
+}
