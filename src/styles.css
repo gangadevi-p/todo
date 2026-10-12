@@ -4782,3 +4782,42 @@ button.stats-deadline {
 .major-filter-scroll .major-chip-add.empty {
   width: auto;
 }
+
+/* ==========================================================================
+   Everything sits on the left: no centred column on any page, whether a major
+   task has one box or many. The title row, overview, chips, notes and boxes
+   all start at the page's left edge.
+   ========================================================================== */
+.page {
+  margin-left: 0;
+  margin-right: auto;
+}
+.page-board > .page-head,
+.page-board > .stats-panel,
+.page-board > .major-filter,
+.page-board > .demo-banner {
+  margin-left: 0;
+  margin-right: auto;
+}
+.column-lane.column-wide .column-head {
+  margin-left: 0;
+  margin-right: auto;
+}
+.major-notes {
+  margin-left: 0;
+  margin-right: auto;
+}
+.column-wide .column-body {
+  justify-content: start;
+}
+.column-wide .column-body > .child-add-row,
+.column-wide .column-body > .column-empty,
+.column-wide .column-body > .drop-line {
+  justify-self: start;
+}
+.major-empty {
+  align-items: flex-start;
+  margin-left: 0;
+  margin-right: auto;
+  text-align: left;
+}
