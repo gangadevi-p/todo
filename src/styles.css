@@ -4223,3 +4223,13 @@ button.stats-deadline {
 .column-wide .column-checklist .subtasks-board .sub-row .due-button {
   right: 78px;
 }
+
+/* A box's own + sits in its header and is always visible; there is no extra button under its rows. */
+.card.box .card-sub-add {
+  flex: none;
+  margin-top: -3px;
+  color: var(--lv-box-text);
+}
+.card.box .card-sub-add:hover {
+  background: color-mix(in srgb, var(--lv-box-line) 18%, transparent);
+}

@@ -59,6 +59,20 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
           {!box && <TaskProgress task={task} kids={kids} />}
           <TaskPriority task={task} />
         </span>
+        {box && !selecting && task.status !== 'done' && (
+          <button
+            type="button"
+            className="icon-btn sm card-sub-add"
+            aria-label="Add sub-task"
+            title="Add sub-task"
+            onClick={(e) => {
+              e.stopPropagation();
+              addSubtaskTo(task.id);
+            }}
+          >
+            <Plus size={14} strokeWidth={2.2} />
+          </button>
+        )}
         {!selecting && (
           <span className="card-actions">
             {showDue
@@ -100,11 +114,6 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
         autoFocus={showChildAdd}
       />
       {task.subtasks.length > 0 && <SubtaskTree task={task} variant="card" completedOnly={checklistStatus === 'done'} todoOnly={checklistStatus === 'todo'} />}
-      {box && !selecting && task.status !== 'done' && (
-        <button type="button" className="box-add" onClick={() => addSubtaskTo(task.id)}>
-          <Plus size={13} strokeWidth={2} /> Add sub-task
-        </button>
-      )}
     </div>
   );
 });
