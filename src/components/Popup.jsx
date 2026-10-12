@@ -57,9 +57,11 @@ export function ReadOnly({ children, mono, muted }) {
  * Expanding makes it wide; the choice is remembered.
  */
 export function Popup({
-  title, subtitle, dirty, canSubmit, submitLabel, onSubmit, focusRef, side, headActions, hideKeys, children, actionWord = 'create',
+  title, subtitle, dirty, canSubmit, submitLabel, onSubmit, focusRef, side, headActions, hideKeys, compact, children, actionWord = 'create',
 }) {
-  const wide = useData((s) => Boolean(s.prefs.popupWide));
+  const wideTheme = useData((s) => Boolean(s.prefs.popupWide));
+  // A compact popup never expands, so it has no expand toggle either.
+  const wide = wideTheme && !compact;
   const menu = useUI((u) => u.menu);
   const wasMenu = useRef(false);
 
@@ -103,15 +105,17 @@ export function Popup({
           </div>
           <div className="pp-head-actions">
             {headActions}
-            <button
-              type="button"
-              className="icon-btn"
-              aria-label={wide ? 'Shrink popup' : 'Expand popup'}
-              aria-pressed={wide}
-              onClick={() => setPref('popupWide', !wide)}
-            >
-              {wide ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-            </button>
+            {!compact && (
+              <button
+                type="button"
+                className="icon-btn"
+                aria-label={wide ? 'Shrink popup' : 'Expand popup'}
+                aria-pressed={wide}
+                onClick={() => setPref('popupWide', !wide)}
+              >
+                {wide ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+              </button>
+            )}
             <button type="button" className="icon-btn" aria-label="Close" onClick={closePopup}>
               <X size={16} />
             </button>

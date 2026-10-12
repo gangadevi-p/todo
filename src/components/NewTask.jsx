@@ -34,6 +34,8 @@ export function NewTaskForm({ defaults }) {
 
   const titleRef = useRef(null);
   const notesRef = useRef(null);
+  // A major task is just a title in a project; status, notes and the rest are edited afterwards.
+  const isMajor = Boolean(defaults.isHeading);
 
   const project = projects.find((p) => p.id === projectId) || null;
   const name = title.trim();
@@ -130,6 +132,8 @@ export function NewTaskForm({ defaults }) {
       submitLabel={defaults.isHeading ? 'Create major task' : isBox ? 'Create box' : 'Create task'}
       onSubmit={submit}
       focusRef={titleRef}
+      hideKeys={isMajor}
+      compact={isMajor}
     >
       <Field f={F.title}>
         <input
@@ -155,97 +159,101 @@ export function NewTaskForm({ defaults }) {
         )}
       </Field>
 
-      <Field f={F.status}>
-        <div className="pills" role="radiogroup" aria-label="Status">
-          {STATUSES.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              role="radio"
-              aria-checked={status === s.id}
-              className={`pill${status === s.id ? ' on' : ''}`}
-              onClick={() => setStatus(s.id)}
-            >
-              <StatusIcon status={s.id} size={13} />
-              {s.label}
-            </button>
-          ))}
-        </div>
-      </Field>
-
-      <Field f={F.priority}>
-        <div className="pills" role="radiogroup" aria-label="Priority">
-          {PRIORITIES.map((p) => (
-            <button
-              key={p.id || 'none'}
-              type="button"
-              role="radio"
-              aria-checked={priority === p.id}
-              data-level={p.id || 'none'}
-              className={`pill${priority === p.id ? ' on' : ''}`}
-              onClick={() => setPriority(p.id)}
-            >
-              {p.id ? <PriorityIcon level={p.id} /> : <Minus size={13} strokeWidth={2} />}
-              {p.id ? p.label : 'None'}
-            </button>
-          ))}
-        </div>
-      </Field>
-
-      <Field f={F.notes} hint="Optional" top>
-        <textarea
-          ref={notesRef}
-          className="pp-notes"
-          value={notes}
-          spellCheck
-          placeholder="Add notes, references, ideas…"
-          onChange={(e) => setNotes(e.target.value)}
-        />
-      </Field>
-
-      <Field f={F.subtasks} hint="Optional" top>
-        <div className="pp-subs">
-          {subtasks.map((st) => (
-            <div key={st.id} className={`pp-sub${st.done ? ' done' : ''}`}>
-              <Checkbox
-                size="sm"
-                state={st.done ? 'done' : 'todo'}
-                onToggle={() => setSubtasks((list) => list.map((x) => (x.id === st.id ? { ...x, done: !x.done } : x)))}
-              />
-              <span className="pp-sub-title">{st.title}</span>
-              <button
-                type="button"
-                className="icon-btn sm"
-                aria-label="Remove"
-                onClick={() => setSubtasks((list) => list.filter((x) => x.id !== st.id))}
-              >
-                <X size={13} />
-              </button>
+      {!isMajor && (
+        <>
+          <Field f={F.status}>
+            <div className="pills" role="radiogroup" aria-label="Status">
+              {STATUSES.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={status === s.id}
+                  className={`pill${status === s.id ? ' on' : ''}`}
+                  onClick={() => setStatus(s.id)}
+                >
+                  <StatusIcon status={s.id} size={13} />
+                  {s.label}
+                </button>
+              ))}
             </div>
-          ))}
-          <div className="pp-sub pp-sub-add">
-            <Plus size={14} strokeWidth={2} />
-            <input
-              value={subDraft}
+          </Field>
+
+          <Field f={F.priority}>
+            <div className="pills" role="radiogroup" aria-label="Priority">
+              {PRIORITIES.map((p) => (
+                <button
+                  key={p.id || 'none'}
+                  type="button"
+                  role="radio"
+                  aria-checked={priority === p.id}
+                  data-level={p.id || 'none'}
+                  className={`pill${priority === p.id ? ' on' : ''}`}
+                  onClick={() => setPriority(p.id)}
+                >
+                  {p.id ? <PriorityIcon level={p.id} /> : <Minus size={13} strokeWidth={2} />}
+                  {p.id ? p.label : 'None'}
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          <Field f={F.notes} hint="Optional" top>
+            <textarea
+              ref={notesRef}
+              className="pp-notes"
+              value={notes}
               spellCheck
-              placeholder={subtasks.length ? 'Add another step' : 'Add a step, e.g. Desktop version'}
-              onChange={(e) => setSubDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.nativeEvent.isComposing) return;
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  if (subDraft.trim()) addStep();
-                  else submit();
-                } else if (e.key === 'Backspace' && !subDraft && subtasks.length) {
-                  e.preventDefault();
-                  setSubDraft(subtasks[subtasks.length - 1].title);
-                  setSubtasks((list) => list.slice(0, -1));
-                }
-              }}
+              placeholder="Add notes, references, ideas…"
+              onChange={(e) => setNotes(e.target.value)}
             />
-          </div>
-        </div>
-      </Field>
+          </Field>
+
+          <Field f={F.subtasks} hint="Optional" top>
+            <div className="pp-subs">
+              {subtasks.map((st) => (
+                <div key={st.id} className={`pp-sub${st.done ? ' done' : ''}`}>
+                  <Checkbox
+                    size="sm"
+                    state={st.done ? 'done' : 'todo'}
+                    onToggle={() => setSubtasks((list) => list.map((x) => (x.id === st.id ? { ...x, done: !x.done } : x)))}
+                  />
+                  <span className="pp-sub-title">{st.title}</span>
+                  <button
+                    type="button"
+                    className="icon-btn sm"
+                    aria-label="Remove"
+                    onClick={() => setSubtasks((list) => list.filter((x) => x.id !== st.id))}
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              ))}
+              <div className="pp-sub pp-sub-add">
+                <Plus size={14} strokeWidth={2} />
+                <input
+                  value={subDraft}
+                  spellCheck
+                  placeholder={subtasks.length ? 'Add another step' : 'Add a step, e.g. Desktop version'}
+                  onChange={(e) => setSubDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.nativeEvent.isComposing) return;
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (subDraft.trim()) addStep();
+                      else submit();
+                    } else if (e.key === 'Backspace' && !subDraft && subtasks.length) {
+                      e.preventDefault();
+                      setSubDraft(subtasks[subtasks.length - 1].title);
+                      setSubtasks((list) => list.slice(0, -1));
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </Field>
+        </>
+      )}
 
       <Field f={F.due} hint="Finish by">
         <div className="pills">

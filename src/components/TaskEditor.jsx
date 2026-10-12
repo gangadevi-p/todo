@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
-  CalendarDays, CircleCheck, CircleDashed, Copy, Ellipsis, FolderClosed, Inbox, ListChecks, Plus, Sun, Trash2, X,
+  CalendarDays, ChevronDown, CircleCheck, CircleDashed, Copy, Ellipsis, FolderClosed, Inbox, ListChecks, Plus, Sun, Trash2, X,
 } from 'lucide-react';
 import {
   addNestedSubtask, addSubtask, childTasks, requestDeleteTask, duplicateTask, hidePreview, openMenu, removeSubtask, selectTask,
@@ -275,38 +275,59 @@ export function TaskEditor({ task }) {
   const style = textStyleProps(task.textStyle, task.struck);
   const under = countUnder(task, tasks);
   const menuAt = (e, items) => openMenu({ kind: 'menu', rect: rectOf(e.currentTarget), items });
+  // A major task keeps only what it needs: its project (a small dropdown), delete, title, notes and sub-tasks.
+  const isMajor = Boolean(task.isHeading || (!task.parentId && task.projectId));
+
+  const crumbBody = (
+    <>
+      {project ? <ProjectDot color={project.color} /> : <Inbox size={13} strokeWidth={1.9} />}
+      <span>{project ? project.name : 'No project'}</span>
+    </>
+  );
 
   return (
     <>
       <PopupHead
-        crumb={(
+        crumb={isMajor ? (
+          <button type="button" className="prop-btn" aria-label="Change project" onClick={(e) => menuAt(e, projectItems(task))}>
+            {crumbBody}
+            <ChevronDown size={13} />
+          </button>
+        ) : (
           <>
-            {project ? <ProjectDot color={project.color} /> : <Inbox size={13} strokeWidth={1.9} />}
-            <span>{project ? project.name : 'No project'}</span>
+            {crumbBody}
             {parent && <span className="preview-crumb-parent">› {parent.title}</span>}
           </>
         )}
       >
-        <button
-          type="button"
-          className={`icon-btn sm${planned ? ' on-today' : ''}`}
-          aria-label={planned ? 'Remove from Today' : inToday(task, today) ? 'Last day today · pin to Today' : 'Add to Today'}
-          onClick={() => updateTask(task.id, { addedToToday: !planned })}
-        >
-          <Sun size={15} strokeWidth={1.9} />
-        </button>
-        <button
-          type="button"
-          className="icon-btn sm"
-          aria-label="More"
-          onClick={(e) => menuAt(e, [
-            { label: 'Duplicate', icon: Copy, shortcut: 'mod+D', onSelect: () => { const id = duplicateTask(task.id); if (id) selectTask(id, false); } },
-            { divider: true },
-            { label: 'Delete task', icon: Trash2, shortcut: 'Del', danger: true, onSelect: () => requestDeleteTask(task.id) },
-          ])}
-        >
-          <Ellipsis size={15} />
-        </button>
+        {isMajor ? (
+          <button type="button" className="icon-btn sm" aria-label="Delete task" onClick={() => requestDeleteTask(task.id)}>
+            <Trash2 size={15} />
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              className={`icon-btn sm${planned ? ' on-today' : ''}`}
+              aria-label={planned ? 'Remove from Today' : inToday(task, today) ? 'Last day today · pin to Today' : 'Add to Today'}
+              onClick={() => updateTask(task.id, { addedToToday: !planned })}
+            >
+              <Sun size={15} strokeWidth={1.9} />
+            </button>
+            <button
+              type="button"
+              className="icon-btn sm"
+              aria-label="More"
+              onClick={(e) => menuAt(e, [
+                { label: 'Duplicate', icon: Copy, shortcut: 'mod+D', onSelect: () => { const id = duplicateTask(task.id); if (id) selectTask(id, false); } },
+                { divider: true },
+                { label: 'Delete task', icon: Trash2, shortcut: 'Del', danger: true, onSelect: () => requestDeleteTask(task.id) },
+              ])}
+            >
+              <Ellipsis size={15} />
+            </button>
+          </>
+        )}
       </PopupHead>
 
       <div className="preview-body">
@@ -322,61 +343,63 @@ export function TaskEditor({ task }) {
           />
         </div>
 
-        <div className="props">
-          <div className="prop text-style-prop">
-            <TextStyleControls value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} />
-          </div>
-          <PropRow icon={CircleDashed} label="Status">
-            <button type="button" className="prop-btn" onClick={(e) => menuAt(e, statusItems(task))}>
-              <StatusIcon status={task.status} />
-              {statusLabel(task.status)}
-            </button>
-          </PropRow>
-          <PropRow icon={FolderClosed} label="Project">
-            <button type="button" className="prop-btn" onClick={(e) => menuAt(e, projectItems(task))}>
-              {project ? <ProjectDot color={project.color} /> : <Inbox size={14} strokeWidth={1.9} />}
-              {project ? project.name : 'No project'}
-            </button>
-          </PropRow>
-          <PropRow icon={PriorityGlyph} label="Priority">
-            <button type="button" className={`prop-btn${task.priority ? '' : ' empty'}`} onClick={(e) => menuAt(e, priorityItems(task))}>
-              {task.priority && <PriorityIcon level={task.priority} />}
-              {task.priority ? priorityLabel(task.priority) : 'None'}
-            </button>
-          </PropRow>
-          <PropRow icon={CalendarDays} label="Last day">
-            <button
-              type="button"
-              className={`prop-btn${task.dueDate ? ` due-${done ? 'normal' : due.tone}` : ' empty'}`}
-              onClick={(e) => openDatePicker(task, { rect: rectOf(e.currentTarget) })}
-            >
-              {task.dueDate ? dueLabelLong(task.dueDate, today) : 'No date'}
-            </button>
-            {task.dueDate && (
-              <button type="button" className="icon-btn sm prop-clear" aria-label="Remove last day" onClick={() => updateTask(task.id, { dueDate: null })}>
-                <X size={13} />
+        {!isMajor && (
+          <div className="props">
+            <div className="prop text-style-prop">
+              <TextStyleControls value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} />
+            </div>
+            <PropRow icon={CircleDashed} label="Status">
+              <button type="button" className="prop-btn" onClick={(e) => menuAt(e, statusItems(task))}>
+                <StatusIcon status={task.status} />
+                {statusLabel(task.status)}
               </button>
-            )}
-          </PropRow>
-          <PropRow icon={Sun} label="Today">
-            <button
-              type="button"
-              className={`switch${planned ? ' on' : ''}`}
-              role="switch"
-              aria-checked={planned}
-              aria-label="Planned for today"
-              onClick={() => updateTask(task.id, { addedToToday: !planned })}
-            >
-              <span />
-            </button>
-            <span className="prop-note">
-              {planned ? 'Planned for today' : task.dueDate && task.dueDate <= today && !done ? 'Shows in Today — its last day is here' : ''}
-            </span>
-          </PropRow>
-          <PropRow icon={CircleCheck} label="Strike off">
-            <StrikeSwitch on={task.struck} onToggle={() => updateTask(task.id, { struck: !task.struck })} />
-          </PropRow>
-        </div>
+            </PropRow>
+            <PropRow icon={FolderClosed} label="Project">
+              <button type="button" className="prop-btn" onClick={(e) => menuAt(e, projectItems(task))}>
+                {project ? <ProjectDot color={project.color} /> : <Inbox size={14} strokeWidth={1.9} />}
+                {project ? project.name : 'No project'}
+              </button>
+            </PropRow>
+            <PropRow icon={PriorityGlyph} label="Priority">
+              <button type="button" className={`prop-btn${task.priority ? '' : ' empty'}`} onClick={(e) => menuAt(e, priorityItems(task))}>
+                {task.priority && <PriorityIcon level={task.priority} />}
+                {task.priority ? priorityLabel(task.priority) : 'None'}
+              </button>
+            </PropRow>
+            <PropRow icon={CalendarDays} label="Last day">
+              <button
+                type="button"
+                className={`prop-btn${task.dueDate ? ` due-${done ? 'normal' : due.tone}` : ' empty'}`}
+                onClick={(e) => openDatePicker(task, { rect: rectOf(e.currentTarget) })}
+              >
+                {task.dueDate ? dueLabelLong(task.dueDate, today) : 'No date'}
+              </button>
+              {task.dueDate && (
+                <button type="button" className="icon-btn sm prop-clear" aria-label="Remove last day" onClick={() => updateTask(task.id, { dueDate: null })}>
+                  <X size={13} />
+                </button>
+              )}
+            </PropRow>
+            <PropRow icon={Sun} label="Today">
+              <button
+                type="button"
+                className={`switch${planned ? ' on' : ''}`}
+                role="switch"
+                aria-checked={planned}
+                aria-label="Planned for today"
+                onClick={() => updateTask(task.id, { addedToToday: !planned })}
+              >
+                <span />
+              </button>
+              <span className="prop-note">
+                {planned ? 'Planned for today' : task.dueDate && task.dueDate <= today && !done ? 'Shows in Today — its last day is here' : ''}
+              </span>
+            </PropRow>
+            <PropRow icon={CircleCheck} label="Strike off">
+              <StrikeSwitch on={task.struck} onToggle={() => updateTask(task.id, { struck: !task.struck })} />
+            </PropRow>
+          </div>
+        )}
 
         <section className="panel-section">
           <div className="section-label">Notes</div>
