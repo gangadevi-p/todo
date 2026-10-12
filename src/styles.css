@@ -4318,3 +4318,23 @@ button.stats-deadline {
 .card.box:focus-within .card-actions {
   opacity: 1;
 }
+
+/* Phones: the title row (title, add, style, layout, select, delete) stays on one row. */
+@media (max-width: 480px) {
+  .page-head {
+    column-gap: 8px;
+  }
+  .page-icon {
+    width: 16px;
+  }
+  .page-title {
+    font-size: 22px;
+  }
+  .page-head-actions {
+    gap: 4px;
+  }
+  .page-title-line {
+    gap: 4px;
+    min-width: min(100%, 150px);
+  }
+}
