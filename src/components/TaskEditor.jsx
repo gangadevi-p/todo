@@ -1,27 +1,26 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
-  CalendarDays, ChevronDown, CircleCheck, CircleDashed, Copy, Ellipsis, FolderClosed, Inbox, ListChecks, Plus, Strikethrough, Sun, Trash2, Type, X,
+  CalendarDays, ChevronDown, Inbox, ListChecks, Plus, Strikethrough, Sun, Trash2, X,
 } from 'lucide-react';
 import {
-  addNestedSubtask, addSubtask, childTasks, requestDeleteTask, duplicateTask, hidePreview, openMenu, removeSubtask, selectTask,
-  toggleComplete, updateSubtask, updateTask, useChildTasks, useData, useUI,
+  addNestedSubtask, addSubtask, childTasks, requestDeleteTask, hidePreview, openMenu, removeSubtask,
+  toggleComplete, updateSubtask, updateTask, useData, useUI,
 } from '../store';
 import { dueLabel, dueLabelLong, formatTimestamp } from '../lib/dates';
 import { PRIORITIES, priorityLabel, statusLabel } from '../lib/util';
-import { inToday } from '../lib/views';
 import { useToday } from '../lib/useToday';
 import { textStyleProps } from '../lib/textStyle';
 import { Checkbox, PriorityIcon, ProjectDot, StatusIcon } from './bits';
 import { rectOf } from './MenuLayer';
-import { SubtaskTree } from './Subtasks';
 import { openDatePicker, priorityItems, projectItems, statusItems } from './taskMenu';
-import { TextStyleButton, TextStyleControls, TextStyleTool } from './TextStyle';
-import { CompletedDate, DueButton, DueChip } from './DueButton';
-import { StrikeButton } from './StrikeButton';
+import { TextStyleTool } from './TextStyle';
+import { CompletedDate } from './DueButton';
 import { DatePicker } from './DatePicker';
 
-// The task popup's contents: everything about a task (or one checklist item)
-// edited in place, including every sub-task and nested item under it.
+// The task popup's contents: one compact layout for every task, sub-task and
+// nested item. Title and text style on the left; status, priority, last day and
+// strike-off on the right; then notes and a count of what is under it. The
+// sub-tasks themselves are edited on the page, so the popup stays small.
 
 const clean = (text) => text.replace(/\s+/g, ' ').trim();
 
@@ -46,43 +45,7 @@ function useFocusOnOpen(ref, id, subId = null) {
   }, [focusTitle, id, subId, ref]);
 }
 
-/** The big title: saves as you type, never ends up empty, and Enter finishes. */
-function TitleField({ inputRef, value, onSave, className, style, placeholder }) {
-  const [text, setText] = useState(value);
-  useEffect(() => {
-    if (document.activeElement !== inputRef.current) setText(value);
-  }, [value, inputRef]);
-  useAutosize(inputRef, text);
-  return (
-    <textarea
-      ref={inputRef}
-      className={className}
-      style={style}
-      value={text}
-      rows={1}
-      spellCheck
-      placeholder={placeholder}
-      onChange={(e) => {
-        setText(e.target.value);
-        const next = clean(e.target.value);
-        if (next) onSave(next);
-      }}
-      onBlur={() => {
-        const next = clean(text);
-        if (!next) setText(value);
-        else if (next !== value) onSave(next);
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
-          e.preventDefault();
-          e.currentTarget.blur();
-        }
-      }}
-    />
-  );
-}
-
-/** A one-line title inside a list of sub-tasks. */
+/** A one-line title: saves as you type, never ends up empty, and Enter finishes. */
 function RowTitle({ value, onSave, className, style, placeholder, inputRef }) {
   const own = useRef(null);
   const ref = inputRef || own;
@@ -154,30 +117,7 @@ function PopupHead({ crumb, children }) {
   );
 }
 
-function PropRow({ icon: Icon, label, children }) {
-  return (
-    <div className="prop">
-      <span className="prop-label">
-        <Icon size={15} strokeWidth={1.8} />
-        {label}
-      </span>
-      <div className="prop-value">{children}</div>
-    </div>
-  );
-}
-
 const PriorityGlyph = () => <PriorityIcon level="neutral" size={15} />;
-
-function StrikeSwitch({ on, onToggle }) {
-  return (
-    <>
-      <button type="button" className={`switch switch-accent${on ? ' on' : ''}`} role="switch" aria-checked={Boolean(on)} aria-label="Strike off" onClick={onToggle}>
-        <span />
-      </button>
-      <span className="prop-note">{on ? 'Text is struck through; the task stays where it is' : ''}</span>
-    </>
-  );
-}
 
 /** Done / total over everything under a task: nested tasks and checklist items, all levels. */
 function countUnder(task, tasks) {
@@ -216,50 +156,79 @@ function ListHead({ label, done, total }) {
   );
 }
 
-/** A nested task (a full task of its own) as an editable line, with everything under it. */
-function NestedTaskLine({ task, depth }) {
-  const today = useToday();
-  const done = task.status === 'done';
-  const style = textStyleProps(task.textStyle, task.struck);
+/**
+ * The two-column block every popup shares. Left: the title in a box, then text
+ * color, weight and size. Right: status in a box, then priority, last day and
+ * strike-off. Tasks and checklist items feed it the same shape of props.
+ */
+function PopupGrid({
+  check, onCheck, done, title, placeholder, onTitle, titleRef,
+  textStyle, onTextStyle, struck, onStruck,
+  statusIcon, statusText, onStatus,
+  priority, onPriority,
+  dueText, dueTone, onDue,
+}) {
+  const style = textStyleProps(textStyle, struck);
+  const accent = style.style?.['--title-style-color'];
   return (
-    <>
+    <div className="task-grid">
       <div
-        className={`sub-row nested-task-row${done ? ' done' : ''}${task.struck ? ' struck' : ''}`}
-        style={depth ? { '--sub-depth': depth } : undefined}
+        className={`tg-cell tg-box${style.className ? ` ${style.className}` : ''}`}
+        style={accent ? { '--title-style-color': accent } : undefined}
       >
-        <Checkbox size="sm" state={task.status} onToggle={() => toggleComplete(task.id)} />
+        <Checkbox state={check} size="lg" onToggle={onCheck} />
         <RowTitle
-          className={style.className}
+          inputRef={titleRef}
+          className={`panel-title${done ? ' done' : ''} ${style.className}`}
           style={style.style}
-          value={task.title}
-          placeholder="Task"
-          onSave={(title) => updateTask(task.id, { title })}
+          value={title}
+          placeholder={placeholder}
+          onSave={onTitle}
         />
-        {task.dueDate
-          ? <DueChip value={task.dueDate} today={today} done={done} onChange={(dueDate) => updateTask(task.id, { dueDate })} />
-          : <DueButton value={null} onChange={(dueDate) => updateTask(task.id, { dueDate })} />}
-        <StrikeButton on={task.struck} onToggle={() => updateTask(task.id, { struck: !task.struck })} />
-        <TextStyleButton className="sub-style" value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} label="Style task text" />
-        <button type="button" className="icon-btn sm sub-del" aria-label="Delete task" onClick={() => requestDeleteTask(task.id)}>
-          <Trash2 size={13} />
+      </div>
+      <div className="tg-cell tg-flush">
+        <button type="button" className="tg-box tg-btn" aria-label="Status" onClick={onStatus}>
+          {statusIcon}
+          {statusText}
         </button>
       </div>
-      {task.subtasks.length > 0 && (
-        <div className="nested-checklist" style={{ '--nest': depth + 1 }}>
-          <SubtaskTree task={task} variant="panel" inPopup />
-        </div>
-      )}
-      <NestedTasks parent={task} depth={depth + 1} />
-    </>
+
+      <div className="tg-cell">
+        <TextStyleTool value={textStyle} onChange={onTextStyle} panel="color" />
+      </div>
+      <div className="tg-cell">
+        <button type="button" className={`tg-btn${priority ? '' : ' empty'}`} aria-label="Priority" onClick={onPriority}>
+          {priority ? <PriorityIcon level={priority} /> : <PriorityGlyph />}
+          {priority ? priorityLabel(priority) : 'Priority'}
+        </button>
+      </div>
+
+      <div className="tg-cell">
+        <TextStyleTool value={textStyle} onChange={onTextStyle} panel="style" />
+      </div>
+      <div className="tg-cell">
+        <button type="button" className={`tg-btn${dueText ? ` due-${dueTone}` : ' empty'}`} aria-label="Last day" onClick={onDue}>
+          <CalendarDays size={14} strokeWidth={1.9} />
+          {dueText || 'Last day'}
+        </button>
+      </div>
+
+      <div className="tg-cell">
+        <span className="tg-size-glyph text-style-size-glyph">A+</span>
+        <TextStyleTool value={textStyle} onChange={onTextStyle} panel="size" />
+      </div>
+      <div className="tg-cell">
+        <button type="button" className="tg-btn" role="switch" aria-checked={Boolean(struck)} onClick={onStruck}>
+          <Strikethrough size={14} strokeWidth={1.9} />
+          Strike off
+          <span className={`switch${struck ? ' on' : ''}`} aria-hidden="true"><span /></span>
+        </button>
+      </div>
+    </div>
   );
 }
 
-function NestedTasks({ parent, depth = 0 }) {
-  const kids = useChildTasks(parent.id);
-  return kids.map((kid) => <NestedTaskLine key={kid.id} task={kid} depth={depth} />);
-}
-
-/** Popup for a task: its details, notes, and every sub-task and nested task under it. */
+/** Popup for a task: title and style, status, priority, last day, notes and a count of what is under it. */
 export function TaskEditor({ task }) {
   const today = useToday();
   const project = useData((s) => (task.projectId ? s.projects.find((p) => p.id === task.projectId) : null));
@@ -273,216 +242,59 @@ export function TaskEditor({ task }) {
   const done = task.status === 'done';
   const planned = task.addedToToday;
   const due = task.dueDate ? dueLabel(task.dueDate, today) : null;
-  const style = textStyleProps(task.textStyle, task.struck);
   const under = countUnder(task, tasks);
   const menuAt = (e, items) => openMenu({ kind: 'menu', rect: rectOf(e.currentTarget), items });
-  // A task in a project (a major task, box or sub-task) keeps only what it needs: its project (a small dropdown),
-  // delete, title, notes and a sub-task count. Everything else is edited on the board.
-  const compact = Boolean(task.isHeading || task.projectId);
-
-  const crumbBody = (
-    <>
-      {project ? <ProjectDot color={project.color} /> : <Inbox size={13} strokeWidth={1.9} />}
-      <span>{project ? project.name : 'No project'}</span>
-    </>
-  );
+  const set = (patch) => updateTask(task.id, patch);
 
   return (
     <>
       <PopupHead
-        crumb={compact ? (
+        crumb={(
           <>
             <button type="button" className="prop-btn" aria-label="Change project" onClick={(e) => menuAt(e, projectItems(task))}>
-              {crumbBody}
+              {project ? <ProjectDot color={project.color} /> : <Inbox size={13} strokeWidth={1.9} />}
+              <span>{project ? project.name : 'No project'}</span>
               <ChevronDown size={13} />
             </button>
             {parent && <span className="preview-crumb-parent">› {parent.title}</span>}
           </>
-        ) : (
-          <>
-            {crumbBody}
-            {parent && <span className="preview-crumb-parent">› {parent.title}</span>}
-          </>
         )}
       >
-        {compact ? (
-          <>
-            <button
-              type="button"
-              className={`icon-btn sm${planned ? ' on-today' : ''}`}
-              aria-label={planned ? 'Remove from Today' : 'Add to Today'}
-              onClick={() => updateTask(task.id, { addedToToday: !planned })}
-            >
-              <Sun size={15} strokeWidth={1.9} />
-            </button>
-            <button type="button" className="icon-btn sm" aria-label="Delete task" onClick={() => requestDeleteTask(task.id)}>
-              <Trash2 size={15} />
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              className={`icon-btn sm${planned ? ' on-today' : ''}`}
-              aria-label={planned ? 'Remove from Today' : inToday(task, today) ? 'Last day today · pin to Today' : 'Add to Today'}
-              onClick={() => updateTask(task.id, { addedToToday: !planned })}
-            >
-              <Sun size={15} strokeWidth={1.9} />
-            </button>
-            <button
-              type="button"
-              className="icon-btn sm"
-              aria-label="More"
-              onClick={(e) => menuAt(e, [
-                { label: 'Duplicate', icon: Copy, shortcut: 'mod+D', onSelect: () => { const id = duplicateTask(task.id); if (id) selectTask(id, false); } },
-                { divider: true },
-                { label: 'Delete task', icon: Trash2, shortcut: 'Del', danger: true, onSelect: () => requestDeleteTask(task.id) },
-              ])}
-            >
-              <Ellipsis size={15} />
-            </button>
-          </>
-        )}
+        <button
+          type="button"
+          className={`icon-btn sm${planned ? ' on-today' : ''}`}
+          aria-label={planned ? 'Remove from Today' : 'Add to Today'}
+          onClick={() => set({ addedToToday: !planned })}
+        >
+          <Sun size={15} strokeWidth={1.9} />
+        </button>
+        <button type="button" className="icon-btn sm" aria-label="Delete task" onClick={() => requestDeleteTask(task.id)}>
+          <Trash2 size={15} />
+        </button>
       </PopupHead>
 
       <div className="preview-body">
-        {compact ? (
-          <div className="task-grid">
-            <div
-              className={`tg-cell tg-box${style.className ? ` ${style.className}` : ''}`}
-              style={style.style?.['--title-style-color'] ? { '--title-style-color': style.style['--title-style-color'] } : undefined}
-            >
-              <Checkbox state={task.status} size="lg" onToggle={() => toggleComplete(task.id)} />
-              <RowTitle
-                inputRef={titleRef}
-                className={`panel-title${done ? ' done' : ''} ${style.className}`}
-                style={style.style}
-                value={task.title}
-                placeholder="Task title"
-                onSave={(title) => updateTask(task.id, { title })}
-              />
-            </div>
-            <div className="tg-cell tg-flush">
-              <button type="button" className="tg-box tg-btn" aria-label="Status" onClick={(e) => menuAt(e, statusItems(task))}>
-                <StatusIcon status={task.status} />
-                {statusLabel(task.status)}
-              </button>
-            </div>
-
-            <div className="tg-cell">
-              <TextStyleTool value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} panel="color" />
-            </div>
-            <div className="tg-cell">
-              <button type="button" className={`tg-btn${task.priority ? '' : ' empty'}`} aria-label="Priority" onClick={(e) => menuAt(e, priorityItems(task))}>
-                {task.priority ? <PriorityIcon level={task.priority} /> : <PriorityGlyph />}
-                {task.priority ? priorityLabel(task.priority) : 'Priority'}
-              </button>
-            </div>
-
-            <div className="tg-cell">
-              <TextStyleTool value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} panel="style" />
-            </div>
-            <div className="tg-cell">
-              <button
-                type="button"
-                className={`tg-btn${task.dueDate ? ` due-${done ? 'normal' : due.tone}` : ' empty'}`}
-                aria-label="Last day"
-                onClick={(e) => openDatePicker(task, { rect: rectOf(e.currentTarget) })}
-              >
-                <CalendarDays size={14} strokeWidth={1.9} />
-                {task.dueDate ? dueLabelLong(task.dueDate, today) : 'Last day'}
-              </button>
-            </div>
-
-            <div className="tg-cell">
-              <span className="tg-size-glyph text-style-size-glyph">A+</span>
-              <TextStyleTool value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} panel="size" />
-            </div>
-            <div className="tg-cell">
-              <button
-                type="button"
-                className="tg-btn"
-                role="switch"
-                aria-checked={Boolean(task.struck)}
-                onClick={() => updateTask(task.id, { struck: !task.struck })}
-              >
-                <Strikethrough size={14} strokeWidth={1.9} />
-                Strike off
-                <span className={`switch${task.struck ? ' on' : ''}`} aria-hidden="true"><span /></span>
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="panel-title-row">
-            <Checkbox state={task.status} size="lg" onToggle={() => toggleComplete(task.id)} />
-            <TitleField
-              inputRef={titleRef}
-              className={`panel-title${done ? ' done' : ''} ${style.className}`}
-              style={style.style}
-              value={task.title}
-              placeholder="Task title"
-              onSave={(title) => updateTask(task.id, { title })}
-            />
-          </div>
-        )}
-
-        {!compact && (
-          <div className="props">
-            <div className="prop text-style-prop">
-              <TextStyleControls value={task.textStyle} onChange={(textStyle) => updateTask(task.id, { textStyle })} />
-            </div>
-            <PropRow icon={CircleDashed} label="Status">
-              <button type="button" className="prop-btn" onClick={(e) => menuAt(e, statusItems(task))}>
-                <StatusIcon status={task.status} />
-                {statusLabel(task.status)}
-              </button>
-            </PropRow>
-            <PropRow icon={FolderClosed} label="Project">
-              <button type="button" className="prop-btn" onClick={(e) => menuAt(e, projectItems(task))}>
-                {project ? <ProjectDot color={project.color} /> : <Inbox size={14} strokeWidth={1.9} />}
-                {project ? project.name : 'No project'}
-              </button>
-            </PropRow>
-            <PropRow icon={PriorityGlyph} label="Priority">
-              <button type="button" className={`prop-btn${task.priority ? '' : ' empty'}`} onClick={(e) => menuAt(e, priorityItems(task))}>
-                {task.priority && <PriorityIcon level={task.priority} />}
-                {task.priority ? priorityLabel(task.priority) : 'None'}
-              </button>
-            </PropRow>
-            <PropRow icon={CalendarDays} label="Last day">
-              <button
-                type="button"
-                className={`prop-btn${task.dueDate ? ` due-${done ? 'normal' : due.tone}` : ' empty'}`}
-                onClick={(e) => openDatePicker(task, { rect: rectOf(e.currentTarget) })}
-              >
-                {task.dueDate ? dueLabelLong(task.dueDate, today) : 'No date'}
-              </button>
-              {task.dueDate && (
-                <button type="button" className="icon-btn sm prop-clear" aria-label="Remove last day" onClick={() => updateTask(task.id, { dueDate: null })}>
-                  <X size={13} />
-                </button>
-              )}
-            </PropRow>
-            <PropRow icon={Sun} label="Today">
-              <button
-                type="button"
-                className={`switch${planned ? ' on' : ''}`}
-                role="switch"
-                aria-checked={planned}
-                aria-label="Planned for today"
-                onClick={() => updateTask(task.id, { addedToToday: !planned })}
-              >
-                <span />
-              </button>
-              <span className="prop-note">
-                {planned ? 'Planned for today' : task.dueDate && task.dueDate <= today && !done ? 'Shows in Today — its last day is here' : ''}
-              </span>
-            </PropRow>
-            <PropRow icon={CircleCheck} label="Strike off">
-              <StrikeSwitch on={task.struck} onToggle={() => updateTask(task.id, { struck: !task.struck })} />
-            </PropRow>
-          </div>
-        )}
+        <PopupGrid
+          check={task.status}
+          onCheck={() => toggleComplete(task.id)}
+          done={done}
+          title={task.title}
+          placeholder="Task title"
+          onTitle={(title) => set({ title })}
+          titleRef={titleRef}
+          textStyle={task.textStyle}
+          onTextStyle={(textStyle) => set({ textStyle })}
+          struck={task.struck}
+          onStruck={() => set({ struck: !task.struck })}
+          statusIcon={<StatusIcon status={task.status} />}
+          statusText={statusLabel(task.status)}
+          onStatus={(e) => menuAt(e, statusItems(task))}
+          priority={task.priority}
+          onPriority={(e) => menuAt(e, priorityItems(task))}
+          dueText={task.dueDate ? dueLabelLong(task.dueDate, today) : null}
+          dueTone={done ? 'normal' : due?.tone}
+          onDue={(e) => openDatePicker(task, { rect: rectOf(e.currentTarget) })}
+        />
 
         <section className="panel-section">
           <div className="section-label">Notes</div>
@@ -492,15 +304,12 @@ export function TaskEditor({ task }) {
             value={task.notes}
             placeholder="Add notes, references, ideas…"
             spellCheck
-            onChange={(e) => updateTask(task.id, { notes: e.target.value })}
+            onChange={(e) => set({ notes: e.target.value })}
           />
         </section>
 
         <section className="panel-section">
           <ListHead label="Sub-tasks" done={under.done} total={under.total} />
-          {/* The board already shows a project task's sub-tasks: the popup only counts them, so it stays small. */}
-          {!compact && <NestedTasks parent={task} />}
-          {!compact && task.subtasks.length > 0 && <SubtaskTree task={task} variant="panel" inPopup />}
           <AddLine placeholder="Add sub-task" onAdd={(title) => addSubtask(task.id, title)} />
         </section>
 
@@ -513,7 +322,7 @@ export function TaskEditor({ task }) {
                 className="completed-inline"
                 withTime={false}
                 value={task.completedAt}
-                onChange={(completedAt) => updateTask(task.id, { completedAt })}
+                onChange={(completedAt) => set({ completedAt })}
               />
             </>
           )}
@@ -523,7 +332,7 @@ export function TaskEditor({ task }) {
   );
 }
 
-/** Popup for one checklist item: its details and every item nested under it. */
+/** Popup for one checklist item: the same layout, and a count of the items nested under it. */
 export function ItemEditor({ task, item }) {
   const today = useToday();
   const titleRef = useRef(null);
@@ -532,19 +341,11 @@ export function ItemEditor({ task, item }) {
   const set = (patch) => updateSubtask(task.id, item.id, patch);
   const notesRef = useRef(null);
   useAutosize(notesRef, item.notes || '');
-  const priorityMenu = (e) => openMenu({
-    kind: 'menu',
-    rect: rectOf(e.currentTarget),
-    items: PRIORITIES.map((p) => ({
-      label: p.label,
-      icon: p.id ? <PriorityIcon level={p.id} /> : undefined,
-      checked: (item.priority || null) === p.id,
-      onSelect: () => set({ priority: p.id }),
-    })),
-  });
-  const style = textStyleProps(item.textStyle, item.struck);
+  const menuAt = (e, items) => openMenu({ kind: 'menu', rect: rectOf(e.currentTarget), items });
+  const state = item.done ? 'done' : 'todo';
   const due = item.dueDate ? dueLabel(item.dueDate, today) : null;
   const under = countItems(item.subtasks);
+  const setDone = (done) => set({ done, completedAt: done ? Date.now() : null });
 
   return (
     <>
@@ -562,59 +363,46 @@ export function ItemEditor({ task, item }) {
           aria-label={item.subtasks?.length ? 'Delete this item and everything under it' : 'Delete item'}
           onClick={() => removeSubtask(task.id, item.id)}
         >
-          <Trash2 size={14} />
+          <Trash2 size={15} />
         </button>
       </PopupHead>
 
       <div className="preview-body">
-        <div className="panel-title-row">
-          <Checkbox
-            state={item.done ? 'done' : 'todo'}
-            size="lg"
-            onToggle={() => set({ done: !item.done, completedAt: item.done ? null : Date.now() })}
-          />
-          <TitleField
-            inputRef={titleRef}
-            className={`panel-title${item.done ? ' done' : ''} ${style.className}`}
-            style={style.style}
-            value={item.title}
-            placeholder="Sub-task"
-            onSave={(title) => set({ title })}
-          />
-        </div>
-
-        <div className="props">
-          <div className="prop text-style-prop">
-            <TextStyleControls value={item.textStyle} onChange={(textStyle) => set({ textStyle })} />
-          </div>
-          <PropRow icon={CalendarDays} label="Last day">
-            <button
-              type="button"
-              className={`prop-btn${item.dueDate ? ` due-${item.done ? 'normal' : due.tone}` : ' empty'}`}
-              onClick={(e) => openMenu({
-                kind: 'popover',
-                rect: rectOf(e.currentTarget),
-                render: (close) => <DatePicker value={item.dueDate} onChange={(dueDate) => set({ dueDate })} onClose={close} />,
-              })}
-            >
-              {item.dueDate ? dueLabelLong(item.dueDate, today) : 'No date'}
-            </button>
-            {item.dueDate && (
-              <button type="button" className="icon-btn sm prop-clear" aria-label="Remove last day" onClick={() => set({ dueDate: null })}>
-                <X size={13} />
-              </button>
-            )}
-          </PropRow>
-          <PropRow icon={PriorityGlyph} label="Priority">
-            <button type="button" className={`prop-btn${item.priority ? '' : ' empty'}`} onClick={priorityMenu}>
-              {item.priority && <PriorityIcon level={item.priority} />}
-              {item.priority ? priorityLabel(item.priority) : 'None'}
-            </button>
-          </PropRow>
-          <PropRow icon={CircleCheck} label="Strike off">
-            <StrikeSwitch on={item.struck} onToggle={() => set({ struck: !item.struck })} />
-          </PropRow>
-        </div>
+        <PopupGrid
+          check={state}
+          onCheck={() => setDone(!item.done)}
+          done={item.done}
+          title={item.title}
+          placeholder="Sub-task"
+          onTitle={(title) => set({ title })}
+          titleRef={titleRef}
+          textStyle={item.textStyle}
+          onTextStyle={(textStyle) => set({ textStyle })}
+          struck={item.struck}
+          onStruck={() => set({ struck: !item.struck })}
+          statusIcon={<StatusIcon status={state} />}
+          statusText={statusLabel(state)}
+          onStatus={(e) => menuAt(e, ['todo', 'done'].map((id) => ({
+            label: statusLabel(id),
+            icon: <StatusIcon status={id} />,
+            checked: state === id,
+            onSelect: () => setDone(id === 'done'),
+          })))}
+          priority={item.priority || null}
+          onPriority={(e) => menuAt(e, PRIORITIES.map((p) => ({
+            label: p.label,
+            icon: p.id ? <PriorityIcon level={p.id} /> : undefined,
+            checked: (item.priority || null) === p.id,
+            onSelect: () => set({ priority: p.id }),
+          })))}
+          dueText={item.dueDate ? dueLabelLong(item.dueDate, today) : null}
+          dueTone={item.done ? 'normal' : due?.tone}
+          onDue={(e) => openMenu({
+            kind: 'popover',
+            rect: rectOf(e.currentTarget),
+            render: (close) => <DatePicker value={item.dueDate} onChange={(dueDate) => set({ dueDate })} onClose={close} />,
+          })}
+        />
 
         <section className="panel-section">
           <div className="section-label">Notes</div>
@@ -630,7 +418,6 @@ export function ItemEditor({ task, item }) {
 
         <section className="panel-section">
           <ListHead label="Nested" done={under.done} total={under.total} />
-          {item.subtasks.length > 0 && <SubtaskTree task={task} items={item.subtasks} variant="panel" inPopup />}
           <AddLine placeholder="Add nested item" onAdd={(title) => addNestedSubtask(task.id, item.id, title)} />
         </section>
 
