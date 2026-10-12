@@ -3764,3 +3764,55 @@ button.column-empty span {
   width: 14px;
   margin-right: -6px;
 }
+
+/* A major task's own sub-tasks (added before boxes existed) read as one teal box of coral rows. */
+.column-wide .column-checklist {
+  padding: 10px 12px 12px;
+  border: 1px solid color-mix(in srgb, var(--lv-box-line) 50%, transparent);
+  border-radius: 10px;
+  background: var(--lv-box-bg);
+  box-shadow: none;
+}
+.column-wide .column-checklist:hover {
+  border-color: var(--lv-box-line);
+}
+.column-wide .column-checklist .subtasks-board {
+  gap: 6px;
+}
+.column-wide .column-checklist .subtasks-board .sub-row {
+  min-height: 30px;
+  padding: 0 6px 0 8px;
+  border: 1px solid color-mix(in srgb, var(--lv-sub-line) 50%, transparent);
+  border-radius: 6px;
+  background: var(--lv-sub-bg);
+  color: var(--lv-sub-text);
+}
+.column-wide .column-checklist .subtasks-board .sub-row:hover {
+  border-color: var(--lv-sub-line);
+  background: var(--lv-sub-bg);
+}
+.column-wide .column-checklist .subtasks-board .sub-row input {
+  color: var(--lv-sub-text);
+  font-size: 12.5px;
+}
+.column-wide .column-checklist .subtasks-board .sub-row.done input {
+  color: var(--lv-sub-text);
+  opacity: 0.65;
+}
+.column-wide .column-checklist .subtasks-board .sub-row .due-button,
+.column-wide .column-checklist .subtasks-board .sub-row .strike-button,
+.column-wide .column-checklist .subtasks-board .sub-row .sub-style,
+.column-wide .column-checklist .subtasks-board .sub-row .sub-del {
+  display: none;
+  color: var(--lv-sub-text);
+}
+.column-wide .column-checklist .subtasks-board .sub-row:hover .due-button,
+.column-wide .column-checklist .subtasks-board .sub-row:hover .strike-button,
+.column-wide .column-checklist .subtasks-board .sub-row:hover .sub-style,
+.column-wide .column-checklist .subtasks-board .sub-row:hover .sub-del,
+.column-wide .column-checklist .subtasks-board .sub-row:focus-within .due-button,
+.column-wide .column-checklist .subtasks-board .sub-row:focus-within .strike-button,
+.column-wide .column-checklist .subtasks-board .sub-row:focus-within .sub-style,
+.column-wide .column-checklist .subtasks-board .sub-row:focus-within .sub-del {
+  display: inline-grid;
+}
