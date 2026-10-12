@@ -4501,3 +4501,17 @@ button.stats-deadline {
     display: inline-grid !important;
   }
 }
+
+/* The editor opens in the middle of the window over a light scrim, like the create popup. */
+.preview-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 59;
+  background: var(--scrim);
+}
+.preview {
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  max-height: calc(100vh - 48px);
+}
