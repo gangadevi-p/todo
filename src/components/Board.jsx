@@ -56,7 +56,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
               style={textStyleProps(task.textStyle, task.struck).style}
             >{task.title || 'Untitled'}</span>
           </span>
-          <TaskProgress task={task} kids={kids} />
+          {!box && <TaskProgress task={task} kids={kids} />}
           <TaskPriority task={task} />
         </span>
         {!selecting && (
