@@ -168,17 +168,13 @@ export function Board({ model }) {
               >{col.title}</span>
               {!col.heading && (col.count ?? col.tasks.length) > 0 && <span className="group-count">{col.count ?? col.tasks.length}</span>}
               {col.heading && (
-                // Adds a sub-task right inside this major task, ready to type. A separate
-                // box goes in with the page "+" or N.
+                // A new box inside this major task; its sub-tasks go in the box's own +.
                 <button
                   type="button"
                   className="column-major-add"
-                  aria-label={`Add a sub-task to ${col.title}`}
-                  title="Add a sub-task"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    addSubtaskTo(col.headingTask.id);
-                  }}
+                  aria-label={`Add a box to ${col.title}`}
+                  title="Add a box"
+                  onClick={() => openNewTask(boxDefaults(col.headingTask))}
                 >
                   <Plus size={14} strokeWidth={2.2} />
                 </button>
