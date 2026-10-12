@@ -13,6 +13,7 @@ import { textStyleProps } from '../lib/textStyle';
 import { TextStyleButton } from './TextStyle';
 import { DueButton, DueChip } from './DueButton';
 import { StrikeButton } from './StrikeButton';
+import { NotesLine } from './NotesLine';
 
 const Card = memo(function Card({ task, show, today, projectsById, checklistStatus, box = false }) {
   const dragging = useUI((u) => u.draggingId === task.id);
@@ -54,6 +55,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
             <span
               className={`task-title-text ${textStyleProps(task.textStyle, task.struck).className}`}
               style={textStyleProps(task.textStyle, task.struck).style}
+              onClick={selecting ? undefined : (e) => { e.stopPropagation(); selectTask(task.id, true); }}
             >{task.title || 'Untitled'}</span>
           </span>
           {!box && <TaskProgress task={task} kids={kids} />}
@@ -111,6 +113,7 @@ const Card = memo(function Card({ task, show, today, projectsById, checklistStat
           </span>
         )}
       </div>
+      {!selecting && <NotesLine notes={task.notes} onOpen={() => selectTask(task.id, true)} className="card-notes" />}
       {hasMeta ? (
         <div className="card-meta">
           <TaskMeta task={task} show={show} today={today} hidePriority hideDue />
@@ -182,6 +185,7 @@ export function Board({ model }) {
               <span
                 className={`group-title${col.heading && col.headingTask.status === 'done' ? ' done' : ''}${col.heading && col.headingTask.struck ? ' struck' : ''} ${textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).className}`}
                 style={textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).style}
+                onClick={col.heading ? () => selectTask(col.headingTask.id, true) : undefined}
               >{col.title}</span>
               {!col.heading && (col.count ?? col.tasks.length) > 0 && <span className="group-count">{col.count ?? col.tasks.length}</span>}
               {col.heading && (
@@ -237,6 +241,7 @@ export function Board({ model }) {
                 </button>
               )}
             </header>
+            {col.heading && <NotesLine notes={col.headingTask.notes} onOpen={() => selectTask(col.headingTask.id, true)} className="major-notes" />}
             <div className="column-body">
               {col.heading && <HeadingAddField task={col.headingTask} />}
               {withDropLine(col.tasks, draggingId, isTarget && col.sortable ? target.index : null, (t) => (

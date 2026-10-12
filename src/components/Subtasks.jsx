@@ -10,6 +10,7 @@ import { formatTimestamp } from '../lib/dates';
 import { useToday } from '../lib/useToday';
 import { CompletedDate, DueButton, DueChip } from './DueButton';
 import { StrikeButton } from './StrikeButton';
+import { NotesLine } from './NotesLine';
 
 /**
  * Focuses a subtask's title field once it's in the DOM — used right after creating one.
@@ -214,6 +215,14 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         </button>
       )}
       </div>
+      {!selecting && !inPopup && (
+        <NotesLine
+          notes={subtask.notes}
+          onOpen={() => openEditor(task.id, subtask.id)}
+          className="sub-note"
+          style={{ '--sub-depth': depth }}
+        />
+      )}
       {visibleItems(subtask.subtasks || [], completedOnly, todoOnly).map((child, childIndex) => (
         <SubtaskRow key={child.id} task={task} subtask={child} index={childIndex} focus={focus} depth={depth + 1} completedOnly={completedOnly} todoOnly={todoOnly} inPopup={inPopup} levelId={levelId} />
       ))}

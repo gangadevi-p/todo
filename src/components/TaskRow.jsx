@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { CalendarDays, GripVertical, Trash2 } from 'lucide-react';
-import { deleteTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
+import { deleteTask, selectTask, taskKey, toggleComplete, toggleSelected, updateTask, useChildTasks, useUI } from '../store';
 import { dueLabel, formatTimestamp } from '../lib/dates';
 import { endDrag, startTaskDrag } from '../lib/dnd';
 import { Checkbox, PriorityIcon } from './bits';
@@ -12,6 +12,7 @@ import { textStyleProps } from '../lib/textStyle';
 import { TextStyleButton } from './TextStyle';
 import { CompletedDate, DueButton, DueChip } from './DueButton';
 import { StrikeButton } from './StrikeButton';
+import { NotesLine } from './NotesLine';
 import { flattenChecklist } from '../lib/checklist';
 
 /** Checklist and child-task progress, kept beside the task title rather than right-aligned with other metadata. */
@@ -125,6 +126,7 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
             <span
               className={`task-title-text ${textStyleProps(task.textStyle, task.struck).className}`}
               style={textStyleProps(task.textStyle, task.struck).style}
+              onClick={selecting ? undefined : (e) => { e.stopPropagation(); selectTask(task.id, true); }}
             >{task.title || 'Untitled'}</span>
           </span>
           <TaskProgress task={task} kids={kids} />
@@ -160,6 +162,7 @@ export const TaskRow = memo(function TaskRow({ task, show, today, draggable, dep
           </button>
         )}
       </div>
+      {!selecting && <NotesLine notes={task.notes} onOpen={() => selectTask(task.id, true)} className="row-notes" />}
       <ChildTaskList
         task={task}
         kids={kids}

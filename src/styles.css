@@ -4515,3 +4515,65 @@ button.stats-deadline {
   height: fit-content;
   max-height: calc(100vh - 48px);
 }
+
+/* ==========================================================================
+   Notes are shown where they belong, under the title they were written for.
+   ========================================================================== */
+.notes-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.notes-line:hover {
+  background: var(--bg-hover);
+}
+.notes-line svg {
+  flex: none;
+  margin-top: 2px;
+  opacity: 0.7;
+}
+.major-notes {
+  width: 100%;
+  max-width: var(--box-w);
+  margin: 4px auto 12px;
+}
+.page-board.page-wide .major-notes {
+  max-width: none;
+}
+.card-notes {
+  margin: 6px 0 0 24px;
+}
+.card.box .card-notes {
+  color: var(--lv-box-text);
+}
+.card.box .card-notes:hover {
+  background: color-mix(in srgb, var(--lv-box-line) 14%, transparent);
+}
+.row-notes {
+  margin: -2px 0 6px 40px;
+}
+.sub-note {
+  margin: 0 0 6px calc(40px + var(--sub-depth, 0) * 20px);
+}
+.card.box .sub-note,
+.column-wide .column-checklist .sub-note {
+  margin-left: calc(50px + var(--sub-depth, 0) * 20px);
+  margin-top: -2px;
+  color: var(--lv-box-text);
+}
+.card.box .sub-note:hover,
+.column-wide .column-checklist .sub-note:hover {
+  background: color-mix(in srgb, var(--lv-box-line) 14%, transparent);
+}
+.task-title-text,
+.column-head .group-title {
+  cursor: pointer;
+}
