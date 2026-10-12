@@ -4832,23 +4832,16 @@ button.stats-deadline {
 }
 
 /* ==========================================================================
-   Filter chips have no fill. Which one is picked still shows at a glance: the
-   picked chip has a thick coloured outline and full-strength text; the others
-   a thin faint outline and muted text. This covers the todo / done pair in the
-   overview and the major-task chips under it.
+   Filter chips: only the picked chip is filled. Every other chip is an
+   unfilled outline with muted text, hovered or not. This covers the todo /
+   done pair in the overview and the major-task chips under it.
    ========================================================================== */
 .stats-chip,
 .stats-chip:hover,
-.stats-chip.on,
-.stats-chip.on:hover,
 .chip-done,
 .chip-done:hover,
-.chip-done.on,
-.chip-done.on:hover,
 .major-chip,
 .major-chip:hover,
-.major-chip.on,
-.major-chip.on:hover,
 .major-chip-add {
   background: transparent;
 }
@@ -4861,15 +4854,8 @@ button.stats-deadline {
   color: var(--text);
   box-shadow: 0 0 0 1px var(--text-3) inset;
 }
-.stats-chip.on,
-.stats-chip.on:hover {
-  color: var(--text);
-  box-shadow: 0 0 0 2px var(--text) inset;
-}
 .chip-done,
-.chip-done:hover,
-.chip-done.on,
-.chip-done.on:hover {
+.chip-done:hover {
   color: var(--done);
 }
 .chip-done {
@@ -4878,11 +4864,6 @@ button.stats-deadline {
 .chip-done:hover {
   box-shadow: 0 0 0 1px var(--done) inset;
 }
-.chip-done.on,
-.chip-done.on:hover {
-  box-shadow: 0 0 0 2px var(--done) inset;
-}
-
 .major-chip {
   color: var(--text-2);
   box-shadow: 0 0 0 1px var(--border-strong) inset;
@@ -4891,10 +4872,31 @@ button.stats-deadline {
   color: var(--text);
   box-shadow: 0 0 0 1px var(--text-3) inset;
 }
+
+/* The picked chip: a solid pill, no outline. */
+.stats-chip.on,
+.stats-chip.on:hover {
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  box-shadow: none;
+}
+.chip-done.on,
+.chip-done.on:hover {
+  background: var(--done);
+  color: var(--bg);
+}
+.stats-chip.on i {
+  background: currentColor;
+}
 .major-chip.on,
 .major-chip.on:hover {
-  color: var(--lv-major-text);
-  box-shadow: 0 0 0 2px var(--lv-major-line) inset;
+  background: var(--lv-major-line);
+  color: var(--bg);
+  box-shadow: none;
+}
+.major-chip.on .project-dot,
+.major-chip.on i {
+  box-shadow: 0 0 0 1.5px var(--bg);
 }
 .major-chip.on.done .major-chip-title {
   opacity: 0.9;
