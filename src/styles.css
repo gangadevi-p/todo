@@ -4165,3 +4165,8 @@ button.stats-deadline {
 .page-head > .page-sub {
   flex: 1 1 100%;
 }
+
+/* The major-task chips start at the left edge of the column. */
+.major-filter {
+  justify-content: flex-start;
+}
