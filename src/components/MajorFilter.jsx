@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Plus } from 'lucide-react';
 import { setMajorFilter } from '../store';
 import { textStyleProps } from '../lib/textStyle';
@@ -6,13 +7,28 @@ import { ProjectDot } from './bits';
 /**
  * A project's major tasks as chips under the overview; only the picked one
  * (the first by default) is shown below. The "+" at the end adds a major task
- * and is there even when the project has none yet.
+ * and is there even when the project has none yet. Where the chips span every
+ * project (All Tasks) they stay in one row that scrolls sideways.
  */
 export function MajorFilter({ majors, active, onAdd, projectsById = null }) {
+  const rowRef = useRef(null);
+  const scrolls = Boolean(projectsById);
+
+  // Keep the picked chip in view when the row scrolls.
+  useEffect(() => {
+    const row = rowRef.current;
+    const chip = row?.querySelector('.major-chip.on');
+    if (!scrolls || !row || !chip) return;
+    const r = row.getBoundingClientRect();
+    const c = chip.getBoundingClientRect();
+    if (c.left < r.left) row.scrollLeft -= r.left - c.left;
+    else if (c.right > r.right) row.scrollLeft += c.right - r.right;
+  }, [active, scrolls, majors]);
+
   if (!majors) return null;
   const empty = majors.length === 0;
   return (
-    <div className={`major-filter${projectsById ? ' major-filter-rows' : ''}`} role="tablist" aria-label="Major tasks">
+    <div ref={rowRef} className={`major-filter${scrolls ? ' major-filter-scroll' : ''}`} role="tablist" aria-label="Major tasks">
       {majors.map((task) => {
         const { color } = textStyleProps(task.textStyle).style || {};
         return (

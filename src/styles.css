@@ -4757,32 +4757,28 @@ button.stats-deadline {
 }
 
 /* ==========================================================================
-   All Tasks lists every task, so its chips stack as aligned rows (one task per
-   row, project dot first) instead of a ragged wrap of pills.
+   All Tasks lists every task, so its chips make one row, left to right, that
+   scrolls sideways when it runs past the page, instead of wrapping unevenly.
    ========================================================================== */
-.major-filter.major-filter-rows {
-  flex-direction: column;
+.major-filter.major-filter-scroll {
   flex-wrap: nowrap;
   align-items: stretch;
-  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-top: -8px;
+  margin-bottom: 12px;
+  padding: 2px 0 8px;
+  scrollbar-width: thin;
 }
-.major-filter-rows .major-chip {
-  width: 100%;
-  justify-content: flex-start;
-  gap: 10px;
-  padding-left: 12px;
-  padding-right: 12px;
-  border-radius: 8px;
+.major-filter-scroll .major-chip {
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 240px;
 }
-.major-filter-rows .major-chip .project-dot,
-.major-filter-rows .major-chip i {
-  flex: none;
+.major-filter-scroll .major-chip-add {
+  width: 28px;
+  align-self: center;
 }
-.major-filter-rows .major-chip-title {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-.major-filter-rows .major-chip-add {
-  width: 100%;
-  border-radius: 8px;
+.major-filter-scroll .major-chip-add.empty {
+  width: auto;
 }
