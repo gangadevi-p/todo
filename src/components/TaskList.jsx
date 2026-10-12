@@ -1,6 +1,7 @@
 import { Fragment, useMemo } from 'react';
-import { ChevronRight, Inbox, Plus } from 'lucide-react';
-import { openNewTask, toggleCollapsed, useData, useUI } from '../store';
+import { CalendarDays, ChevronRight, Inbox, Plus } from 'lucide-react';
+import { openNewTask, rescheduleTasks, toggleCollapsed, useData, useUI } from '../store';
+import { openDatePicker } from './DueButton';
 import { useTaskDrop } from '../lib/dnd';
 import { useToday } from '../lib/useToday';
 import { ProjectDot, StatusIcon } from './bits';
@@ -59,6 +60,20 @@ export function TaskList({ model }) {
                 {g.icon === 'inbox' && <Inbox size={14} strokeWidth={1.9} className="group-icon" />}
                 <span className="group-title">{g.title}</span>
                 {g.sub && <span className="group-sub">{g.sub}</span>}
+                {g.dateKey && g.tasks.length > 0 && (
+                  <button
+                    type="button"
+                    className="icon-btn sm group-date"
+                    aria-label="Move this day's tasks to another date"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const ids = g.tasks.map((t) => t.id);
+                      openDatePicker(e.currentTarget, g.dateKey, (key) => key && rescheduleTasks(ids, key), { allowClear: false });
+                    }}
+                  >
+                    <CalendarDays size={14} strokeWidth={1.9} />
+                  </button>
+                )}
                 <span className="group-count">{g.tasks.length + checklistParents.length}</span>
                 {g.add && (
                   <button

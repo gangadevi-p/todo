@@ -10,7 +10,7 @@ import { rectOf } from './MenuLayer';
 import { SubtaskTree } from './Subtasks';
 import { textStyleProps } from '../lib/textStyle';
 import { TextStyleButton } from './TextStyle';
-import { DueButton, DueChip } from './DueButton';
+import { CompletedDate, DueButton, DueChip } from './DueButton';
 import { StrikeButton } from './StrikeButton';
 import { flattenChecklist } from '../lib/checklist';
 
@@ -48,10 +48,7 @@ export function TaskMeta({ task, show, today, hidePriority = false, hideDue = fa
       )}
       {due && <DueChip value={task.dueDate} today={today} done={!open} onChange={selecting ? undefined : (dueDate) => updateTask(task.id, { dueDate })} />}
       {show.completed && task.completedAt && (
-        <span className="meta meta-completed">
-          <CalendarDays size={12} strokeWidth={1.9} />
-          {formatTimestamp(task.completedAt, true)}
-        </span>
+        <CompletedDate value={task.completedAt} onChange={selecting ? undefined : (completedAt) => updateTask(task.id, { completedAt })} />
       )}
     </>
   );

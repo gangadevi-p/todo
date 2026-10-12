@@ -3870,3 +3870,64 @@ button.column-empty span {
 .board:not(.board-lanes) {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), var(--box-w)));
 }
+
+/* ==========================================================================
+   Dates are editable everywhere: each one is a button that opens the calendar.
+   ========================================================================== */
+.completed-date,
+button.stats-deadline {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+.completed-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border-radius: 4px;
+  color: inherit;
+}
+.completed-date:hover,
+button.stats-deadline:hover {
+  background: var(--bg-hover);
+}
+button.stats-deadline {
+  padding: 4px 8px 4px 16px;
+  border-radius: 6px;
+}
+.completed-inline {
+  display: inline-flex;
+  vertical-align: baseline;
+}
+.group-date {
+  color: var(--text-3);
+}
+
+/* Touch screens have no hover, so a date's calendar is always in reach. */
+@media (hover: none) {
+  .due-button,
+  .strike-button,
+  .row-delete,
+  .row-style,
+  .card-actions,
+  .card-meta,
+  .sub-del,
+  .sub-style,
+  .sub-add-left,
+  .child-add-button {
+    opacity: 1 !important;
+  }
+  .card.box .subtasks-card .sub-row .due-button,
+  .card.box .subtasks-card .sub-row .strike-button,
+  .card.box .subtasks-card .sub-row .sub-style,
+  .card.box .subtasks-card .sub-row .sub-del,
+  .column-wide .column-checklist .subtasks-board .sub-row .due-button,
+  .column-wide .column-checklist .subtasks-board .sub-row .strike-button,
+  .column-wide .column-checklist .subtasks-board .sub-row .sub-style,
+  .column-wide .column-checklist .subtasks-board .sub-row .sub-del {
+    display: inline-grid !important;
+  }
+}

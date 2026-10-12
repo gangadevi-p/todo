@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { CalendarArrowUp, ChevronLeft, ChevronRight, Sun, Sunrise, X } from 'lucide-react';
 import { MONTHS, WEEKDAYS_SHORT, addDays, fromKey, nextWeekday, shortDate, toKey, todayKey } from '../lib/dates';
 
-export function DatePicker({ value, onChange, onClose }) {
+export function DatePicker({ value, onChange, onClose, quick: showQuick = true, allowClear = true }) {
   const today = todayKey();
   const [month, setMonth] = useState(() => {
     const d = fromKey(value || today);
@@ -37,7 +37,7 @@ export function DatePicker({ value, onChange, onClose }) {
 
   return (
     <div className="datepicker">
-      <div className="dp-quick">
+      {showQuick && <div className="dp-quick">
         {quick.map((q) => (
           <button key={q.label} type="button" className={`menu-item${value === q.key ? ' selected' : ''}`} onClick={() => pick(q.key)}>
             <span className="menu-icon"><q.icon size={15} strokeWidth={1.8} /></span>
@@ -45,8 +45,8 @@ export function DatePicker({ value, onChange, onClose }) {
             <span className="menu-hint">{q.hint}</span>
           </button>
         ))}
-      </div>
-      <div className="menu-sep" />
+      </div>}
+      {showQuick && <div className="menu-sep" />}
       <div className="dp-head">
         <span className="dp-month">{MONTHS[month.getMonth()]} {month.getFullYear()}</span>
         <button type="button" className="icon-btn sm" onClick={() => shift(-1)} aria-label="Previous month"><ChevronLeft size={15} /></button>
@@ -72,7 +72,7 @@ export function DatePicker({ value, onChange, onClose }) {
           );
         })}
       </div>
-      {value && (
+      {value && allowClear && (
         <>
           <div className="menu-sep" />
           <button type="button" className="menu-item" onClick={() => pick(null)}>

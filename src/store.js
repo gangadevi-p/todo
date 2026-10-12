@@ -325,6 +325,18 @@ export function toggleComplete(id) {
   updateTask(id, { status: 'done' });
 }
 
+/** Moves every given task to another last day, in one undoable step. */
+export function rescheduleTasks(ids, dueDate) {
+  const set = new Set(ids);
+  const before = new Map(data.get().tasks.filter((t) => set.has(t.id)).map((t) => [t.id, t.dueDate]));
+  if (!before.size) return;
+  commit((s) => ({ ...s, tasks: s.tasks.map((t) => (set.has(t.id) ? { ...t, dueDate } : t)) }));
+  rememberUndo(() => commit((s) => ({
+    ...s,
+    tasks: s.tasks.map((t) => (before.has(t.id) ? { ...t, dueDate: before.get(t.id) } : t)),
+  })));
+}
+
 export function toggleToday(id) {
   const task = findTask(id);
   if (task) updateTask(id, { addedToToday: !task.addedToToday });

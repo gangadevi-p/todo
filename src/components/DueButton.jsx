@@ -1,19 +1,24 @@
 import { CalendarDays } from 'lucide-react';
 import { openMenu } from '../store';
-import { dueLabel } from '../lib/dates';
+import { dueLabel, formatTimestamp, fromKey, toKey } from '../lib/dates';
 import { DatePicker } from './DatePicker';
 import { rectOf } from './MenuLayer';
 
-// Clicking the calendar (or a date) opens the calendar; it stays until you pick or click elsewhere.
+/** Opens the calendar under `el`; it stays until you pick or click elsewhere. */
+export function openDatePicker(el, value, onChange, options = {}) {
+  openMenu({
+    kind: 'popover',
+    rect: rectOf(el),
+    render: (close) => <DatePicker value={value} onChange={onChange} onClose={close} {...options} />,
+  });
+}
+
+// Clicking the calendar (or a date) opens the calendar.
 function pickerProps(value, onChange) {
   return {
     onClick: (e) => {
       e.stopPropagation();
-      openMenu({
-        kind: 'popover',
-        rect: rectOf(e.currentTarget),
-        render: (close) => <DatePicker value={value} onChange={onChange} onClose={close} />,
-      });
+      openDatePicker(e.currentTarget, value, onChange);
     },
   };
 }
@@ -48,6 +53,40 @@ export function DueChip({ value, today, done = false, onChange }) {
   if (!onChange) return <span className={className}>{content}</span>;
   return (
     <button type="button" className={className} aria-label={`Last day ${due.text}. Change`} {...pickerProps(value, onChange)}>
+      {content}
+    </button>
+  );
+}
+
+/**
+ * The day something was completed. Click it to move it to another day; the
+ * time of day stays. Without `onChange` (bulk-select mode) it is plain text.
+ */
+export function CompletedDate({ value, onChange, withTime = true, className = 'meta meta-completed' }) {
+  const label = formatTimestamp(value, withTime);
+  const content = (
+    <>
+      <CalendarDays size={12} strokeWidth={1.9} />
+      {label}
+    </>
+  );
+  if (!onChange) return <span className={className}>{content}</span>;
+  return (
+    <button
+      type="button"
+      className={`${className} completed-date`}
+      aria-label={`Completed ${label}. Change`}
+      onClick={(e) => {
+        e.stopPropagation();
+        openDatePicker(e.currentTarget, toKey(new Date(value)), (key) => {
+          if (!key) return;
+          const old = new Date(value);
+          const next = fromKey(key);
+          next.setHours(old.getHours(), old.getMinutes(), old.getSeconds(), old.getMilliseconds());
+          onChange(next.getTime());
+        }, { quick: false, allowClear: false });
+      }}
+    >
       {content}
     </button>
   );

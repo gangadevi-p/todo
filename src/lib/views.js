@@ -89,7 +89,7 @@ function progressStats(scope, statusOf, today) {
     avgProgress: total
       ? (scope.filter((t) => statusOf(t) === 'done').length + checklist.filter((st) => st.done).length) / total
       : 0,
-    deadline: nearestDue ? { date: nearestDue.dueDate, days, label, priority: averagePriority } : null,
+    deadline: nearestDue ? { date: nearestDue.dueDate, days, label, priority: averagePriority, taskId: nearestDue.id } : null,
   };
 }
 
@@ -259,6 +259,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
           const h = upcomingHeading(date, today);
           return {
             id: date,
+            dateKey: date,
             title: h.title,
             sub: h.sub,
             tasks: list.filter((t) => t.dueDate === date).sort(byOrder),

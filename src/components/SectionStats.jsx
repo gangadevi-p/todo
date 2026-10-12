@@ -1,6 +1,7 @@
 import { CalendarDays } from 'lucide-react';
-import { setStatsFilter, useUI } from '../store';
+import { setStatsFilter, updateTask, useUI } from '../store';
 import { PriorityIcon } from './bits';
+import { openDatePicker } from './DueButton';
 
 /** A small "how much is done" overview shown at the top of every section. */
 export function SectionStats({ stats }) {
@@ -49,8 +50,11 @@ export function SectionStats({ stats }) {
         </div>
       </div>
       {deadline && (
-        <div
+        <button
+          type="button"
           className={`stats-deadline${deadline.days < 0 ? ' overdue' : ''}`}
+          aria-label={`${deadline.label}. Change the date`}
+          onClick={(e) => openDatePicker(e.currentTarget, deadline.date, (dueDate) => updateTask(deadline.taskId, { dueDate }))}
         >
           {deadline.priority && (
             <span className="stats-deadline-priority">
@@ -59,7 +63,7 @@ export function SectionStats({ stats }) {
           )}
           <CalendarDays size={13} strokeWidth={2} />
           <span>{deadline.label}</span>
-        </div>
+        </button>
       )}
     </div>
   );

@@ -16,7 +16,7 @@ import { rectOf } from './MenuLayer';
 import { SubtaskTree } from './Subtasks';
 import { openDatePicker, priorityItems, projectItems, statusItems } from './taskMenu';
 import { TextStyleButton, TextStyleControls } from './TextStyle';
-import { DueButton, DueChip } from './DueButton';
+import { CompletedDate, DueButton, DueChip } from './DueButton';
 import { StrikeButton } from './StrikeButton';
 import { DatePicker } from './DatePicker';
 
@@ -399,7 +399,17 @@ export function TaskEditor({ task }) {
 
         <div className="panel-foot">
           Created {formatTimestamp(task.createdAt)}
-          {task.completedAt ? ` · Completed ${formatTimestamp(task.completedAt)}` : ''}
+          {task.completedAt && (
+            <>
+              {' · Completed '}
+              <CompletedDate
+                className="completed-inline"
+                withTime={false}
+                value={task.completedAt}
+                onChange={(completedAt) => updateTask(task.id, { completedAt })}
+              />
+            </>
+          )}
         </div>
       </div>
     </>
@@ -487,7 +497,12 @@ export function ItemEditor({ task, item }) {
           <AddLine placeholder="Add nested item" onAdd={(title) => addNestedSubtask(task.id, item.id, title)} />
         </section>
 
-        {item.completedAt && <div className="panel-foot">Completed {formatTimestamp(item.completedAt)}</div>}
+        {item.completedAt && (
+          <div className="panel-foot">
+            Completed{' '}
+            <CompletedDate className="completed-inline" withTime={false} value={item.completedAt} onChange={(completedAt) => set({ completedAt })} />
+          </div>
+        )}
       </div>
     </>
   );

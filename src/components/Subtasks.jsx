@@ -8,7 +8,7 @@ import { TextStyleButton } from './TextStyle';
 import { textStyleProps } from '../lib/textStyle';
 import { formatTimestamp } from '../lib/dates';
 import { useToday } from '../lib/useToday';
-import { DueButton, DueChip } from './DueButton';
+import { CompletedDate, DueButton, DueChip } from './DueButton';
 import { StrikeButton } from './StrikeButton';
 
 /**
@@ -104,7 +104,11 @@ function SubtaskRow({ task, subtask, index, focus, depth = 0, completedOnly = fa
         }))}
       />
       {completedOnly && subtask.done && subtask.completedAt && (
-        <span className="sub-completed-at">{formatTimestamp(subtask.completedAt, true)}</span>
+        <CompletedDate
+          className="sub-completed-at"
+          value={subtask.completedAt}
+          onChange={selecting ? undefined : (completedAt) => updateSubtask(task.id, subtask.id, { completedAt })}
+        />
       )}
       <input
         data-subtask-input={subtask.id}
