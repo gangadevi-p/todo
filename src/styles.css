@@ -4907,3 +4907,17 @@ button.stats-deadline {
 .major-filter {
   gap: 18px;
 }
+
+/* ==========================================================================
+   The overview (percentage, todo / done, deadline) sits in the title row,
+   right after the project's title, instead of on a row of its own.
+   ========================================================================== */
+.page-head > .page-title-line {
+  flex: 0 1 auto;
+}
+.page-head > .stats-panel {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}

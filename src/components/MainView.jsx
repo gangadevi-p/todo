@@ -189,6 +189,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
                 <Plus size={17} strokeWidth={2.2} />
               </button>}
             </div>
+            <SectionStats stats={model.stats} />
             {pageActions && <div className="page-head-actions no-drag">{pageActions}</div>}
             {model.subtitle && (
               <p className="page-sub">
@@ -202,7 +203,6 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
               <span>It starts empty. Anything added here stays only in this browser.</span>
             </div>
           )}
-          <SectionStats stats={model.stats} />
           {!isTrash && (
             <MajorFilter
               majors={projectBoard ? chipModel.majorTasks : null}
