@@ -4902,8 +4902,8 @@ button.stats-deadline {
   opacity: 0.9;
 }
 
-/* Filter chips sit 24px apart: the todo / done pair and the major-task chips, side by side and between rows. */
+/* Filter chips sit 18px apart: the todo / done pair and the major-task chips, side by side and between rows. */
 .stats-breakdown,
 .major-filter {
-  gap: 24px;
+  gap: 18px;
 }
