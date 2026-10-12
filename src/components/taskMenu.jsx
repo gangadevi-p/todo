@@ -41,7 +41,7 @@ export function priorityItems(task) {
 export function projectItems(task) {
   const projects = [...data.get().projects].sort((a, b) => a.order - b.order);
   return [
-    { label: 'Inbox', icon: Inbox, checked: !task.projectId, onSelect: () => updateTask(task.id, { projectId: null }) },
+    { label: 'No project', icon: Inbox, checked: !task.projectId, onSelect: () => updateTask(task.id, { projectId: null }) },
     ...(projects.length ? [{ divider: true }] : []),
     ...projects.map((p) => ({
       label: p.name,

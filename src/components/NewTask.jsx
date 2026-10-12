@@ -88,7 +88,7 @@ export function NewTaskForm({ defaults }) {
       kind: 'menu',
       rect: rectOf(e.currentTarget),
       items: [
-        { label: 'Inbox', icon: Inbox, checked: !projectId, onSelect: () => setProjectId(null) },
+        { label: 'No project', icon: Inbox, checked: !projectId, onSelect: () => setProjectId(null) },
         ...(projects.length ? [{ divider: true }] : []),
         ...[...projects].sort((a, b) => a.order - b.order).map((p) => ({
           label: p.name,
@@ -150,7 +150,7 @@ export function NewTaskForm({ defaults }) {
         {duplicate && (
           <div className="pp-warn">
             <TriangleAlert size={13} strokeWidth={2} />
-            A task named “{duplicate.title}” already exists in {project ? project.name : 'Inbox'}.
+            A task named “{duplicate.title}” already exists in {project ? project.name : 'No project'}.
           </div>
         )}
       </Field>
@@ -275,7 +275,7 @@ export function NewTaskForm({ defaults }) {
         <Field f={F.project}>
           <button type="button" className="pill pill-select" onClick={pickProject}>
             {project ? <ProjectDot color={project.color} /> : <Inbox size={13} strokeWidth={1.9} />}
-            {project ? project.name : 'Inbox'}
+            {project ? project.name : 'No project'}
             <ChevronDown size={13} className="pill-chev" />
           </button>
         </Field>

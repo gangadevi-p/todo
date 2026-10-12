@@ -17,7 +17,6 @@ import { Kbd, ProjectDot, ProjectRing } from './bits';
 import { rectOf } from './MenuLayer';
 
 const NAV = [
-  { id: 'inbox', label: 'Inbox', icon: Inbox, drop: (t) => ({ projectId: null }) },
   { id: 'today', label: 'Today', icon: Sun, drop: () => ({ addedToToday: true }) },
   { id: 'upcoming', label: 'Upcoming', icon: CalendarDays },
   { id: 'all', label: 'All Tasks', icon: Layers },
@@ -113,8 +112,8 @@ function ProjectItem({ project, active, count, progress, editing, onReorderTarge
         askConfirm({
           title: `Delete “${project.name}”?`,
           body: count
-            ? `Its ${plural(count, 'open task')} and any completed tasks will move to Inbox.`
-            : 'The project will be removed. Any completed tasks move to Inbox.',
+            ? `Its ${plural(count, 'open task')} and any completed tasks will have no project.`
+            : 'The project will be removed. Any completed tasks will have no project.',
           confirmLabel: 'Delete project',
           onConfirm: () => deleteProject(project.id),
         }),
@@ -212,15 +211,13 @@ export function Sidebar({ view, isMobile = false }) {
 
   const sorted = useMemo(() => [...projects].sort((a, b) => a.order - b.order), [projects]);
   const counts = useMemo(() => {
-    const c = { inbox: 0, today: 0, projects: {} };
+    const c = { today: 0, projects: {} };
     for (const t of tasks) {
       if (t.projectId) {
         const p = (c.projects[t.projectId] ??= { open: 0, total: 0, progress: 0 });
         p.total += 1;
         p.progress += taskProgress(t, (x) => x.status);
         if (t.status !== 'done') p.open += 1;
-      } else if (t.status !== 'done') {
-        c.inbox += 1;
       }
       if (t.status !== 'done' && inToday(t, today)) c.today += 1;
     }
@@ -285,7 +282,7 @@ export function Sidebar({ view, isMobile = false }) {
               key={item.id}
               item={item}
               active={view === item.id}
-              count={item.id === 'inbox' ? counts.inbox : item.id === 'today' ? counts.today : item.id === 'trash' ? trash.length : 0}
+              count={item.id === 'today' ? counts.today : item.id === 'trash' ? trash.length : 0}
             />
           ))}
         </div>

@@ -7,7 +7,7 @@ const byCompletedDesc = (a, b) => (b.completedAt || 0) - (a.completedAt || 0);
 
 export const inToday = (t, today) => t.addedToToday || (!!t.dueDate && t.dueDate <= today);
 
-export const NAV_VIEWS = ['inbox', 'today', 'upcoming', 'all', 'completed', 'trash'];
+export const NAV_VIEWS = ['today', 'upcoming', 'all', 'completed', 'trash'];
 
 /** Status columns for Board view, built from any flat task list. */
 function statusBoardGroups(list, statusOf, addDefaults) {
@@ -183,30 +183,6 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
   };
 
   switch (model.kind) {
-    case 'inbox': {
-      const scope = tasks.filter((t) => !t.projectId);
-      const list = scope.filter(isOpen).sort(byOrder);
-      model.title = 'Inbox';
-      model.subtitle = list.length ? plural(list.length, 'task') : 'Quick captures without a project';
-      model.show.project = false;
-      model.emptyText = 'Inbox is clear. Capture anything with the quick-add shortcut and organise it later.';
-      model.deleteScope = 'Inbox';
-      model.mode = sectionMode;
-      model.stats = progressStats(scope, statusOf, today);
-      if (sectionMode === 'board') {
-        const majors = majorHeadings(scope, allTasks);
-        if (majors.length > 0) {
-          model.groups = headingBoardGroups(majors, allTasks, { projectId: null });
-          model.taskIdsOverride = scope.map((t) => t.id);
-        } else {
-          model.groups = statusBoardGroups(scope, statusOf, { projectId: null });
-        }
-        model.total = list.length;
-      } else {
-        mainAndDone(list, scope.filter((t) => statusOf(t) === 'done').sort(byCompletedDesc), () => ({ projectId: null }), scope);
-      }
-      break;
-    }
     case 'today': {
       const scope = tasks.filter((t) => inToday(t, today));
       const list = scope.filter(isOpen).sort(byOrder);
@@ -277,12 +253,12 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
       break;
     }
     case 'all': {
-      const buckets = [{ id: 'inbox', title: 'Inbox', projectId: null, icon: 'inbox' }].concat(
+      const buckets = [{ id: 'inbox', title: 'No project', projectId: null, icon: 'inbox' }].concat(
         [...projects].sort(byOrder).map((p) => ({ id: p.id, title: p.name, projectId: p.id, color: p.color })));
       model.title = 'All Tasks';
       model.subtitle = plural(tasks.length, 'task');
       model.show.project = false;
-      model.emptyText = 'No tasks yet. Add one to Inbox or a project.';
+      model.emptyText = 'No tasks yet. Add one to a project.';
       model.deleteScope = 'All Tasks';
       model.mode = sectionMode;
       model.stats = progressStats(tasks, statusOf, today);
@@ -335,7 +311,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], today
     case 'project': {
       const pid = viewId.slice('project:'.length);
       const project = projects.find((p) => p.id === pid);
-      if (!project) return buildView('inbox', { tasks, projects, today, lingering, prefs });
+      if (!project) return buildView('today', { tasks, projects, today, lingering, prefs });
       const own = tasks.filter((t) => t.projectId === pid);
       const mode = prefs.projectModes?.[pid] === 'board' ? 'board' : 'list';
       const pick = (s) => own.filter((t) => statusOf(t) === s);

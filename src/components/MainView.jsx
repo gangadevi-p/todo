@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, CalendarDays, CheckSquare, CircleCheck, Columns3, Inbox, Layers, List, PanelLeftOpen, Plus, Sun, Trash2, X } from 'lucide-react';
+import { Check, CalendarDays, CheckSquare, CircleCheck, Columns3, Layers, List, PanelLeftOpen, Plus, Sun, Trash2, X } from 'lucide-react';
 import {
   confirmDeleteSelection, confirmDeleteTasks, getSpace, markSelectionDone, openMobileNav, openNewTask, parseSelectionKey, renameProject, setPref, setProjectMode,
   updateProject, setSectionMode, setSelecting, useUI,
@@ -16,7 +16,7 @@ import { flattenChecklist } from '../lib/checklist';
 import { activeMajorId } from '../lib/views';
 import { addForPage, isProjectBoard } from '../lib/pageAdd';
 
-const VIEW_ICONS = { inbox: Inbox, today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck, trash: Trash2 };
+const VIEW_ICONS = { today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck, trash: Trash2 };
 
 const FILTER_EMPTY_TEXT = {
   todo: 'Nothing left to do here — everything is done.',
@@ -77,7 +77,7 @@ function applyMajorFilter(model, majorId) {
 
 function ViewIcon({ model, size = 15 }) {
   if (model.project) return <ProjectDot color={model.project.color} size={size >= 20 ? 12 : 9} />;
-  const Icon = VIEW_ICONS[model.kind] || Inbox;
+  const Icon = VIEW_ICONS[model.kind] || Layers;
   return <Icon size={size} strokeWidth={1.8} />;
 }
 
@@ -253,12 +253,9 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
               </button>}
             </div>
             {pageActions && <div className="page-head-actions no-drag">{pageActions}</div>}
-            {(model.subtitle || (model.kind === 'inbox' && model.total === 0)) && (
+            {model.subtitle && (
               <p className="page-sub">
                 {model.subtitle}
-                {model.kind === 'inbox' && model.total === 0 && (
-                  <span className="page-hint"> · Quick add <Kbd keys="mod+N" /></span>
-                )}
               </p>
             )}
           </header>

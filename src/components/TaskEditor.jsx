@@ -282,7 +282,7 @@ export function TaskEditor({ task }) {
         crumb={(
           <>
             {project ? <ProjectDot color={project.color} /> : <Inbox size={13} strokeWidth={1.9} />}
-            <span>{project ? project.name : 'Inbox'}</span>
+            <span>{project ? project.name : 'No project'}</span>
             {parent && <span className="preview-crumb-parent">› {parent.title}</span>}
           </>
         )}
@@ -335,7 +335,7 @@ export function TaskEditor({ task }) {
           <PropRow icon={FolderClosed} label="Project">
             <button type="button" className="prop-btn" onClick={(e) => menuAt(e, projectItems(task))}>
               {project ? <ProjectDot color={project.color} /> : <Inbox size={14} strokeWidth={1.9} />}
-              {project ? project.name : 'Inbox'}
+              {project ? project.name : 'No project'}
             </button>
           </PropRow>
           <PropRow icon={PriorityGlyph} label="Priority">

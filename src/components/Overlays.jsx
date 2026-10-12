@@ -113,7 +113,7 @@ function SearchInner() {
                   <StatusIcon status={t.status} />
                   <span className="result-path">
                     {p ? <ProjectDot color={p.color} size={7} /> : <Inbox size={13} strokeWidth={1.9} />}
-                    {p ? p.name : 'Inbox'}
+                    {p ? p.name : 'No project'}
                     <ChevronRight size={13} className="result-sep" />
                   </span>
                   <span className="result-title">
@@ -140,7 +140,7 @@ const SHORTCUTS = [
   ['Anywhere', [
     ['mod+N', 'New task (popup)'],
     ['mod+K', 'Search'],
-    ['mod+1 – 5', 'Inbox · Today · Upcoming · All · Completed'],
+    ['mod+1 – 5', 'Today · Upcoming · All · Completed · Trash'],
     ['mod+\\', 'Toggle sidebar'],
     ['?', 'Show shortcuts'],
   ]],

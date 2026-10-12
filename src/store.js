@@ -196,6 +196,7 @@ export async function loadData(which = 'owner') {
 
   // The demo always opens on Today, so visitors land on the sample day.
   let view = space === 'demo' ? 'today' : initial.prefs.view || 'today';
+  if (view === 'inbox') view = 'today';
   if (view.startsWith('project:') && !initial.projects.some((p) => `project:${p.id}` === view)) view = 'today';
   patchUI({ platform, view, statsFilter: view === 'completed' ? 'done' : 'todo' });
 }
@@ -783,7 +784,7 @@ export function deleteProject(id) {
     projects: s.projects.filter((p) => p.id !== id),
     tasks: s.tasks.map((t) => (t.projectId === id ? { ...t, projectId: null } : t)),
   }));
-  if (ui.get().view === `project:${id}`) navigate('inbox');
+  if (ui.get().view === `project:${id}`) navigate('today');
   rememberUndo(() => commit((s) => ({
     ...s,
     projects: s.projects.some((p) => p.id === project.id) ? s.projects : [...s.projects, project],
@@ -917,7 +918,7 @@ export const setEditingProject = (id) => patchUI({ editingProjectId: id });
 export function revealTask(id) {
   const task = findTask(id);
   if (!task) return;
-  const view = task.projectId ? `project:${task.projectId}` : task.status === 'done' ? 'completed' : 'inbox';
+  const view = task.projectId ? `project:${task.projectId}` : task.status === 'done' ? 'completed' : 'all';
   if (task.projectId) {
     const key = `${view}:done`;
     if (task.status === 'done' && data.get().prefs.collapsed[key]) toggleCollapsed(key);
