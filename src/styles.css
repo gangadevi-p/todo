@@ -4832,57 +4832,69 @@ button.stats-deadline {
 }
 
 /* ==========================================================================
-   Which filter is picked is unmistakable: the picked chip is a solid, filled
-   pill; every other chip is only an outline. This covers the todo / done pair
-   in the overview and the major-task chips under it.
+   Filter chips have no fill. Which one is picked still shows at a glance: the
+   picked chip has a thick coloured outline and full-strength text; the others
+   a thin faint outline and muted text. This covers the todo / done pair in the
+   overview and the major-task chips under it.
    ========================================================================== */
-.stats-chip {
-  background: transparent;
-  box-shadow: 0 0 0 1px var(--border-strong) inset;
-}
-.stats-chip:hover {
-  background: var(--bg-hover);
-}
-.chip-done {
-  background: transparent;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--done) 40%, transparent) inset;
-}
-.chip-done:hover {
-  background: color-mix(in srgb, var(--done) 12%, transparent);
-}
+.stats-chip,
+.stats-chip:hover,
 .stats-chip.on,
-.stats-chip.on:hover {
-  background: var(--primary-bg);
-  color: var(--primary-text);
-  box-shadow: none;
-}
+.stats-chip.on:hover,
+.chip-done,
+.chip-done:hover,
 .chip-done.on,
-.chip-done.on:hover {
-  background: var(--done);
-  color: var(--bg);
-}
-.stats-chip.on i {
-  background: currentColor;
+.chip-done.on:hover,
+.major-chip,
+.major-chip:hover,
+.major-chip.on,
+.major-chip.on:hover,
+.major-chip-add {
+  background: transparent;
 }
 
-.major-chip:not(.on) {
-  background: transparent;
+.stats-chip {
   color: var(--text-2);
   box-shadow: 0 0 0 1px var(--border-strong) inset;
 }
-.major-chip:not(.on):hover {
-  background: var(--bg-hover);
+.stats-chip:hover {
   color: var(--text);
+  box-shadow: 0 0 0 1px var(--text-3) inset;
+}
+.stats-chip.on,
+.stats-chip.on:hover {
+  color: var(--text);
+  box-shadow: 0 0 0 2px var(--text) inset;
+}
+.chip-done,
+.chip-done:hover,
+.chip-done.on,
+.chip-done.on:hover {
+  color: var(--done);
+}
+.chip-done {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--done) 40%, transparent) inset;
+}
+.chip-done:hover {
+  box-shadow: 0 0 0 1px var(--done) inset;
+}
+.chip-done.on,
+.chip-done.on:hover {
+  box-shadow: 0 0 0 2px var(--done) inset;
+}
+
+.major-chip {
+  color: var(--text-2);
+  box-shadow: 0 0 0 1px var(--border-strong) inset;
+}
+.major-chip:hover {
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--text-3) inset;
 }
 .major-chip.on,
 .major-chip.on:hover {
-  background: var(--lv-major-line);
-  color: var(--bg);
-  box-shadow: none;
-}
-.major-chip.on .project-dot,
-.major-chip.on i {
-  box-shadow: 0 0 0 1.5px var(--bg);
+  color: var(--lv-major-text);
+  box-shadow: 0 0 0 2px var(--lv-major-line) inset;
 }
 .major-chip.on.done .major-chip-title {
   opacity: 0.9;
