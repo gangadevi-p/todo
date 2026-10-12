@@ -4757,29 +4757,24 @@ button.stats-deadline {
 }
 
 /* ==========================================================================
-   All Tasks lists every task, so its chips make one row, left to right, that
-   scrolls sideways when it runs past the page, instead of wrapping unevenly.
+   All Tasks lists every task, so its chips run left to right and continue on
+   the next row when they don't fit. Each row's chips share one height, and no
+   chip grows wider than a box, so a long title never ragged-edges the rest.
    ========================================================================== */
-.major-filter.major-filter-scroll {
-  flex-wrap: nowrap;
+.major-filter.major-filter-wrap {
+  flex-wrap: wrap;
   align-items: stretch;
-  overflow-x: auto;
-  overflow-y: hidden;
-  margin-top: -8px;
-  margin-bottom: 12px;
-  padding: 2px 0 8px;
-  scrollbar-width: thin;
 }
-.major-filter-scroll .major-chip {
+.major-filter-wrap .major-chip {
   flex: 0 0 auto;
   width: max-content;
   max-width: 320px;
 }
-.major-filter-scroll .major-chip-add {
+.major-filter-wrap .major-chip-add {
   width: 28px;
   align-self: center;
 }
-.major-filter-scroll .major-chip-add.empty {
+.major-filter-wrap .major-chip-add.empty {
   width: auto;
 }
 
