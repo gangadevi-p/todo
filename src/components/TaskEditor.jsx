@@ -415,8 +415,9 @@ export function TaskEditor({ task }) {
 
         <section className="panel-section">
           <ListHead label="Sub-tasks" done={under.done} total={under.total} />
-          <NestedTasks parent={task} />
-          {task.subtasks.length > 0 && <SubtaskTree task={task} variant="panel" inPopup />}
+          {/* A major task's sub-tasks already fill its board column: the popup only counts them, so it stays small. */}
+          {!isMajor && <NestedTasks parent={task} />}
+          {!isMajor && task.subtasks.length > 0 && <SubtaskTree task={task} variant="panel" inPopup />}
           <AddLine placeholder="Add sub-task" onAdd={(title) => addSubtask(task.id, title)} />
         </section>
 
