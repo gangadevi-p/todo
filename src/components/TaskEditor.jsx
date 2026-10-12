@@ -275,8 +275,9 @@ export function TaskEditor({ task }) {
   const style = textStyleProps(task.textStyle, task.struck);
   const under = countUnder(task, tasks);
   const menuAt = (e, items) => openMenu({ kind: 'menu', rect: rectOf(e.currentTarget), items });
-  // A major task keeps only what it needs: its project (a small dropdown), delete, title, notes and sub-tasks.
-  const isMajor = Boolean(task.isHeading || (!task.parentId && task.projectId));
+  // A task in a project (a major task, box or sub-task) keeps only what it needs: its project (a small dropdown),
+  // delete, title, notes and a sub-task count. Everything else is edited on the board.
+  const isMajor = Boolean(task.isHeading || task.projectId);
 
   const crumbBody = (
     <>
@@ -289,10 +290,13 @@ export function TaskEditor({ task }) {
     <>
       <PopupHead
         crumb={isMajor ? (
-          <button type="button" className="prop-btn" aria-label="Change project" onClick={(e) => menuAt(e, projectItems(task))}>
-            {crumbBody}
-            <ChevronDown size={13} />
-          </button>
+          <>
+            <button type="button" className="prop-btn" aria-label="Change project" onClick={(e) => menuAt(e, projectItems(task))}>
+              {crumbBody}
+              <ChevronDown size={13} />
+            </button>
+            {parent && <span className="preview-crumb-parent">› {parent.title}</span>}
+          </>
         ) : (
           <>
             {crumbBody}
@@ -415,7 +419,7 @@ export function TaskEditor({ task }) {
 
         <section className="panel-section">
           <ListHead label="Sub-tasks" done={under.done} total={under.total} />
-          {/* A major task's sub-tasks already fill its board column: the popup only counts them, so it stays small. */}
+          {/* The board already shows a project task's sub-tasks: the popup only counts them, so it stays small. */}
           {!isMajor && <NestedTasks parent={task} />}
           {!isMajor && task.subtasks.length > 0 && <SubtaskTree task={task} variant="panel" inPopup />}
           <AddLine placeholder="Add sub-task" onAdd={(title) => addSubtask(task.id, title)} />
