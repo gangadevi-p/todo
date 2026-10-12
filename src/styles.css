@@ -4635,11 +4635,26 @@ button.stats-deadline {
   color: var(--text-3);
   vertical-align: middle;
   cursor: pointer;
-  opacity: 0.8;
+  /* Hidden until the row, card or heading is hovered; it keeps its space so nothing shifts. */
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.row:hover .notes-chev-btn,
+.card-main:hover .notes-chev-btn,
+.column-head:hover .notes-chev-btn,
+.sub-row:hover .notes-chev-btn,
+.notes-chev-btn:hover,
+.notes-chev-btn:focus-visible {
+  opacity: 1;
 }
 .notes-chev-btn:hover {
   background: var(--bg-hover);
-  opacity: 1;
+}
+/* No hover on touch screens: keep the chevron visible there. */
+@media (hover: none) {
+  .notes-chev-btn {
+    opacity: 0.8;
+  }
 }
 .notes-chev-btn svg {
   transition: transform 0.15s ease;
