@@ -2244,6 +2244,9 @@ kbd {
 .tg-btn .switch {
   margin-left: auto;
 }
+.tg-cell .text-style-size input {
+  width: 74px;
+}
 .tg-size-glyph {
   color: var(--text-2);
   font-weight: 600;
