@@ -2015,10 +2015,6 @@ kbd {
   color: var(--text-3);
   font-size: 12.5px;
 }
-.column-heading-empty {
-  height: 56px;
-  border-color: color-mix(in srgb, var(--border-strong) 60%, transparent);
-}
 .card {
   position: relative;
   padding: 9px 11px 9px 10px;
@@ -3754,22 +3750,6 @@ mark {
 .column-wide .column-body > .drop-line {
   grid-column: 1 / -1;
 }
-button.column-empty {
-  width: 100%;
-  background: transparent;
-  cursor: pointer;
-  font: inherit;
-}
-button.column-empty:hover {
-  border-color: var(--lv-box-line);
-  color: var(--lv-box-text);
-}
-button.column-empty span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
 /* A box: teal, its title at the top, sub-tasks inside. */
 .column-wide .column-body > .card.box {
   padding: 10px 12px 12px;

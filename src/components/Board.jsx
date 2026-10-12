@@ -222,14 +222,9 @@ export function Board({ model }) {
                   <SubtaskTree task={col.checklistTask} variant="board" completedOnly={col.checklistStatus === 'done'} todoOnly={col.checklistStatus === 'todo'} />
                 </div>
               )}
-              {col.tasks.length === 0 && !col.checklistTask && !(col.completedChecklistParents || []).length && (
-                col.heading
-                  ? (
-                    <button type="button" className="column-empty column-heading-empty" onClick={() => openNewTask(boxDefaults(col.headingTask))}>
-                      <span><Plus size={14} strokeWidth={2} /> Add a box</span>
-                    </button>
-                  )
-                  : <div className="column-empty">No sub-tasks · add one</div>
+              {/* An empty major task shows nothing: its + (and the page +) add the first box. */}
+              {!col.heading && col.tasks.length === 0 && !col.checklistTask && !(col.completedChecklistParents || []).length && (
+                <div className="column-empty">No sub-tasks · add one</div>
               )}
             </div>
           </section>
