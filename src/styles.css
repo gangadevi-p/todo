@@ -4099,9 +4099,13 @@ button.stats-deadline {
 .result-path {
   max-width: 45%;
 }
+/* A long title takes the whole line and the page buttons drop below it; a short one stays beside them. */
 .page-title-line {
+  flex: 1 1 auto;
+  min-width: min(100%, 160px);
+  max-width: calc(100% - 36px);
   overflow: visible;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 .page-title-line .page-title {
   flex: 1 1 auto;
