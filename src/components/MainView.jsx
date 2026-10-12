@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Check, CalendarDays, CheckSquare, CircleCheck, Columns3, Layers, List, MessageCircleQuestion, PanelLeftOpen, Plus, Sun, Trash2, X,
+  Check, CalendarDays, CheckSquare, CircleCheck, Columns3, Layers, List, MessageCircleQuestion, PanelLeftOpen, Plus, Sparkles, Sun, Trash2, X,
 } from 'lucide-react';
 import {
-  confirmDeleteSelection, confirmDeleteTasks, getSpace, markSelectionDone, openEditProject, openMobileNav, openNewTask, openQA, parseSelectionKey, renameProject, setPref, setProjectMode,
+  confirmDeleteSelection, confirmDeleteTasks, getSpace, markSelectionDone, openEditProject, openMobileNav, openNewTask, openPlan, openQA, parseSelectionKey, renameProject, setPref, setProjectMode,
   updateProject, setSectionMode, setSelecting, useUI,
 } from '../store';
 import { Board } from './Board';
@@ -192,6 +192,17 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
               >
                 <Plus size={17} strokeWidth={2.2} />
               </button>}
+              {!isTrash && !isQA && (
+                <button
+                  type="button"
+                  className="icon-btn page-add"
+                  onClick={() => openPlan()}
+                  aria-label="Create tasks from text"
+                  title="Create tasks from text: paste a plan"
+                >
+                  <Sparkles size={16} strokeWidth={1.9} />
+                </button>
+              )}
             </div>
             <SectionStats stats={model.stats} />
             {pageActions && <div className="page-head-actions no-drag">{pageActions}</div>}

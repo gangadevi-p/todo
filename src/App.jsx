@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef } from 'react';
 import {
-  closeMobileNav, data, removeSubtask, requestDeleteTask, duplicateTask, hidePreview, navigate, openNewTask, openQA, openSearch, selectTask,
+  closeMobileNav, data, removeSubtask, requestDeleteTask, duplicateTask, hidePreview, navigate, openNewTask, openPlan, openQA, openSearch, selectTask,
   setHelp, setPref, setSelecting, toggleComplete, toggleToday, ui, undoLast, updateTask, useData, useUI,
 } from './store';
 import { activeMajorId, buildView, NAV_VIEWS, shownMajors } from './lib/views';
 import { addForPage } from './lib/pageAdd';
+import { looksLikePlan } from './lib/planParse';
 import { isTypingTarget } from './lib/util';
 import { TodayContext, useTodayClock } from './lib/useToday';
 import { useIsMobile } from './lib/useViewport';
@@ -190,13 +191,25 @@ export default function App() {
     const onClick = (e) => {
       if (e.detail > 0) e.target.closest?.('button')?.blur();
     };
+    // Pasting a plan ("Phase 1: ..." with bullets) anywhere outside a text field
+    // opens "Create tasks from text" with it, ready to create.
+    const onPaste = (e) => {
+      const u = ui.get();
+      if (isTypingTarget(e.target) || u.popup || u.confirm || u.search || u.help) return;
+      const text = e.clipboardData?.getData('text/plain') || '';
+      if (!looksLikePlan(text)) return;
+      e.preventDefault();
+      openPlan(text);
+    };
     window.addEventListener('keydown', onKey);
     window.addEventListener('pointerdown', clearOutsideTask, true);
     window.addEventListener('click', onClick);
+    window.addEventListener('paste', onPaste);
     return () => {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('pointerdown', clearOutsideTask, true);
       window.removeEventListener('click', onClick);
+      window.removeEventListener('paste', onPaste);
     };
   }, []);
 

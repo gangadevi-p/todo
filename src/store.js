@@ -307,6 +307,20 @@ export function createTask(fields = {}) {
   return id;
 }
 
+/**
+ * One major task per parsed plan (see lib/planParse.js): its title and notes,
+ * and its bullets as sub-tasks, each with its own notes. Returns the new ids.
+ */
+export function createFromPlan(plans, projectId = null) {
+  return plans.map((p) => createTask({
+    title: p.title,
+    notes: p.notes,
+    isHeading: true,
+    projectId,
+    subtasks: p.items,
+  }));
+}
+
 export function updateTask(id, patch) {
   commit((s) => ({ ...s, tasks: s.tasks.map((t) => (t.id === id ? applyPatch(t, patch) : t)) }));
 }
@@ -973,6 +987,8 @@ export const openNewTask = (defaults = {}) => openPopup({ kind: 'task', defaults
 export const openNewProject = () => openPopup({ kind: 'project' });
 export const openEditProject = (projectId) => openPopup({ kind: 'editProject', projectId });
 export const openQA = (id = null) => openPopup({ kind: 'qa', id });
+/** The "create tasks from pasted text" popup, optionally already holding the pasted text. */
+export const openPlan = (text = '') => openPopup({ kind: 'plan', text });
 export const closePopup = () => patchUI({ popup: null });
 
 export const openSearch = () => patchUI({ search: true, popup: null, help: false, menu: null, preview: null });

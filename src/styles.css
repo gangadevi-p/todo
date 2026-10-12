@@ -5202,3 +5202,88 @@ button.stats-deadline {
   font-weight: 500;
   line-height: 1.45;
 }
+
+/* ==========================================================================
+   Create tasks from text: the paste box and the preview of what it becomes.
+   ========================================================================== */
+.pp-notes.plan-input {
+  height: 168px;
+  padding: 10px 12px;
+  overflow: auto;
+  resize: vertical;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.plan-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 260px;
+  overflow: auto;
+}
+.plan-card {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+.plan-major {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.plan-notes {
+  margin: 4px 0 0;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.plan-items {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 9px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.plan-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-left: 15px;
+}
+.plan-item::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-3);
+}
+.plan-item .plan-items {
+  margin-top: 6px;
+}
+.plan-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.plan-item-notes {
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.plan-hint {
+  margin: 0;
+  padding: 6px 0;
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.5;
+}

@@ -2,6 +2,7 @@ import { useUI } from '../store';
 import { EditProjectForm } from './EditProject';
 import { NewProjectForm } from './NewProject';
 import { NewTaskForm } from './NewTask';
+import { PlanForm } from './PlanForm';
 import { QAForm } from './QAForm';
 
 /** Hosts whichever create or edit popup is open. A fresh key resets the form each time. */
@@ -11,5 +12,6 @@ export function PopupHost() {
   if (popup.kind === 'project') return <NewProjectForm key={popup.nonce} />;
   if (popup.kind === 'editProject') return <EditProjectForm key={popup.nonce} projectId={popup.projectId} />;
   if (popup.kind === 'qa') return <QAForm key={popup.nonce} id={popup.id} />;
+  if (popup.kind === 'plan') return <PlanForm key={popup.nonce} initialText={popup.text || ''} />;
   return <NewTaskForm key={popup.nonce} defaults={popup.defaults || {}} />;
 }

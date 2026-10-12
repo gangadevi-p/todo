@@ -61,6 +61,27 @@ On every Board page (Today, Upcoming, All Tasks, Completed and each project) the
 - **Enter** on a sub-task adds the next one at the same level; **Tab** nests it under the item above.
 - Nothing opens on hover. Right-click a task (or use its ⋯ grip) and choose **Edit** to open its editor.
 
+## Create tasks from text
+
+Paste a plan and the tasks are made for you. Click the sparkle beside a page's **+**, or just paste it onto the page (outside any text field).
+
+```
+Phase 2: Create a Feature Inventory
+Goal: Understand everything the developer has built.
+* List all existing features — Create a list of every feature you discover.
+* Identify incomplete features — Record buttons that do nothing.
+Output: A feature inventory describing the current capabilities and gaps.
+```
+
+| In the text | Becomes |
+| --- | --- |
+| `Phase 2: Title` (also Stage, Step, Part, Milestone, Sprint, a `#` heading, or a short line before bullets) | a major task, with that title |
+| `Goal:` / `Output:` (also Objective, Deliverable, Outcome, Context, Notes) | the major task's notes |
+| a bullet, `Name — description` | a sub-task named `Name`, with `description` as its notes |
+| a more indented bullet | a sub-task nested under the one above |
+
+Several phases pasted together make several major tasks. A preview shows what will be created before anything is. It reads the format; it is not a language model, so it needs no key and works offline.
+
 ## Q&A
 
 **Q&A** in the sidebar keeps the questions the design depends on, each with its answer.
