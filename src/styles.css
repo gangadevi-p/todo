@@ -4354,3 +4354,15 @@ button.stats-deadline {
     display: none;
   }
 }
+
+/* A box's tools are visible at the same strength as a major task's. */
+.card.box .card-main .card-actions {
+  opacity: 1;
+}
+.card.box .card-main .card-actions > * {
+  opacity: 0.7;
+}
+.card.box:hover .card-main .card-actions > *,
+.card.box:focus-within .card-main .card-actions > * {
+  opacity: 1;
+}
