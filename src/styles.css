@@ -4830,3 +4830,60 @@ button.stats-deadline {
 .major-notes {
   max-width: none;
 }
+
+/* ==========================================================================
+   Which filter is picked is unmistakable: the picked chip is a solid, filled
+   pill; every other chip is only an outline. This covers the todo / done pair
+   in the overview and the major-task chips under it.
+   ========================================================================== */
+.stats-chip {
+  background: transparent;
+  box-shadow: 0 0 0 1px var(--border-strong) inset;
+}
+.stats-chip:hover {
+  background: var(--bg-hover);
+}
+.chip-done {
+  background: transparent;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--done) 40%, transparent) inset;
+}
+.chip-done:hover {
+  background: color-mix(in srgb, var(--done) 12%, transparent);
+}
+.stats-chip.on,
+.stats-chip.on:hover {
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  box-shadow: none;
+}
+.chip-done.on,
+.chip-done.on:hover {
+  background: var(--done);
+  color: var(--bg);
+}
+.stats-chip.on i {
+  background: currentColor;
+}
+
+.major-chip:not(.on) {
+  background: transparent;
+  color: var(--text-2);
+  box-shadow: 0 0 0 1px var(--border-strong) inset;
+}
+.major-chip:not(.on):hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.major-chip.on,
+.major-chip.on:hover {
+  background: var(--lv-major-line);
+  color: var(--bg);
+  box-shadow: none;
+}
+.major-chip.on .project-dot,
+.major-chip.on i {
+  box-shadow: 0 0 0 1.5px var(--bg);
+}
+.major-chip.on.done .major-chip-title {
+  opacity: 0.9;
+}
