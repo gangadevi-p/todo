@@ -3230,6 +3230,9 @@ mark {
   color: var(--text-3);
   font-size: 12px;
 }
+.pp-foot.end {
+  justify-content: flex-end;
+}
 .pp-keys {
   display: flex;
   align-items: center;

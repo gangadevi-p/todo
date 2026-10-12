@@ -1,20 +1,16 @@
 import { useRef, useState } from 'react';
 import { Check, TriangleAlert } from 'lucide-react';
-import { closePopup, createProject, navigate, nextProjectColor, nextProjectOrder, setProjectMode, useData } from '../store';
+import { closePopup, createProject, navigate, nextProjectColor, setProjectMode, useData } from '../store';
 import { PROJECT_COLORS, uid } from '../lib/util';
 import { ProjectDot } from './bits';
-import { F, Field, Popup, ReadOnly } from './Popup';
+import { F, Field, Popup } from './Popup';
 
-const stamp = (ms) => new Date(ms).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-
-/** Every field of a project, in one popup. Only the name is required. */
+/** A name and a color, in one popup. Only the name is required. */
 export function NewProjectForm() {
   const projects = useData((s) => s.projects);
   const [id] = useState(uid);
-  const [createdAt] = useState(Date.now);
   const [name, setName] = useState('');
   const [color, setColor] = useState(() => nextProjectColor(projects));
-  const [order, setOrder] = useState(() => String(nextProjectOrder()));
   const nameRef = useRef(null);
 
   const clean = name.trim();
@@ -27,23 +23,12 @@ export function NewProjectForm() {
       return;
     }
     if (taken) return;
-    const position = Number(order);
-    createProject({ id, name: clean, color, order: order.trim() !== '' && Number.isFinite(position) ? position : undefined });
+    createProject({ id, name: clean, color });
     // A project opens on its Board: major tasks, then boxes, then sub-tasks.
     setProjectMode(id, 'board');
     closePopup();
     navigate(`project:${id}`);
   };
-
-  const side = (
-    <>
-      <Field f={F.id}><ReadOnly mono>{id}</ReadOnly></Field>
-      <Field f={F.created}><ReadOnly>{stamp(createdAt)}</ReadOnly></Field>
-      <Field f={F.order} hint="Position">
-        <input className="pp-input pp-number" type="number" step="1" value={order} onChange={(e) => setOrder(e.target.value)} />
-      </Field>
-    </>
-  );
 
   return (
     <Popup
@@ -54,7 +39,7 @@ export function NewProjectForm() {
       submitLabel="Create project"
       onSubmit={submit}
       focusRef={nameRef}
-      side={side}
+      hideKeys
     >
       <Field f={F.name}>
         <input

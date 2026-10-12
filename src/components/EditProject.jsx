@@ -4,10 +4,9 @@ import { Type } from 'lucide-react';
 import { closePopup, confirmDeleteProject, updateProject, useData } from '../store';
 import { PROJECT_COLORS } from '../lib/util';
 import { ProjectDot } from './bits';
-import { F, Field, Popup, ReadOnly } from './Popup';
+import { F, Field, Popup } from './Popup';
 import { TextStyleControls } from './TextStyle';
 
-const stamp = (ms) => (ms ? new Date(ms).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '');
 const TEXT_STYLE = { icon: Type, tint: '#8a5cf0', label: 'Name style' };
 
 /** Everything about a project in one popup, opened by clicking its title. Same shell as the create popups. */
@@ -35,14 +34,6 @@ export function EditProjectForm({ projectId }) {
     closePopup();
   };
 
-  const side = (
-    <>
-      <Field f={F.id}><ReadOnly mono>{project.id}</ReadOnly></Field>
-      <Field f={F.created}><ReadOnly>{stamp(project.createdAt)}</ReadOnly></Field>
-      <Field f={F.order}><ReadOnly>{project.order}</ReadOnly></Field>
-    </>
-  );
-
   return (
     <Popup
       title="Edit project"
@@ -53,7 +44,12 @@ export function EditProjectForm({ projectId }) {
       actionWord="save"
       onSubmit={submit}
       focusRef={nameRef}
-      side={side}
+      hideKeys
+      headActions={(
+        <button type="button" className="icon-btn" aria-label="Delete project" onClick={() => confirmDeleteProject(project)}>
+          <Trash2 size={16} />
+        </button>
+      )}
     >
       <Field f={F.name}>
         <input
@@ -106,12 +102,6 @@ export function EditProjectForm({ projectId }) {
           <ProjectDot color={color} size={9} />
           <span>{clean || 'Project name'}</span>
         </div>
-      </Field>
-
-      <Field f={{ icon: Trash2, tint: '#d4483f', label: 'Delete' }}>
-        <button type="button" className="btn btn-danger-ghost" onClick={() => confirmDeleteProject(project)}>
-          <Trash2 size={14} strokeWidth={1.9} /> Delete project
-        </button>
       </Field>
     </Popup>
   );
