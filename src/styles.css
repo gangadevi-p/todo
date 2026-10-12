@@ -4049,3 +4049,76 @@ button.stats-deadline {
   margin-left: auto;
   margin-right: auto;
 }
+
+/* ==========================================================================
+   Names are never cut off: a long project, task or box name wraps onto more
+   lines instead of ending in "…" or being clipped.
+   ========================================================================== */
+.nav-label,
+.page-title,
+.group-title,
+.row-title,
+.card-title,
+.menu-label,
+.result-title,
+.result-path,
+.trash-row-copy strong,
+.preview-crumb span,
+.pp-ro,
+.pp-preview span:last-child,
+.pp-sub-title,
+.major-chip-title,
+.task-title-text {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  -webkit-line-clamp: unset;
+}
+.card-title {
+  display: block;
+}
+/* Rows grow with their text instead of keeping a fixed height. */
+.nav-item,
+.menu-item,
+.result {
+  height: auto;
+  min-height: 30px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.result {
+  min-height: 38px;
+}
+.row {
+  height: auto;
+  min-height: var(--row-h);
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.result-path {
+  max-width: 45%;
+}
+.page-title-line {
+  overflow: visible;
+  flex-wrap: wrap;
+}
+.page-title-line .page-title {
+  flex: 1 1 auto;
+}
+.column-lane .column-head {
+  align-items: flex-start;
+}
+.column-head .group-title {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+.nav-item {
+  align-items: flex-start;
+}
+.nav-item .nav-icon,
+.nav-item .project-icon {
+  margin-top: 1px;
+}
