@@ -4821,3 +4821,17 @@ button.stats-deadline {
   margin-right: auto;
   text-align: left;
 }
+
+/* ==========================================================================
+   Full width: on every Board page the title row, overview, chips, the major
+   task's row and its notes run the whole width of the page, instead of
+   stopping at the width of one box and leaving the right half empty.
+   ========================================================================== */
+.page-board > .page-head,
+.page-board > .stats-panel,
+.page-board > .major-filter,
+.page-board > .demo-banner,
+.column-lane.column-wide .column-head,
+.major-notes {
+  max-width: none;
+}
