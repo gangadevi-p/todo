@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import {
-  CalendarDays, CircleCheck, CircleHelp, Download, Ellipsis, Eraser, Inbox, Layers, MessageCircleQuestion, Moon, PanelLeftClose, Pencil, Plus, Search, Sun, Trash2, Upload, UserRound,
+  CalendarDays, CircleCheck, CircleHelp, Download, Ellipsis, Eraser, Inbox, Layers, MessageCircleQuestion, Moon, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Search, Sun, Trash2, Upload, UserRound,
 } from 'lucide-react';
 import {
   askConfirm, closeMobileNav, confirmDeleteAll, exportData, flushSave, getSpace, importData, deleteProject, findTask, navigate, openMenu, openNewProject, openSearch, placeProject, renameProject,
@@ -84,12 +84,15 @@ function useTaskTarget(patchFor) {
   ];
 }
 
-function NavItem({ item, active, count }) {
+function NavItem({ item, active, count, rail }) {
   const [over, dropProps] = useTaskTarget(item.drop);
   return (
     <button
       type="button"
       className={`nav-item${active ? ' active' : ''}${over ? ' drop-over' : ''}${item.apart ? ' nav-apart' : ''}`}
+      // In the icon rail the label is hidden, so it moves to the tooltip.
+      title={rail ? item.label : undefined}
+      aria-label={rail ? item.label : undefined}
       onClick={() => navigate(item.id)}
       {...dropProps}
     >
@@ -100,7 +103,7 @@ function NavItem({ item, active, count }) {
   );
 }
 
-function ProjectItem({ project, active, count, progress, editing, onReorderTarget, dropLine }) {
+function ProjectItem({ project, active, count, progress, editing, onReorderTarget, dropLine, rail }) {
   const [over, dropProps] = useTaskTarget(() => ({ projectId: project.id }), `Moved to ${project.name}`);
 
   const menuItems = [
@@ -142,6 +145,8 @@ function ProjectItem({ project, active, count, progress, editing, onReorderTarge
       <button
         type="button"
         className={`nav-item project-item${active ? ' active' : ''}${over ? ' drop-over' : ''}`}
+        title={rail ? project.name : undefined}
+        aria-label={rail ? project.name : undefined}
         draggable
         onDragStart={(e) => startProjectDrag(e, project)}
         onDragEnd={endDrag}
@@ -183,7 +188,12 @@ function ProjectItem({ project, active, count, progress, editing, onReorderTarge
   );
 }
 
-export function Sidebar({ view, isMobile = false }) {
+/**
+ * The sidebar. `collapsed` on a desktop window shrinks it to a rail of icons
+ * (labels become tooltips) instead of removing it, so the page keeps its place.
+ */
+export function Sidebar({ view, isMobile = false, collapsed = false }) {
+  const rail = collapsed && !isMobile;
   const tasks = useData((s) => s.tasks);
   const trash = useData((s) => s.trash || []);
   const projects = useData((s) => s.projects);
@@ -249,7 +259,7 @@ export function Sidebar({ view, isMobile = false }) {
   };
 
   return (
-    <nav className="sidebar">
+    <nav className={`sidebar${rail ? ' rail' : ''}`}>
       <div className="sidebar-top drag-region">
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
@@ -263,20 +273,38 @@ export function Sidebar({ view, isMobile = false }) {
         <div className="sidebar-top-actions">
           <button
             type="button"
-            className="icon-btn no-drag"
+            className="icon-btn no-drag sidebar-theme"
             aria-label={effectiveTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
             onClick={() => setPref('theme', effectiveTheme === 'dark' ? 'light' : 'dark')}
           >
             {effectiveTheme === 'dark' ? <Moon size={16} strokeWidth={1.8} /> : <Sun size={16} strokeWidth={1.8} />}
           </button>
-          <button type="button" className="icon-btn no-drag sidebar-collapse" aria-label="Hide sidebar" onClick={() => (isMobile ? closeMobileNav() : setPref('sidebarCollapsed', true))}>
-            <PanelLeftClose size={16} strokeWidth={1.8} />
-          </button>
+          {rail ? (
+            <button
+              type="button"
+              className="icon-btn no-drag sidebar-collapse"
+              aria-label="Show sidebar"
+              title="Show sidebar"
+              onClick={() => setPref('sidebarCollapsed', false)}
+            >
+              <PanelLeftOpen size={16} strokeWidth={1.8} />
+            </button>
+          ) : (
+            <button type="button" className="icon-btn no-drag sidebar-collapse" aria-label="Hide sidebar" onClick={() => (isMobile ? closeMobileNav() : setPref('sidebarCollapsed', true))}>
+              <PanelLeftClose size={16} strokeWidth={1.8} />
+            </button>
+          )}
         </div>
       </div>
 
       <div className="sidebar-scroll">
-        <button type="button" className="nav-item search-item" onClick={openSearch}>
+        <button
+          type="button"
+          className="nav-item search-item"
+          title={rail ? 'Search' : undefined}
+          aria-label={rail ? 'Search' : undefined}
+          onClick={openSearch}
+        >
           <Search size={16} strokeWidth={1.8} className="nav-icon" />
           <span className="nav-label">Search</span>
           <Kbd keys="mod+K" />
@@ -287,6 +315,7 @@ export function Sidebar({ view, isMobile = false }) {
             <NavItem
               key={item.id}
               item={item}
+              rail={rail}
               active={view === item.id}
               count={item.id === 'today' ? counts.today : item.id === 'trash' ? trash.length : item.id === 'qa' ? unanswered : 0}
             />
@@ -310,6 +339,7 @@ export function Sidebar({ view, isMobile = false }) {
             <ProjectItem
               key={p.id}
               project={p}
+              rail={rail}
               active={view === `project:${p.id}`}
               count={counts.projects[p.id]?.open || 0}
               progress={counts.projects[p.id] ? counts.projects[p.id].progress / counts.projects[p.id].total : 0}
@@ -319,7 +349,13 @@ export function Sidebar({ view, isMobile = false }) {
             />
           ))}
           {!sorted.length && (
-            <button type="button" className="nav-item muted" onClick={openNewProject}>
+            <button
+              type="button"
+              className="nav-item muted"
+              title={rail ? 'New project' : undefined}
+              aria-label={rail ? 'New project' : undefined}
+              onClick={openNewProject}
+            >
               <Plus size={15} className="nav-icon" />
               <span className="nav-label">New project</span>
             </button>
@@ -332,6 +368,8 @@ export function Sidebar({ view, isMobile = false }) {
           <button
             type="button"
             className="nav-item muted"
+            title={rail ? (getSpace() === 'demo' ? 'Login' : 'Sign out') : undefined}
+            aria-label={rail ? (getSpace() === 'demo' ? 'Login' : 'Sign out') : undefined}
             onClick={() => {
               flushSave();
               leaveSpace(getSpace());
@@ -345,18 +383,36 @@ export function Sidebar({ view, isMobile = false }) {
         )}
         {getSpace() === 'owner' && (
           <>
-            <button type="button" className="nav-item muted" onClick={exportData}>
+            <button
+              type="button"
+              className="nav-item muted"
+              title={rail ? 'Export data' : undefined}
+              aria-label={rail ? 'Export data' : undefined}
+              onClick={exportData}
+            >
               <Download size={16} strokeWidth={1.8} className="nav-icon" />
               <span className="nav-label">Export data</span>
             </button>
-            <button type="button" className="nav-item muted" onClick={() => importRef.current?.click()}>
+            <button
+              type="button"
+              className="nav-item muted"
+              title={rail ? 'Import data' : undefined}
+              aria-label={rail ? 'Import data' : undefined}
+              onClick={() => importRef.current?.click()}
+            >
               <Upload size={16} strokeWidth={1.8} className="nav-icon" />
               <span className="nav-label">Import data</span>
             </button>
             <input ref={importRef} type="file" accept="application/json,.json" hidden onChange={onImportFile} />
           </>
         )}
-        <button type="button" className="nav-item muted" onClick={() => setHelp(true)}>
+        <button
+          type="button"
+          className="nav-item muted"
+          title={rail ? 'Shortcuts' : undefined}
+          aria-label={rail ? 'Shortcuts' : undefined}
+          onClick={() => setHelp(true)}
+        >
           <CircleHelp size={16} strokeWidth={1.8} className="nav-icon" />
           <span className="nav-label">Shortcuts</span>
           <Kbd keys="?" />

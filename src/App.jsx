@@ -216,15 +216,18 @@ export default function App() {
   const collapsed = Boolean(prefs.sidebarCollapsed);
   const isMobile = useIsMobile();
   const mobileNavOpen = useUI((u) => u.mobileNavOpen);
-  const sidebarVisible = isMobile ? mobileNavOpen : !collapsed;
+  // On a desktop window the sidebar never goes away: collapsed, it is a rail of
+  // icons, so the page keeps its place beside it. Only the phone drawer hides.
+  const rail = !isMobile && collapsed;
+  const sidebarVisible = isMobile ? mobileNavOpen : true;
 
   return (
     <TodayContext.Provider value={today}>
-      <div className={`app platform-${platform}${collapsed ? ' sidebar-collapsed' : ''}${isMobile ? ' is-mobile' : ''}`}>
-        {sidebarVisible && <Sidebar view={model.id} isMobile={isMobile} />}
+      <div className={`app platform-${platform}${rail ? ' sidebar-rail' : ''}${isMobile ? ' is-mobile' : ''}`}>
+        {sidebarVisible && <Sidebar view={model.id} isMobile={isMobile} collapsed={rail} />}
         {isMobile && mobileNavOpen && <div className="sidebar-scrim" onClick={closeMobileNav} />}
         <div className="workspace">
-          <MainView model={model} sidebarCollapsed={isMobile ? !mobileNavOpen : collapsed} isMobile={isMobile} />
+          <MainView model={model} sidebarCollapsed={isMobile && !mobileNavOpen} isMobile={isMobile} />
         </div>
         <PopupHost />
         <SearchPalette />

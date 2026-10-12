@@ -141,7 +141,7 @@ const SHORTCUTS = [
     ['mod+N', 'New task (popup)'],
     ['mod+K', 'Search'],
     ['mod+1 – 6', 'Today · Upcoming · All · Completed · Trash · Q&A'],
-    ['mod+\\', 'Toggle sidebar'],
+    ['mod+\\', 'Sidebar: icons only / open'],
     ['?', 'Show shortcuts'],
   ]],
   ['Tasks', [

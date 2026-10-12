@@ -747,12 +747,6 @@ kbd {
 .platform-linux .topbar {
   padding-right: 150px;
 }
-.platform-darwin.sidebar-collapsed .topbar {
-  padding-left: 84px;
-}
-.sidebar-collapsed .topbar {
-  padding-left: 10px;
-}
 .crumb {
   display: flex;
   align-items: center;
@@ -5351,4 +5345,56 @@ button.stats-deadline {
 }
 .plan-source .plan-link {
   margin-left: auto;
+}
+
+/* ==========================================================================
+   Sidebar rail. Collapsed, the sidebar stays as a narrow column of icons
+   (labels are tooltips) instead of vanishing, so the page keeps its place
+   beside it. Opened again, icons and text are back. Phones keep the drawer.
+   ========================================================================== */
+:root {
+  --rail-w: 64px;
+}
+.sidebar.rail {
+  width: var(--rail-w);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sidebar {
+    transition: width 0.2s ease;
+  }
+}
+.sidebar.rail .sidebar-top {
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  height: auto;
+  padding: 18px 0 8px;
+}
+.platform-darwin .sidebar.rail .sidebar-top {
+  padding: 40px 0 8px;
+}
+.sidebar.rail .brand-name,
+.sidebar.rail .sidebar-theme,
+.sidebar.rail .nav-label,
+.sidebar.rail .nav-count,
+.sidebar.rail .nav-more,
+.sidebar.rail .kbd-group,
+.sidebar.rail .nav-section > span {
+  display: none;
+}
+.sidebar.rail .sidebar-scroll,
+.sidebar.rail .sidebar-foot {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.sidebar.rail .nav-item {
+  justify-content: center;
+  padding: 0;
+}
+.sidebar.rail .nav-section {
+  justify-content: center;
+  padding: 14px 0 4px;
+}
+.sidebar.rail .search-item {
+  margin-bottom: 8px;
 }

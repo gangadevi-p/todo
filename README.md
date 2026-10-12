@@ -32,7 +32,7 @@ The sign-in is a screen lock for that browser, not an online account: only a sal
 | `Ctrl/⌘ N` | New task popup (works anywhere) |
 | `Ctrl/⌘ K` | Search |
 | `Ctrl/⌘ 1–6` | Today · Upcoming · All Tasks · Completed · Trash · Q&A |
-| `Ctrl/⌘ \` | Toggle sidebar |
+| `Ctrl/⌘ \` | Collapse the sidebar to icons, or open it again |
 | `N` | New task for the current view (in a project's Board: a major task, then a box under the one showing; on Q&A: a new question) |
 | `↑ ↓` or `J K` | Move the selection |
 | `Enter` | Open the task's editor |
