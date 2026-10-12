@@ -4126,3 +4126,11 @@ button.stats-deadline {
 .nav-item .project-icon {
   margin-top: 1px;
 }
+
+/* The empty-project hint sits in the same middle column. */
+.major-empty {
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
