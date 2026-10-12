@@ -162,15 +162,16 @@ export function Board({ model }) {
                 className={`group-title${col.heading && col.headingTask.status === 'done' ? ' done' : ''}${col.heading && col.headingTask.struck ? ' struck' : ''} ${textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).className}`}
                 style={textStyleProps(col.headingTask?.textStyle, col.headingTask?.struck).style}
               >{col.title}</span>
-              {(col.count ?? col.tasks.length) > 0 && <span className="group-count">{col.count ?? col.tasks.length}</span>}
+              {!col.heading && (col.count ?? col.tasks.length) > 0 && <span className="group-count">{col.count ?? col.tasks.length}</span>}
               {col.heading && (
                 <button
                   type="button"
                   className="column-major-add"
                   aria-label={`Add a box to ${col.title}`}
+                  title="Add a box"
                   onClick={() => openNewTask(boxDefaults(col.headingTask))}
                 >
-                  <Plus size={14} strokeWidth={2.2} /> Box
+                  <Plus size={14} strokeWidth={2.2} />
                 </button>
               )}
               {col.heading && (col.headingTask.dueDate
