@@ -6,7 +6,36 @@ import {
 } from '../store';
 import { Kbd, ProjectDot, StatusIcon } from './bits';
 
-export function Modal({ onClose, className = '', children, align = 'top' }) {
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+export function Modal({ onClose, className = '', children, align = 'top', label }) {
+  const ref = useRef(null);
+
+  // Name the dialog from its heading, remember where focus was, and give it back on close.
+  useEffect(() => {
+    const el = ref.current;
+    const opener = document.activeElement;
+    const heading = el?.querySelector('h1, h2, h3');
+    if (el && !label && heading) {
+      if (!heading.id) heading.id = `dlg-${Math.random().toString(36).slice(2, 8)}`;
+      el.setAttribute('aria-labelledby', heading.id);
+    }
+    return () => {
+      if (opener && opener !== document.body && document.contains(opener)) opener.focus?.({ preventScroll: true });
+    };
+  }, [label]);
+
+  // Keep Tab inside the dialog while it is open.
+  const trapTab = (e) => {
+    if (e.key !== 'Tab' || e.defaultPrevented) return;
+    const items = [...ref.current.querySelectorAll(FOCUSABLE)].filter((n) => n.offsetParent !== null || n === document.activeElement);
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && (document.activeElement === first || !ref.current.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
+
   return (
     <div
       className={`overlay overlay-${align}`}
@@ -14,7 +43,7 @@ export function Modal({ onClose, className = '', children, align = 'top' }) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className={`modal ${className}`} role="dialog" aria-modal="true">
+      <div ref={ref} className={`modal ${className}`} role="dialog" aria-modal="true" aria-label={label} onKeyDown={trapTab}>
         {children}
       </div>
     </div>
@@ -70,7 +99,7 @@ function SearchInner() {
   };
 
   return (
-    <Modal onClose={closeSearch} className="search">
+    <Modal onClose={closeSearch} className="search" label="Search tasks">
       <div className="search-input">
         <Search size={17} strokeWidth={1.8} />
         <input

@@ -223,6 +223,7 @@ export default function App() {
 
   return (
     <TodayContext.Provider value={today}>
+      <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to main content</a>
       <div className={`app platform-${platform}${rail ? ' sidebar-rail' : ''}${isMobile ? ' is-mobile' : ''}`}>
         {sidebarVisible && <Sidebar view={model.id} isMobile={isMobile} collapsed={rail} />}
         {isMobile && mobileNavOpen && <div className="sidebar-scrim" onClick={closeMobileNav} />}

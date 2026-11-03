@@ -15,15 +15,14 @@ export function MajorFilter({ majors, active, onAdd, projectsById = null }) {
   // Nothing to pick and nowhere to add (e.g. the "todo" tab of Completed): no empty strip.
   if (empty && !onAdd) return null;
   return (
-    <div className={`major-filter${projectsById ? ' major-filter-wrap' : ''}`} role="tablist" aria-label="Major tasks">
+    <div className={`major-filter${projectsById ? ' major-filter-wrap' : ''}`} role="group" aria-label="Major tasks">
       {majors.map((task) => {
         const { color } = textStyleProps(task.textStyle).style || {};
         return (
           <button
             key={task.id}
             type="button"
-            role="tab"
-            aria-selected={active === task.id}
+            aria-pressed={active === task.id}
             className={`major-chip${active === task.id ? ' on' : ''}${task.status === 'done' ? ' done' : ''}`}
             style={color ? { '--chip-color': color } : undefined}
             onClick={() => setMajorFilter(task.id)}

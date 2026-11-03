@@ -208,6 +208,16 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], qa = 
   // indented under their parent, wherever it appears — never as their own
   // top-level row, the same way a checklist item doesn't get one either.
   const tasks = allTasks.filter((t) => !t.parentId);
+  // Date and status views (Today, Upcoming, Completed) list every task that
+  // matches, at any depth. A nested task is listed on its own only when none of
+  // its ancestors match; otherwise it already shows indented under that ancestor.
+  const byTaskId = new Map(allTasks.map((t) => [t.id, t]));
+  const matching = (pred) => allTasks.filter((t) => {
+    if (!pred(t)) return false;
+    let p = byTaskId.get(t.parentId);
+    for (let hops = 0; p && hops < 50; hops += 1, p = byTaskId.get(p.parentId)) if (pred(p)) return false;
+    return true;
+  });
   // A task checked a moment ago stays in its old place until the linger ends.
   const isOpen = (t) => t.status !== 'done' || t.id in lingering;
   const statusOf = (t) => (t.id in lingering ? lingering[t.id] : t.status);
@@ -249,7 +259,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], qa = 
 
   switch (model.kind) {
     case 'today': {
-      const scope = tasks.filter((t) => inToday(t, today));
+      const scope = matching((t) => inToday(t, today));
       const list = scope.filter(isOpen).sort(byOrder);
       model.title = 'Today';
       model.subtitle = longDate(today);
@@ -272,7 +282,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], qa = 
       break;
     }
     case 'upcoming': {
-      const scope = tasks.filter((t) => t.dueDate && t.dueDate > today);
+      const scope = matching((t) => t.dueDate && t.dueDate > today);
       const list = scope.filter(isOpen);
       model.title = 'Upcoming';
       model.subtitle = list.length ? plural(list.length, 'scheduled task') : 'Tasks with a future last day';
@@ -351,7 +361,7 @@ export function buildView(viewId, { tasks: allTasks, projects, trash = [], qa = 
       break;
     }
     case 'completed': {
-      const list = tasks.filter((t) => t.status === 'done').sort(byCompletedDesc);
+      const list = matching((t) => t.status === 'done').sort(byCompletedDesc);
       model.title = 'Completed';
       model.subtitle = list.length ? plural(list.length, 'completed task') : 'Finished work lands here';
       model.show.due = false;

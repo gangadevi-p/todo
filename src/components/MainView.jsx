@@ -38,6 +38,7 @@ function ViewIcon({ model, size = 15 }) {
 
 function ProjectTitle({ project }) {
   return (
+    <>
     <h1
       className={`page-title editable ${textStyleProps(project.textStyle).className}`}
       style={textStyleProps(project.textStyle).style}
@@ -46,6 +47,8 @@ function ProjectTitle({ project }) {
     >
       {project.name}
     </h1>
+    <button type="button" className="sr-only" onClick={() => openEditProject(project.id)}>Edit project</button>
+    </>
   );
 }
 
@@ -165,7 +168,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
   );
 
   return (
-    <main className="main">
+    <main className="main" id="main" tabIndex={-1}>
       <div className={`topbar drag-region${scrolled ? ' scrolled' : ''}`}>
         {sidebarCollapsed && (
           <button type="button" className="icon-btn no-drag" aria-label="Show sidebar" onClick={() => (isMobile ? openMobileNav() : setPref('sidebarCollapsed', false))}>
