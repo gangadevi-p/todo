@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { Plus } from 'lucide-react';
 import {
   closeMobileNav, data, removeSubtask, requestDeleteTask, duplicateTask, hidePreview, navigate, openNewTask, openPlan, openQA, openSearch, selectTask,
   setHelp, setPref, setSelecting, toggleComplete, toggleToday, ui, undoLast, updateTask, useData, useUI,
@@ -230,6 +231,11 @@ export default function App() {
         <div className="workspace">
           <MainView model={model} sidebarCollapsed={isMobile && !mobileNavOpen} isMobile={isMobile} />
         </div>
+        {isMobile && !mobileNavOpen && (
+          <button type="button" className="fab" aria-label="New task" onClick={() => openNewTask()}>
+            <Plus size={26} strokeWidth={2.2} />
+          </button>
+        )}
         <PopupHost />
         <SearchPalette />
         <ShortcutsHelp />
