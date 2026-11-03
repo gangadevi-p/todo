@@ -6119,3 +6119,170 @@ body {
 @media (max-width: 720px) {
   .sub-add-nested { background: transparent; }
 }
+
+/* ==========================================================================
+   Polish pass: a coloured header wash, a clearer type scale, friendlier empty
+   states, labelled page actions, a phone tab bar and a Text size setting.
+   ========================================================================== */
+
+/* ---- Each page gets a soft wash of its own colour (the project's, or the view's) ---- */
+:root { --wash: 1; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { --wash: 0.55; } }
+:root[data-theme='dark'] { --wash: 0.55; }
+.main {
+  background:
+    radial-gradient(900px 280px at 12% 0, color-mix(in srgb, var(--cover) calc(20% * var(--wash)), transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--cover) calc(10% * var(--wash)), var(--bg)) 0, var(--bg) 320px) no-repeat,
+    var(--bg);
+}
+.main-scroll { background: transparent; }
+.page-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--cover) 20%, transparent);
+  color: color-mix(in srgb, var(--cover) 70%, var(--text));
+}
+.page:not(.page-board):not(.page-wide) { max-width: 880px; }
+.page-title { text-shadow: none; }
+
+/* ---- Clearer, slightly larger type ---- */
+body { font-size: 14.5px; }
+.row-title, .card-title, .task-title-text { font-size: 15px; }
+.card.box .subtasks-card .sub-row input, .card.box .subtasks-card .sub-row textarea,
+.column-wide .column-checklist .subtasks-board .sub-row input,
+.column-wide .column-checklist .subtasks-board .sub-row textarea { font-size: 14.5px; }
+.card.box .card-title, .card.box .task-title-text { font-size: 16px; }
+.stats-chip, .chip-done, .major-chip { font-size: 13.5px; height: 30px; padding: 0 12px; }
+.due-chip { font-size: 12.5px; }
+
+/* ---- Labelled page actions (List / Board / Select) ---- */
+.seg-label { margin-left: 6px; font-size: 13px; font-weight: 500; }
+.segmented button[aria-label] { width: auto; padding: 0 10px; }
+.page-head-actions .btn-icon:not(.btn-danger-ghost) { width: auto; padding: 0 10px; gap: 6px; }
+
+/* ---- Empty states: warm and inviting instead of a lonely line ---- */
+div.empty {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 420px;
+  margin: 40px 0;
+  padding: 32px 28px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cover) 8%, var(--bg-fill));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cover) 18%, transparent);
+  color: var(--text-2);
+  text-align: center;
+}
+div.empty svg {
+  width: 64px;
+  height: 64px;
+  padding: 14px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--cover) 18%, transparent);
+  color: color-mix(in srgb, var(--cover) 75%, var(--text));
+  opacity: 1;
+}
+div.empty p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--text); }
+
+/* ---- Selected row / card: an obvious, accessible marker ---- */
+.row.selected, .row[aria-selected='true'] { box-shadow: inset 3px 0 0 var(--accent-solid); }
+
+/* ---- Text size: Normal / Large / Extra large (sidebar "Aa" button) ---- */
+html[data-text='large'] { --fs: 1.14; }
+html[data-text='xl'] { --fs: 1.3; }
+html[data-text] {
+  --sidebar-w: calc(240px * var(--fs));
+  --row-h: calc(36px * var(--fs));
+}
+html[data-text] body { font-size: calc(14.5px * var(--fs)); }
+html[data-text] :is(.nav-item, .btn, .pill, .menu-item, .result, .brand, .nav-section, .empty p, .seg-label, .pp-label, .pp-input, .pp-notes, .auth-field input) { font-size: calc(14px * var(--fs)); }
+html[data-text] :is(.stats-chip, .chip-done, .major-chip) { font-size: calc(13.5px * var(--fs)); height: auto; min-height: calc(30px * var(--fs)); }
+html[data-text] :is(.row-title, .task-title-text, .card-title, .sub-row input, .sub-row textarea) { font-size: calc(15px * var(--fs)); }
+html[data-text] .card.box :is(.card-title, .task-title-text) { font-size: calc(16px * var(--fs)); }
+html[data-text] .page-title { font-size: calc(34px * var(--fs)); }
+html[data-text] .column-lane .column-head .group-title { font-size: calc(18px * var(--fs)); }
+html[data-text] :is(.due-chip, .stats-deadline, .nav-count, .select-count, .group-count) { font-size: calc(12.5px * var(--fs)); }
+html[data-text] .nav-item { height: auto; min-height: calc(30px * var(--fs)); }
+html[data-text] :is(.btn, .pill, .segmented button, .icon-btn) { min-height: calc(30px * var(--fs)); }
+html[data-text] .icon-btn { min-width: calc(30px * var(--fs)); }
+html[data-text] .check { width: calc(16px * var(--fs)); height: calc(16px * var(--fs)); }
+
+/* ---- Phones: a bottom tab bar under the thumb ---- */
+.tabbar { display: none; }
+.topbar-search { display: none; }
+@media (max-width: 720px) {
+  .topbar { justify-content: space-between; }
+  .topbar-search { display: inline-grid; margin-left: auto; }
+  .seg-label { display: none; }
+  .segmented button[aria-label] { padding: 0; }
+  .page-head-actions .btn-icon:not(.btn-danger-ghost) { padding: 0; }
+  .page { padding-bottom: calc(132px + var(--safe-b)); }
+  .tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 45;
+    display: grid;
+    grid-template-columns: 1fr 1fr 64px 1fr 1fr;
+    align-items: end;
+    padding: 6px 6px calc(6px + var(--safe-b));
+    border-top: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    -webkit-backdrop-filter: saturate(160%) blur(16px);
+    backdrop-filter: saturate(160%) blur(16px);
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 52px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 11.5px;
+    font-weight: 500;
+  }
+  .tab.on { color: var(--accent); font-weight: 650; }
+  .tab:active { background: var(--bg-hover); }
+  .tab-new {
+    display: grid;
+    place-items: center;
+    justify-self: center;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 4px;
+    border: 0;
+    border-radius: 18px;
+    background: var(--accent-solid);
+    color: #fff;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-solid) 45%, transparent);
+    transition: transform 0.12s var(--ease);
+  }
+  .tab-new:active { transform: scale(0.93); }
+  .fab { display: none; }
+}
+
+/* The "+" chip keeps its icon visible: no side padding squeezing it. */
+.major-chip.major-chip-add { width: 30px; padding: 0; justify-content: center; }
+.major-chip.major-chip-add.empty { width: auto; padding: 0 12px 0 9px; gap: 6px; }
+html[data-text] .major-chip.major-chip-add { width: calc(30px * var(--fs)); }
+html[data-text] .major-chip.major-chip-add.empty { width: auto; }
+@media (max-width: 720px) { .major-chip.major-chip-add { width: 38px; } .major-chip.major-chip-add.empty { width: auto; } }
+
+/* Text size must also reach the more specific task-row rules. */
+html[data-text] .card.box .subtasks-card .sub-row input,
+html[data-text] .card.box .subtasks-card .sub-row textarea,
+html[data-text] .column-wide .column-checklist .subtasks-board .sub-row input,
+html[data-text] .column-wide .column-checklist .subtasks-board .sub-row textarea,
+html[data-text] .column-wide .column-body > .card.box .card-title { font-size: calc(15px * var(--fs)); }
+html[data-text] .card.box .subtasks-card .sub-row,
+html[data-text] .column-wide .column-checklist .subtasks-board .sub-row { min-height: calc(32px * var(--fs)); }

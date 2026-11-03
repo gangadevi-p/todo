@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Check, CalendarDays, CheckSquare, CircleCheck, Columns3, Layers, List, MessageCircleQuestion, PanelLeftOpen, Plus, Sparkles, Sun, Trash2, X,
+  Check, CalendarDays, CheckSquare, CircleCheck, Columns3, Layers, List, MessageCircleQuestion, PanelLeftOpen, Plus, Search, Sparkles, Sun, Trash2, X,
 } from 'lucide-react';
 import {
-  confirmDeleteSelection, confirmDeleteTasks, getSpace, markSelectionDone, openEditProject, openMobileNav, openNewTask, openPlan, openQA, parseSelectionKey, renameProject, setPref, setProjectMode,
+  confirmDeleteSelection, confirmDeleteTasks, getSpace, markSelectionDone, openEditProject, openMobileNav, openNewTask, openPlan, openQA, openSearch, parseSelectionKey, renameProject, setPref, setProjectMode,
   updateProject, setSectionMode, setSelecting, useUI,
 } from '../store';
 import { Board } from './Board';
@@ -18,6 +18,9 @@ import { textStyleProps } from '../lib/textStyle';
 import { activeMajorId, applyStatsFilter, shownMajors } from '../lib/views';
 import { addForPage, isMajorBoard } from '../lib/pageAdd';
 
+const VIEW_COVER = {
+  today: 'var(--ic-today)', upcoming: 'var(--ic-upcoming)', all: 'var(--ic-all)', completed: 'var(--ic-completed)', trash: 'var(--ic-trash)', qa: 'var(--ic-qa)',
+};
 const VIEW_ICONS = { today: Sun, upcoming: CalendarDays, all: Layers, completed: CircleCheck, trash: Trash2, qa: MessageCircleQuestion };
 
 /** Narrows a project's groups down to a single major task (and everything nested under it). */
@@ -130,7 +133,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
           className={!isBoard ? 'on' : ''}
           onClick={() => setMode('list')}
         >
-          <List size={14} strokeWidth={1.9} />
+          <List size={14} strokeWidth={1.9} /><span className="seg-label">List</span>
         </button>
         <button
           type="button"
@@ -141,7 +144,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
           className={isBoard ? 'on' : ''}
           onClick={() => setMode('board')}
         >
-          <Columns3 size={14} strokeWidth={1.9} />
+          <Columns3 size={14} strokeWidth={1.9} /><span className="seg-label">Board</span>
         </button>
       </div>
       <button
@@ -152,7 +155,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
         disabled={model.taskIds.length === 0}
         onClick={() => setSelecting(true, filteredModel.taskIds)}
       >
-        <CheckSquare size={14} strokeWidth={1.9} />
+        <CheckSquare size={14} strokeWidth={1.9} /><span className="seg-label">Select</span>
       </button>
       <button
         type="button"
@@ -168,7 +171,7 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
   );
 
   return (
-    <main className="main" id="main" tabIndex={-1}>
+    <main className="main" id="main" tabIndex={-1} style={{ '--cover': model.project?.color || VIEW_COVER[model.kind] || 'var(--accent)' }}>
       <div className={`topbar drag-region${scrolled ? ' scrolled' : ''}`}>
         {sidebarCollapsed && (
           <button type="button" className="icon-btn no-drag" aria-label="Show sidebar" onClick={() => (isMobile ? openMobileNav() : setPref('sidebarCollapsed', false))}>
@@ -179,6 +182,11 @@ export function MainView({ model, sidebarCollapsed, isMobile = false }) {
           <ViewIcon model={model} size={14} />
           <span>{model.title}</span>
         </div>
+        {isMobile && (
+          <button type="button" className="icon-btn no-drag topbar-search" aria-label="Search" onClick={() => openSearch()}>
+            <Search size={19} strokeWidth={1.9} />
+          </button>
+        )}
       </div>
 
       <div className="main-scroll" ref={scrollRef} onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 40)}>

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Plus } from 'lucide-react';
 import {
   closeMobileNav, data, removeSubtask, requestDeleteTask, duplicateTask, hidePreview, navigate, openNewTask, openPlan, openQA, openSearch, selectTask,
   setHelp, setPref, setSelecting, toggleComplete, toggleToday, ui, undoLast, updateTask, useData, useUI,
@@ -16,6 +15,7 @@ import { MenuLayer } from './components/MenuLayer';
 import { ConfirmDialog, SearchPalette, ShortcutsHelp } from './components/Overlays';
 import { TaskPreview } from './components/TaskPreview';
 import { PopupHost } from './components/Popups';
+import { MobileTabBar } from './components/MobileTabBar';
 
 // A stable empty list, so a selector that falls back to it never changes between renders.
 const NO_QA = [];
@@ -164,6 +164,13 @@ export default function App() {
     else document.documentElement.removeAttribute('data-theme');
   }, [prefs.theme]);
 
+  // Text size (Normal / Large / Extra large) scales the whole interface through CSS.
+  useEffect(() => {
+    const size = prefs.textSize;
+    if (size === 'large' || size === 'xl') document.documentElement.setAttribute('data-text', size);
+    else document.documentElement.removeAttribute('data-text');
+  }, [prefs.textSize]);
+
   // The view may point at a project that was just deleted.
   useEffect(() => {
     if (model.id !== view) navigate(model.id);
@@ -231,11 +238,7 @@ export default function App() {
         <div className="workspace">
           <MainView model={model} sidebarCollapsed={isMobile && !mobileNavOpen} isMobile={isMobile} />
         </div>
-        {isMobile && !mobileNavOpen && (
-          <button type="button" className="fab" aria-label="New task" onClick={() => openNewTask()}>
-            <Plus size={26} strokeWidth={2.2} />
-          </button>
-        )}
+        {isMobile && !mobileNavOpen && <MobileTabBar view={model.id} />}
         <PopupHost />
         <SearchPalette />
         <ShortcutsHelp />

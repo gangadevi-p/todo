@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import {
-  CalendarDays, CircleCheck, CircleHelp, Download, Ellipsis, Eraser, Inbox, Layers, MessageCircleQuestion, Moon, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Search, Sun, Trash2, Upload, UserRound,
+  CalendarDays, CircleCheck, CircleHelp, Download, Ellipsis, Eraser, Inbox, Layers, MessageCircleQuestion, Moon, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Search, Sun, Trash2, Type, Upload, UserRound,
 } from 'lucide-react';
 import {
   askConfirm, closeMobileNav, confirmDeleteAll, exportData, flushSave, getSpace, importData, deleteProject, findTask, navigate, openMenu, openNewProject, openSearch, placeProject, renameProject,
@@ -83,6 +83,12 @@ function useTaskTarget(patchFor) {
     },
   ];
 }
+
+const TEXT_SIZES = {
+  normal: { label: 'Normal', next: 'large' },
+  large: { label: 'Large', next: 'xl' },
+  xl: { label: 'Extra large', next: 'normal' },
+};
 
 function NavItem({ item, active, count, rail }) {
   const [over, dropProps] = useTaskTarget(item.drop);
@@ -200,6 +206,7 @@ export function Sidebar({ view, isMobile = false, collapsed = false }) {
   const qa = useData((s) => s.qa || NO_QA);
   const editingId = useUI((u) => u.editingProjectId);
   const theme = useData((s) => s.prefs.theme);
+  const textSize = useData((s) => s.prefs.textSize) || 'normal';
   const effectiveTheme = useEffectiveTheme(theme);
   const today = useToday();
   const [projectDrop, setProjectDrop] = useState(null); // { id, side }
@@ -271,6 +278,15 @@ export function Sidebar({ view, isMobile = false, collapsed = false }) {
           <span className="brand-name">{getSpace() === 'demo' ? DEMO_NAME : "Gani's Work"}</span>
         </div>
         <div className="sidebar-top-actions">
+          <button
+            type="button"
+            className="icon-btn no-drag sidebar-textsize"
+            aria-label={`Text size: ${TEXT_SIZES[textSize].label}. Change`}
+            title={`Text size: ${TEXT_SIZES[textSize].label}`}
+            onClick={() => setPref('textSize', TEXT_SIZES[textSize].next)}
+          >
+            <Type size={16} strokeWidth={1.8} />
+          </button>
           <button
             type="button"
             className="icon-btn no-drag sidebar-theme"
